@@ -17,6 +17,8 @@ class _HomePageState extends State<HomePage> {
         slivers: [
           // to be continued..
           SliverAppBar(),
+          SliverAppBar(),
+          SliverAppBar(),
         ],
       ),
     );
