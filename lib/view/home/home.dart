@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wanderhuman_app/view/home/widgets/home-appbar.dart';
+import 'package:wanderhuman_app/view/home/widgets/home_appbar.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
