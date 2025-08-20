@@ -52,9 +52,13 @@ class _HomeAppBarState extends State<HomeAppBar> {
             left: 20,
             right: 20,
           ),
+          padding: EdgeInsets.only(bottom: 5.0),
           decoration: BoxDecoration(color: Colors.blue),
-          child: Text(
-            "Placeholder text hewihhwb akjdbajb ajbdajwbdja abdab ajwbdjkwbaj waa d awbadba dakjbdkaj",
+          child: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: Text(
+              "Placeholder text hewihhwb akjdbajb ajbdajwbdja abdab ajwbdjkwbaj waa d awbadba dakjbdkaj",
+            ),
           ),
         ),
         // title: Text(

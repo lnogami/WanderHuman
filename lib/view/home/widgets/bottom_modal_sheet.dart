@@ -158,7 +158,7 @@ Row shortTextLayouter({
   required String dynamicText,
   // temporary font family yet
   String fontFamily = MyFontFam.iansui,
-  double constFontSize = 14,
+  double constFontSize = 13.5,
 }) {
   return Row(
     children: [
@@ -166,14 +166,14 @@ Row shortTextLayouter({
         "$constText: ",
         style: TextStyle(
           fontSize: constFontSize,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w600,
           letterSpacing: 1.2,
         ),
       ),
       Text(
         dynamicText,
         style: TextStyle(
-          fontSize: 14,
+          fontSize: 13.7,
           fontWeight: FontWeight.w400,
           letterSpacing: 1.2,
           // temporary font family yet
@@ -202,7 +202,7 @@ Container detailsWithLongTextLayouter(
   BuildContext context,
   String constText,
   String dynamicText, {
-  double constFontSize = 14,
+  double constFontSize = 13.5,
   double containerHeight = 50,
   bool noBorder = false,
 }) {
@@ -218,7 +218,7 @@ Container detailsWithLongTextLayouter(
           "$constText: ",
           style: TextStyle(
             fontSize: constFontSize,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
             letterSpacing: 1.2,
           ),
           softWrap: true,
@@ -233,17 +233,20 @@ Container detailsWithLongTextLayouter(
           width:
               MyDimensionAdapter.getWidth(context) -
               (constText.length * 10) -
-              ((noBorder) ? 20 : 40),
+              ((noBorder) ? 20 : 45),
           height: containerHeight,
-          child: Text(
-            // this is the dynamic text
-            dynamicText,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              letterSpacing: 1.1,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: Text(
+              // this is the dynamic text
+              dynamicText,
+              style: TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w400,
+                letterSpacing: 1.1,
+              ),
+              softWrap: true,
             ),
-            softWrap: true,
           ),
         ),
       ],
