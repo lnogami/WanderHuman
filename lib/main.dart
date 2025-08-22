@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:wanderhuman_app/utilities/color_palette.dart';
 import 'package:wanderhuman_app/view/home/home.dart';
+import 'package:wanderhuman_app/view/home/widgets/map_body.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Load environment variables from .env file
+  await dotenv.load(fileName: ".env");
   runApp(const MainApp());
 }
 
@@ -26,6 +31,7 @@ class MainApp extends StatelessWidget {
           // You can add more styles if needed
         ),
       ),
+      // home: MapBody(),
       home: HomePage(),
     );
   }

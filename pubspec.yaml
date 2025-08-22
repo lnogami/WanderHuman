@@ -9,6 +9,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_dotenv: ^5.2.1
+  geolocator: ^14.0.2
+  mapbox_maps_flutter: ^2.10.0
 
 dev_dependencies:
   flutter_test:
@@ -16,6 +19,8 @@ dev_dependencies:
   flutter_lints: ^5.0.0
 
 flutter:
+  assets:
+    - .env
   uses-material-design: true
   fonts:
     - family: Poppins
@@ -38,8 +43,6 @@ flutter:
         - asset: assets\fonts\poppins\Poppins-Bold.ttf
           style: normal
           weight: 700
-          
-          # weight: 700
     - family: Iansui
       fonts:
         - asset: assets\fonts\Iansui\Iansui-Regular.ttf

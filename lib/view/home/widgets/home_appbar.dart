@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/home/widgets/bottom_modal_sheet.dart';
 
@@ -32,7 +33,8 @@ class _HomeAppBarState extends State<HomeAppBar> {
         SizedBox(width: 20),
       ],
       title: Text(
-        "Hello!",
+        // "Hello!",
+        "${dotenv.env['SAMPLE_TEXT']}",
         style: TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.bold,
