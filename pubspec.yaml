@@ -21,6 +21,8 @@ dev_dependencies:
 flutter:
   assets:
     - .env
+    - assets/icons/
+    - assets/icons/location_marker.png
   uses-material-design: true
   fonts:
     - family: Poppins

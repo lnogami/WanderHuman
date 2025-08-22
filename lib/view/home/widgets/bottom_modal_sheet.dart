@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wanderhuman_app/utilities/color_palette.dart';
 import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/font_family.dart';
 
@@ -20,6 +21,7 @@ void bottomModalSheet(BuildContext context) {
       thirdContainerDistanceFromTheTop + thirdContainerHeight;
 
   showModalBottomSheet(
+    backgroundColor: Colors.white70,
     context: context,
     builder: (context) {
       return Container(
@@ -42,7 +44,8 @@ void bottomModalSheet(BuildContext context) {
                 child: Container(
                   width: MyDimensionAdapter.getWidth(context) * 0.4,
                   height: 8,
-                  color: Colors.grey[350],
+                  // color: Colors.grey[350],
+                  color: MyColorPalette.darkBlue,
                 ),
               ),
             ),

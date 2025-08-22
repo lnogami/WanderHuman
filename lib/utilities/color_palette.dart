@@ -4,5 +4,5 @@ import 'package:flutter/material.dart';
 /// This class provides a centralized place to manage colors used in the app.
 class MyColorPalette {
   static const Color fontColorB = Color.fromARGB(255, 30, 30, 30);
-  static const Color darkBlue = Color.fromARGB(255, 1, 42, 146);
+  static const Color darkBlue = Color.fromARGB(255, 5, 63, 208);
 }

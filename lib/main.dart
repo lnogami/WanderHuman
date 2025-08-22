@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:wanderhuman_app/utilities/color_palette.dart';
 import 'package:wanderhuman_app/view/home/home.dart';
-import 'package:wanderhuman_app/view/home/widgets/map_body.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
