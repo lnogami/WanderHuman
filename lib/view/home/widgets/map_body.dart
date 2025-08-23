@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -46,7 +44,7 @@ class _MapBodyState extends State<MapBody> {
     return mp.MapWidget(
       onMapCreated: _onMapCreated,
       // this is the style of the map
-      styleUri: mp.MapboxStyles.LIGHT,
+      styleUri: mp.MapboxStyles.SATELLITE_STREETS,
     );
   }
 
@@ -59,24 +57,6 @@ class _MapBodyState extends State<MapBody> {
     mapboxMapController?.location.updateSettings(
       mp.LocationComponentSettings(enabled: true, pulsingEnabled: true),
     );
-
-    // logic for adding annotations (marker)
-    final pointAnnotationManager = await mapboxMapController?.annotations
-        .createPointAnnotationManager();
-    final Uint8List imageData = await loadHQMarkerImage();
-    mp.PointAnnotationOptions pointAnnotationOptions =
-        mp.PointAnnotationOptions(
-          image: imageData,
-          iconSize: 1.0,
-          geometry: mp.Point(
-            coordinates: mp.Position(
-              // temporary coordinates
-              myPosition!.longitude,
-              myPosition!.latitude,
-            ),
-          ),
-        );
-    pointAnnotationManager?.create(pointAnnotationOptions);
   }
 
   //------------------------------------------------------------------------------
@@ -116,11 +96,17 @@ class _MapBodyState extends State<MapBody> {
       distanceFilter: 100,
     );
 
+    /*
+      this is stream, meaning it is listening to the user's location changes
+
+      .cacel() stops the process then rerun again with an updated 
+      gl.Geolocator.getPositionStream(...)
+    */
     userPositionStream?.cancel();
     userPositionStream =
         gl.Geolocator.getPositionStream(
           locationSettings: locationSettings,
-        ).listen((gl.Position? position) {
+        ).listen((gl.Position? position) async {
           if (position != null && mapboxMapController != null) {
             // print(position);
             // temporary
@@ -136,15 +122,54 @@ class _MapBodyState extends State<MapBody> {
                 ),
               ),
             );
+
+            /* 
+              logic for adding annotations (marker),
+              diri sya ibutang para marender sya if naa nay narender nga
+              map og user postion
+            */
+            final pointAnnotationManager = await mapboxMapController
+                ?.annotations
+                .createPointAnnotationManager();
+            final Uint8List imageData = await loadHQMarkerImage();
+            mp.PointAnnotationOptions
+            pointAnnotationOptions = mp.PointAnnotationOptions(
+              // image: imageData,
+              //// temporary (deletable)
+              iconImage: "marker",
+              iconSize: 3.0,
+              // icon color is still static because I used a png image as marker
+              iconColor: Colors.blue.toARGB32(),
+              // iconColor: const Color(0xFFFF5722).toARGB32(),
+              // THIS IS A PATIENT NAME
+              textField: "Hori Zontal",
+              textSize: 12.5,
+              textColor: Colors.blue.toARGB32(),
+              textOcclusionOpacity: 1,
+              isDraggable: true,
+              textAnchor: mp.TextAnchor.BOTTOM,
+              textOffset: [0, -1.2],
+              geometry: mp.Point(
+                coordinates: mp.Position(
+                  // THIS IS THE PATIENTS CURRENT COORDINATES
+                  // temporary coordinates
+                  myPosition!.longitude,
+                  myPosition!.latitude,
+                ),
+              ),
+            );
+            pointAnnotationManager?.create(pointAnnotationOptions);
+            // pointAnnotationManager?.createMulti(list of pointAnnotationOptions);
           }
         });
   }
 
-  // this will convert the image to Uint8List
-  // so that it can be used as an icon for the marker
+  /*
+    this will convert the image to Uint8List
+    so that it can be used as an icon for the marker
+  */
   Future<Uint8List> loadHQMarkerImage() async {
     var byteData = await rootBundle.load("assets/icons/pin.png");
-    print('TTTTTTTTTTTTTTTTTTLoaded image bytes: ${byteData.lengthInBytes}');
     return byteData.buffer.asUint8List();
   }
 }
