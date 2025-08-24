@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart' as gl;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mp;
+import 'package:wanderhuman_app/view/home/widgets/bottom_modal_sheet.dart';
 
 class MapBody extends StatefulWidget {
   const MapBody({super.key});
@@ -57,6 +58,32 @@ class _MapBodyState extends State<MapBody> {
     mapboxMapController?.location.updateSettings(
       mp.LocationComponentSettings(enabled: true, pulsingEnabled: true),
     );
+
+    // scaleBar indicator, indicator of how much the map is zoomed in/out
+    mapboxMapController!.scaleBar.updateSettings(
+      mp.ScaleBarSettings(
+        enabled: true,
+        position: mp.OrnamentPosition.BOTTOM_RIGHT,
+        primaryColor: Colors.blue.toARGB32(),
+        showTextBorder: true,
+        textColor: Colors.blue.toARGB32(),
+        borderWidth: 1,
+        textBorderWidth: 0.2,
+        marginBottom: 8,
+      ),
+    );
+
+    // the stroked i icon next to MapBox icon
+    mapboxMapController!.attribution.updateSettings(
+      mp.AttributionSettings(
+        iconColor: const Color.fromARGB(100, 33, 149, 243).toARGB32(),
+      ),
+    );
+
+    // I AM NOT ALLOWED TO HIDE THE MAPBOX LOGO BECAUSE IT'S IN SERVICE TERMS AND POLICES
+    // mapboxMapController!.logo.updateSettings(mp.LogoSettings(
+    //
+    // ));
   }
 
   //------------------------------------------------------------------------------
@@ -131,16 +158,21 @@ class _MapBodyState extends State<MapBody> {
             final pointAnnotationManager = await mapboxMapController
                 ?.annotations
                 .createPointAnnotationManager();
-            final Uint8List imageData = await loadHQMarkerImage();
+            // load image as the marker
+            final Uint8List imageData = await imageToIconLoader(
+              // "assets/icons/isagi.jpg",
+              "assets/icons/pin.png",
+            );
+            ///// final Uint8List imageData = await converter();
+            // define markers
             mp.PointAnnotationOptions
             pointAnnotationOptions = mp.PointAnnotationOptions(
-              // image: imageData,
-              //// temporary (deletable)
-              iconImage: "marker",
-              iconSize: 3.0,
+              image: imageData,
+              ///// temporary (deletable)
+              ///// iconImage: "marker",
+              iconSize: 0.15,
               // icon color is still static because I used a png image as marker
               iconColor: Colors.blue.toARGB32(),
-              // iconColor: const Color(0xFFFF5722).toARGB32(),
               // THIS IS A PATIENT NAME
               textField: "Hori Zontal",
               textSize: 12.5,
@@ -158,18 +190,41 @@ class _MapBodyState extends State<MapBody> {
                 ),
               ),
             );
+
+            // add the marker to the map
             pointAnnotationManager?.create(pointAnnotationOptions);
             // pointAnnotationManager?.createMulti(list of pointAnnotationOptions);
+
+            pointAnnotationManager?.tapEvents(
+              onTap: (mp.PointAnnotation tappedAnnotation) {
+                bottomModalSheet(context);
+              },
+            );
+
+            ///// the code below is experimental (deletable)
+            // if (myPosition!.longitude != position.longitude &&
+            //     myPosition!.latitude != position.latitude &&
+            //     pointAnnotationManager != null) {
+            //   pointAnnotationManager.delete(pointAnnotationOptions);
+            // }
           }
         });
   }
+
+  //// // this is a helper function to convert the image to Uint8List
+  //// Future< Uint8List> converter() {
+  ////  var cs = CustomMapMarker(
+  ////     imagePath: "assets/icons/pin.png",
+  ////   ).loadHQMarkerImage();
+  ////   return cs;
+  //// }
 
   /*
     this will convert the image to Uint8List
     so that it can be used as an icon for the marker
   */
-  Future<Uint8List> loadHQMarkerImage() async {
-    var byteData = await rootBundle.load("assets/icons/pin.png");
+  Future<Uint8List> imageToIconLoader(String imagePath) async {
+    var byteData = await rootBundle.load(imagePath);
     return byteData.buffer.asUint8List();
   }
 }
