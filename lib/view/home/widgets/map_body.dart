@@ -195,18 +195,12 @@ class _MapBodyState extends State<MapBody> {
             pointAnnotationManager?.create(pointAnnotationOptions);
             // pointAnnotationManager?.createMulti(list of pointAnnotationOptions);
 
+            // setting tap events to the marker
             pointAnnotationManager?.tapEvents(
               onTap: (mp.PointAnnotation tappedAnnotation) {
                 bottomModalSheet(context);
               },
             );
-
-            ///// the code below is experimental (deletable)
-            // if (myPosition!.longitude != position.longitude &&
-            //     myPosition!.latitude != position.latitude &&
-            //     pointAnnotationManager != null) {
-            //   pointAnnotationManager.delete(pointAnnotationOptions);
-            // }
           }
         });
   }
