@@ -5,6 +5,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart' as gl;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mp;
 import 'package:wanderhuman_app/view/home/widgets/bottom_modal_sheet.dart';
+import 'package:wanderhuman_app/view/home/widgets/show_alert_dialog.dart';
 
 class MapBody extends StatefulWidget {
   const MapBody({super.key});
@@ -80,10 +81,21 @@ class _MapBodyState extends State<MapBody> {
       ),
     );
 
-    // I AM NOT ALLOWED TO HIDE THE MAPBOX LOGO BECAUSE IT'S IN SERVICE TERMS AND POLICES
-    // mapboxMapController!.logo.updateSettings(mp.LogoSettings(
-    //
-    // ));
+    // the compass icon in the map that only appears if the map is tilted
+    mapboxMapController!.compass.updateSettings(
+      mp.CompassSettings(marginTop: 80, marginRight: 15, opacity: 0.70),
+    );
+
+    // I AM NOT ALLOWED TO HIDE THE MAPBOX LOGO BECAUSE IT'S IN SERVICE TERMS AND POLICES.
+
+    bool isLocationServiceEnabled =
+        await gl.Geolocator.isLocationServiceEnabled();
+
+    // mounted refers to if the widget is still on the tree
+    if (mounted) {
+      // code to be added here to make this code appear again if the Location is still turned off.
+      showAlertDialog(context, isLocationServiceEnabled);
+    }
   }
 
   //------------------------------------------------------------------------------
@@ -100,6 +112,7 @@ class _MapBodyState extends State<MapBody> {
     }
 
     gl.LocationPermission permission = await gl.Geolocator.checkPermission();
+
     if (permission == gl.LocationPermission.denied) {
       // this will popup a message dialog requesting for permission
       permission = await gl.Geolocator.requestPermission();
@@ -115,7 +128,6 @@ class _MapBodyState extends State<MapBody> {
       return Future.error(
         "Location permissions are permanently denied, we cannot request permissions.",
       );
-      // return;
     }
     // Permissions are granted, proceed with location functionality
     gl.LocationSettings locationSettings = gl.LocationSettings(
