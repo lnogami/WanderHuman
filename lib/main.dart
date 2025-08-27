@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:wanderhuman_app/firebase_options.dart';
 import 'package:wanderhuman_app/utilities/color_palette.dart';
-import 'package:wanderhuman_app/view/home/home.dart';
 import 'package:wanderhuman_app/view/login/login.dart';
 
 void main() async {
@@ -25,6 +24,12 @@ class MainApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        // affects app bar, etc.
+        primaryColor: Colors.blue,
+        // this affects highlighted components, such as a TextField with focus, etc.
+        colorScheme: ColorScheme.fromSwatch().copyWith(secondary: Colors.blue),
+        // affects the scaffold's background
+        scaffoldBackgroundColor: Colors.white,
         fontFamily: 'Poppins',
         textTheme: TextTheme(
           bodyLarge: TextStyle(
@@ -33,7 +38,6 @@ class MainApp extends StatelessWidget {
           bodyMedium: TextStyle(
             color: MyColorPalette.fontColorB,
           ), // For smaller text
-          // You can add more styles if needed
         ),
       ),
       // home: MapBody(),

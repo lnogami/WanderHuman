@@ -1,8 +1,7 @@
-import 'dart:math' as Math;
-
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/login/widgets/layout_material.dart';
+import 'package:wanderhuman_app/view/login/widgets/textfield.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -10,6 +9,9 @@ class LoginPage extends StatefulWidget {
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
+
+TextEditingController usernameController = TextEditingController();
+TextEditingController passwordController = TextEditingController();
 
 class _LoginPageState extends State<LoginPage> {
   @override
@@ -78,7 +80,7 @@ class _LoginPageState extends State<LoginPage> {
             MyLayoutMaterial(
               distanceFromTop: 300,
               heightPercentage: 0.7,
-              color: const Color.fromARGB(118, 76, 175, 79),
+              // color: const Color.fromARGB(118, 76, 175, 79),
               isRotatable: false,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -86,6 +88,18 @@ class _LoginPageState extends State<LoginPage> {
                   Text("Hellooo"),
                   Text("World!!!"),
                   Text("We love Flutter!"),
+                  MyCustTextfield(
+                    textController: usernameController,
+                    prefixIcon: Icons.person_rounded,
+                    labelText: "Username",
+                    hintText: "Username...",
+                  ),
+                  SizedBox(height: 10),
+                  MyCustTextfield(
+                    textController: passwordController,
+                    prefixIcon: Icons.key_rounded,
+                    labelText: "Password",
+                  ),
                 ],
               ),
             ),

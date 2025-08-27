@@ -12,11 +12,11 @@ class MyLayoutMaterial extends StatelessWidget {
   /// Used with isSquare = true
   final double? isSquareSize;
 
-  /// Tthe width is automatically adjust base on the screensize, so the widthPercentage is the ratio of how much of the screen you want to occupy.
-  final double? widthPercentage;
+  /// The width is automatically adjusted base on the screensize, so the widthPercentage is the ratio of how much of the screen you want to occupy.
+  final double widthPercentage;
 
-  /// The height is automatically adjust base on the screensize, so the heightPercentage is the ratio of how much of the screen you want to occupy.
-  final double? heightPercentage;
+  /// The height is automatically adjusted base on the screensize, so the heightPercentage is the ratio of how much of the screen you want to occupy.
+  final double heightPercentage;
   final Color color;
   final double borderRadius;
 
@@ -51,10 +51,10 @@ class MyLayoutMaterial extends StatelessWidget {
       child: Container(
         width: (isSquare)
             ? isSquareSize!
-            : (MyDimensionAdapter.getHeight(context) * widthPercentage!),
+            : (MyDimensionAdapter.getHeight(context) * widthPercentage),
         height: (isSquare)
             ? isSquareSize
-            : (MyDimensionAdapter.getHeight(context) * heightPercentage!),
+            : (MyDimensionAdapter.getHeight(context) * heightPercentage),
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(borderRadius),
