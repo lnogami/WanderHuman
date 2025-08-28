@@ -44,8 +44,8 @@ class MainApp extends StatelessWidget {
       // home: MapBody(),
 
       // home: HomePage(),
-      // home: LoginPage(),
-      home: TemporaryLoginPage(),
+      home: LoginPage(),
+      // home: TemporaryLoginPage(),
     );
   }
 }

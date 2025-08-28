@@ -14,6 +14,10 @@ class MyCustTextfield extends StatelessWidget {
   final String labelText;
   final IconData prefixIcon;
   final Color prefixIconColor;
+  final double borderRadius;
+  final double borderWidth;
+  final Color borderColor;
+  final Color activeBorderColor;
 
   /// This will manage the data the textfield will accept
   final TextEditingController textController;
@@ -29,18 +33,22 @@ class MyCustTextfield extends StatelessWidget {
     required this.prefixIcon,
     this.prefixIconColor = Colors.grey,
     required this.textController,
+    this.borderRadius = 30,
+    this.borderWidth = 1,
+    this.borderColor = Colors.blue,
+    this.activeBorderColor = Colors.blue,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: (isUsingStaticDimension)
           ? MyDimensionAdapter.getWidth(context) * 0.80
           : MyDimensionAdapter.getWidth(context) * widthPercentage,
       height: (isUsingStaticDimension)
           ? 50
           : MyDimensionAdapter.getHeight(context) * heightPercentage,
-      color: Colors.purple.shade200,
+      // color: Colors.purple.shade200,
       child: TextField(
         controller: textController,
 
@@ -65,14 +73,14 @@ class MyCustTextfield extends StatelessWidget {
           // prefixIconConstraints: BoxConstraints.,
           prefixIconColor: prefixIconColor,
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30),
-            borderSide: BorderSide(color: Colors.blue),
+            borderRadius: BorderRadius.circular(borderRadius),
+            borderSide: BorderSide(color: borderColor, width: borderWidth),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30),
+            borderRadius: BorderRadius.circular(borderRadius),
             borderSide: BorderSide(
               color: Theme.of(context).primaryColor,
-              width: 2.5,
+              width: borderWidth + 1.5,
             ),
           ),
         ),
