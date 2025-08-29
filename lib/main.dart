@@ -4,7 +4,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:wanderhuman_app/firebase_options.dart';
 import 'package:wanderhuman_app/utilities/color_palette.dart';
 import 'package:wanderhuman_app/view/login/login.dart';
-import 'package:wanderhuman_app/view/login/temp_login.dart';
 
 void main() async {
   // this will enure that other components are initialized first before running the whole app

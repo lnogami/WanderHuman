@@ -15,60 +15,76 @@ class LoginPage extends StatefulWidget {
 TextEditingController usernameController = TextEditingController();
 TextEditingController passwordController = TextEditingController();
 TextEditingController confirmPasswordController = TextEditingController();
+FocusNode passwordFocusNode = FocusNode();
+// FocusNode confirmPasswordFocusNode = FocusNode();
+
 bool isGoingToSignUp = false;
 double animatedContainerHeight = 0;
 double rotationAngle = 0;
 int animationDuration = 300;
 
 class _LoginPageState extends State<LoginPage> {
+  // to clean after usage
+  @override
+  void dispose() {
+    super.dispose();
+    usernameController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    passwordFocusNode.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: MyDimensionAdapter.getWidth(context),
-        height: MyDimensionAdapter.getHeight(context),
-        color: Colors.amber.shade200,
-        child: Stack(
-          alignment: Alignment.topCenter,
-          children: [
-            MyLayoutMaterial(
-              distanceFromTop: 0,
-              heightPercentage: 0.40,
-              color: Colors.blue.shade500,
-            ),
-            MyLayoutMaterial(
-              distanceFromTop: 210,
-              isSquare: true,
-              isSquareSize: MyDimensionAdapter.getHeight(context) * .65,
-              borderRadius: 120,
-              rotationAngle: -4,
-            ),
-            // this is where the main content is
-            MyLayoutMaterial(
-              distanceFromTop: 300,
-              heightPercentage: 0.7,
-              // color: const Color.fromARGB(118, 76, 175, 79),
-              isRotatable: false,
-              child: loginContentArea(),
-            ),
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: Container(
+          width: MyDimensionAdapter.getWidth(context),
+          height: MyDimensionAdapter.getHeight(context),
+          color: Colors.amber.shade200,
+          child: Stack(
+            alignment: Alignment.topCenter,
+            children: [
+              MyLayoutMaterial(
+                distanceFromTop: 0,
+                heightPercentage: 0.40,
+                color: Colors.blue.shade500,
+              ),
+              MyLayoutMaterial(
+                distanceFromTop: 210,
+                isSquare: true,
+                isSquareSize: MyDimensionAdapter.getHeight(context) * .65,
+                borderRadius: 120,
+                rotationAngle: -4,
+              ),
+              // this is where the main content is
+              MyLayoutMaterial(
+                distanceFromTop: 300,
+                heightPercentage: 0.7,
+                // color: const Color.fromARGB(118, 76, 175, 79),
+                isRotatable: false,
+                child: loginContentArea(),
+              ),
 
-            // this is where the logo will be placed, and be animated if possible
-            Positioned(
-              top: 200,
-              child: ClipRRect(
-                borderRadius: BorderRadiusGeometry.circular(15),
-                child: AnimatedContainer(
-                  width: 100,
-                  height: 100,
-                  transformAlignment: Alignment.center,
-                  transform: Matrix4.rotationZ(rotationAngle),
-                  color: Colors.green,
-                  duration: Duration(milliseconds: animationDuration),
-                  // onEnd: () {},
+              // this is where the logo will be placed, and be animated if possible
+              Positioned(
+                top: 200,
+                child: ClipRRect(
+                  borderRadius: BorderRadiusGeometry.circular(15),
+                  child: AnimatedContainer(
+                    width: 100,
+                    height: 100,
+                    transformAlignment: Alignment.center,
+                    transform: Matrix4.rotationZ(rotationAngle),
+                    color: Colors.green,
+                    duration: Duration(milliseconds: animationDuration),
+                    // onEnd: () {},
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -92,6 +108,8 @@ class _LoginPageState extends State<LoginPage> {
           prefixIcon: Icons.key_rounded,
           labelText: "Password",
           borderRadius: 10,
+          focusNode: passwordFocusNode,
+          isPasswordField: true,
         ),
         AnimatedContainer(
           // width: 0,
@@ -177,8 +195,13 @@ class _LoginPageState extends State<LoginPage> {
     return MyCustButton(
       onTap: () {
         setState(() {
+          // requestFocus() para mabalhin ang focus sa textfield before sya ma render out.
+          passwordFocusNode.requestFocus();
           isGoingToSignUp = !isGoingToSignUp;
           animatedContainerHeight = 0;
+          usernameController.clear();
+          passwordController.clear();
+          confirmPasswordController.clear();
         });
       },
       buttonText: "CANCEL",
