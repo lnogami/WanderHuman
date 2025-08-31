@@ -21,6 +21,7 @@ class MyCustTextfield extends StatefulWidget {
   final FocusNode? focusNode;
   final bool isPasswordField;
   final Color color;
+  final IconData? suffixIcon;
 
   /// This will manage the data the textfield will accept
   final TextEditingController textController;
@@ -43,6 +44,7 @@ class MyCustTextfield extends StatefulWidget {
     this.focusNode,
     this.isPasswordField = false,
     this.color = Colors.transparent,
+    this.suffixIcon,
   });
 
   @override
@@ -69,7 +71,16 @@ class _MyCustTextfieldState extends State<MyCustTextfield> {
         obscuringCharacter: "*",
         decoration: InputDecoration(
           labelText: widget.labelText,
-          hintText: (widget.hintText != null) ? widget.hintText : "",
+          // hint text, example: inogami@gmail.com
+          hint: (widget.hintText != null)
+              ? Text(
+                  widget.hintText!,
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontStyle: FontStyle.italic,
+                  ),
+                )
+              : Text(""),
           alignLabelWithHint: true,
           filled: true,
           contentPadding: const EdgeInsets.only(top: 3, right: 3, bottom: 5),
@@ -87,7 +98,13 @@ class _MyCustTextfieldState extends State<MyCustTextfield> {
             },
             child: (widget.isPasswordField)
                 ? EyeCon(isPasswordVisible: _isObscurePassword)
-                : Icon(Icons.circle, color: widget.color),
+                : Icon(
+                    widget.suffixIcon,
+                    color: (widget.suffixIcon != null)
+                        ? widget.color
+                        : Colors.transparent,
+                    blendMode: BlendMode.src,
+                  ),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(widget.borderRadius),

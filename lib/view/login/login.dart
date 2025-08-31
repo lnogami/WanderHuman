@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/utilities/color_palette.dart';
 import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
@@ -12,8 +13,10 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
-TextEditingController usernameController = TextEditingController();
+// mainly for login
+TextEditingController emailController = TextEditingController();
 TextEditingController passwordController = TextEditingController();
+// mainly for signup
 TextEditingController confirmPasswordController = TextEditingController();
 FocusNode passwordFocusNode = FocusNode();
 // FocusNode confirmPasswordFocusNode = FocusNode();
@@ -24,11 +27,25 @@ double rotationAngle = 0;
 int animationDuration = 300;
 
 class _LoginPageState extends State<LoginPage> {
+  Future<void> createUserWithEmailAndPassword() async {
+    try {
+      final UserCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+            email: emailController.text.trim(),
+            password: passwordController.text.trim(),
+          );
+
+      print(UserCredential);
+    } on FirebaseAuthException catch (e) {
+      print(e.message);
+    }
+  }
+
   // to clean after usage
   @override
   void dispose() {
     super.dispose();
-    usernameController.dispose();
+    emailController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
     passwordFocusNode.dispose();
@@ -90,16 +107,20 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  /* 
+    This is where all the login related Widgets are put together. 
+    Scaffold > GestureDetector > MyLayoutMaterial > loginContentArea
+  */
   Column loginContentArea() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
         SizedBox(height: 30),
         MyCustTextfield(
-          textController: usernameController,
+          textController: emailController,
           prefixIcon: Icons.person_rounded,
-          labelText: "Username",
-          hintText: "Username...",
+          labelText: "Email",
+          hintText: "inogami@gmail.com",
           borderRadius: 10,
         ),
         SizedBox(height: 10),
@@ -155,6 +176,7 @@ class _LoginPageState extends State<LoginPage> {
   MyCustButton confirmSignUpButton() {
     return MyCustButton(
       onTap: () {
+        createUserWithEmailAndPassword();
         print("CONFIRM SIGNUP BUTTON PRESSEDDDDDDDDDDDDDDDDDDDDDDDDDD");
       },
       buttonText: "CONFIRM SIGNUP",
@@ -199,7 +221,7 @@ class _LoginPageState extends State<LoginPage> {
           passwordFocusNode.requestFocus();
           isGoingToSignUp = !isGoingToSignUp;
           animatedContainerHeight = 0;
-          usernameController.clear();
+          emailController.clear();
           passwordController.clear();
           confirmPasswordController.clear();
         });
