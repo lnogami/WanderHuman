@@ -1,8 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:wanderhuman_app/firebase_options.dart';
 import 'package:wanderhuman_app/utilities/color_palette.dart';
+import 'package:wanderhuman_app/view/home/home.dart';
 import 'package:wanderhuman_app/view/login/login.dart';
 
 void main() async {
@@ -40,10 +42,21 @@ class MainApp extends StatelessWidget {
           ), // For smaller text
         ),
       ),
-      // home: MapBody(),
 
-      // home: HomePage(),
-      home: LoginPage(),
+      // home: MapBody(),
+      home: StreamBuilder(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, asyncSnapshot) {
+          if (asyncSnapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (asyncSnapshot.data != null) {
+            return HomePage();
+          } else {
+            return LoginPage();
+          }
+        },
+      ),
       // home: TemporaryLoginPage(),
     );
   }

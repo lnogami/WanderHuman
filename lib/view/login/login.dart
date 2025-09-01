@@ -18,7 +18,12 @@ TextEditingController emailController = TextEditingController();
 TextEditingController passwordController = TextEditingController();
 // mainly for signup
 TextEditingController confirmPasswordController = TextEditingController();
+
 FocusNode passwordFocusNode = FocusNode();
+// error notifier
+Color emailFieldColor = Colors.blue;
+Color passwordFieldColor = Colors.blue;
+
 // FocusNode confirmPasswordFocusNode = FocusNode();
 
 bool isGoingToSignUp = false;
@@ -27,18 +32,83 @@ double rotationAngle = 0;
 int animationDuration = 300;
 
 class _LoginPageState extends State<LoginPage> {
-  Future<void> createUserWithEmailAndPassword() async {
+  // FOR LOGIN
+  Future<void> signInWithEmailAndPassword() async {
     try {
-      final UserCredential = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(
+      final userCredential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(
             email: emailController.text.trim(),
             password: passwordController.text.trim(),
           );
-
-      print(UserCredential);
+      print("LOGGED IN: $userCredential");
     } on FirebaseAuthException catch (e) {
       print(e.message);
     }
+  }
+
+  // FOR SIGN UP
+  Future<void> createUserWithEmailAndPassword() async {
+    try {
+      // final password = passwordController.text.trim();
+      // final confirmPassword = confirmPasswordController.text.trim();
+
+      // if (password.length <= 6) {
+      //   print("Password is too weak");
+      // }
+
+      // validates if the password and comfirmPassword contains the same value
+      if (passwordController.text.trim() ==
+          confirmPasswordController.text.trim()) {
+        final userCredential = await FirebaseAuth.instance
+            .createUserWithEmailAndPassword(
+              email: emailController.text.trim(),
+              password: passwordController.text.trim(),
+            );
+        print("SIGNED UP: $userCredential");
+      }
+    } on FirebaseAuthException catch (e) {
+      print(e.message);
+    }
+  }
+
+  // FOR EMAIL INPUT FIELD VALIDATION
+  void _latestValueOnEmailControllerListener() {
+    if (!emailController.text.contains('@')) {
+      setState(() {
+        emailFieldColor = Colors.redAccent;
+      });
+    } else {
+      setState(() {
+        emailFieldColor = Colors.blue;
+      });
+    }
+  }
+
+  // FOR PASSWORD INPUT FIELDS VALIDATION
+  void _latestValueOnConfirmPasswordListener() {
+    if (confirmPasswordController.text.trim() ==
+        passwordController.text.trim()) {
+      setState(() {
+        passwordFieldColor = Colors.blue;
+      });
+      print("PASSWORDS MATCH!");
+    } else {
+      setState(() {
+        passwordFieldColor = Colors.redAccent;
+      });
+      print("PASSWORDS DOES NOT MATCH!");
+    }
+  }
+
+  // to initialize before after usage
+  @override
+  void initState() {
+    super.initState();
+    emailController.addListener(_latestValueOnEmailControllerListener);
+
+    confirmPasswordController.addListener(
+      _latestValueOnConfirmPasswordListener,
+    );
   }
 
   // to clean after usage
@@ -59,7 +129,7 @@ class _LoginPageState extends State<LoginPage> {
         child: Container(
           width: MyDimensionAdapter.getWidth(context),
           height: MyDimensionAdapter.getHeight(context),
-          color: Colors.amber.shade200,
+          // color: Colors.amber.shade200,
           child: Stack(
             alignment: Alignment.topCenter,
             children: [
@@ -94,7 +164,7 @@ class _LoginPageState extends State<LoginPage> {
                     height: 100,
                     transformAlignment: Alignment.center,
                     transform: Matrix4.rotationZ(rotationAngle),
-                    color: Colors.green,
+                    color: Colors.blue,
                     duration: Duration(milliseconds: animationDuration),
                     // onEnd: () {},
                   ),
@@ -122,6 +192,9 @@ class _LoginPageState extends State<LoginPage> {
           labelText: "Email",
           hintText: "inogami@gmail.com",
           borderRadius: 10,
+          // color: emailFieldColor,
+          borderColor: emailFieldColor,
+          activeBorderColor: emailFieldColor,
         ),
         SizedBox(height: 10),
         MyCustTextfield(
@@ -131,6 +204,8 @@ class _LoginPageState extends State<LoginPage> {
           borderRadius: 10,
           focusNode: passwordFocusNode,
           isPasswordField: true,
+          borderColor: passwordFieldColor,
+          activeBorderColor: passwordFieldColor,
         ),
         AnimatedContainer(
           // width: 0,
@@ -143,14 +218,19 @@ class _LoginPageState extends State<LoginPage> {
             prefixIconColor: (animatedContainerHeight == 50 && isGoingToSignUp)
                 ? Colors.grey
                 : Colors.transparent,
+            suffixIconColor: (animatedContainerHeight == 50 && isGoingToSignUp)
+                ? Colors.blue
+                : Colors.transparent,
             labelText: "Confirm Password",
             borderRadius: 10,
             borderWidth: (animatedContainerHeight == 50 && isGoingToSignUp)
                 ? 1
                 : 0,
             borderColor: (animatedContainerHeight == 50 && isGoingToSignUp)
-                ? Colors.blue
+                ? passwordFieldColor
                 : Colors.transparent,
+            activeBorderColor: passwordFieldColor,
+            isPasswordField: true,
           ),
         ),
         SizedBox(height: 20),
@@ -163,7 +243,8 @@ class _LoginPageState extends State<LoginPage> {
 
   MyCustButton loginButton() {
     return MyCustButton(
-      onTap: () {
+      onTap: () async {
+        await signInWithEmailAndPassword();
         print("LOGIN BUTTON PRESSEDDDDDDDDDDDDDDDDDDDDDDDDDD");
       },
       buttonText: "LOGIN",
@@ -175,8 +256,8 @@ class _LoginPageState extends State<LoginPage> {
 
   MyCustButton confirmSignUpButton() {
     return MyCustButton(
-      onTap: () {
-        createUserWithEmailAndPassword();
+      onTap: () async {
+        await createUserWithEmailAndPassword();
         print("CONFIRM SIGNUP BUTTON PRESSEDDDDDDDDDDDDDDDDDDDDDDDDDD");
       },
       buttonText: "CONFIRM SIGNUP",

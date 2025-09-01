@@ -64,7 +64,7 @@ class _MyCustButtonState extends State<MyCustButton> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(widget.borderRadius),
-          splashColor: Colors.purple[200],
+          splashColor: Colors.blue[300],
           onTap: () {
             widget.onTap();
           },

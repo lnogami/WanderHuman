@@ -64,7 +64,7 @@ class _MapBodyState extends State<MapBody> {
     mapboxMapController!.scaleBar.updateSettings(
       mp.ScaleBarSettings(
         enabled: true,
-        position: mp.OrnamentPosition.BOTTOM_RIGHT,
+        position: mp.OrnamentPosition.BOTTOM_LEFT,
         primaryColor: Colors.blue.toARGB32(),
         showTextBorder: true,
         textColor: Colors.blue.toARGB32(),
@@ -74,10 +74,19 @@ class _MapBodyState extends State<MapBody> {
       ),
     );
 
+    // the mapbox logo can be moved, but cannot be hidden as per MapBox's Terms and Policy
+    mapboxMapController!.logo.updateSettings(
+      mp.LogoSettings(
+        position: mp.OrnamentPosition.BOTTOM_RIGHT,
+        marginRight: 25,
+      ),
+    );
+
     // the stroked i icon next to MapBox icon
     mapboxMapController!.attribution.updateSettings(
       mp.AttributionSettings(
         iconColor: const Color.fromARGB(100, 33, 149, 243).toARGB32(),
+        position: mp.OrnamentPosition.BOTTOM_RIGHT,
       ),
     );
 

@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 class EyeCon extends StatefulWidget {
   final bool isPasswordVisible;
   final Color color;
+  final IconData? icon;
 
   /// This my customized Widget
   const EyeCon({
     super.key,
     required this.isPasswordVisible,
     this.color = Colors.blueAccent,
+    this.icon = Icons.visibility_rounded,
   });
 
   @override

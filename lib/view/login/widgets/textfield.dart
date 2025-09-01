@@ -22,6 +22,7 @@ class MyCustTextfield extends StatefulWidget {
   final bool isPasswordField;
   final Color color;
   final IconData? suffixIcon;
+  final Color suffixIconColor;
 
   /// This will manage the data the textfield will accept
   final TextEditingController textController;
@@ -36,6 +37,7 @@ class MyCustTextfield extends StatefulWidget {
     required this.labelText,
     required this.prefixIcon,
     this.prefixIconColor = Colors.grey,
+    this.suffixIconColor = Colors.blue,
     required this.textController,
     this.borderRadius = 30,
     this.borderWidth = 1,
@@ -90,22 +92,26 @@ class _MyCustTextfieldState extends State<MyCustTextfield> {
           ),
           prefixIconConstraints: BoxConstraints.tight(Size(50, 32)),
           prefixIconColor: widget.prefixIconColor,
-          suffixIcon: GestureDetector(
-            onTap: () {
-              setState(() {
-                _isObscurePassword = !_isObscurePassword;
-              });
-            },
-            child: (widget.isPasswordField)
-                ? EyeCon(isPasswordVisible: _isObscurePassword)
-                : Icon(
-                    widget.suffixIcon,
-                    color: (widget.suffixIcon != null)
-                        ? widget.color
-                        : Colors.transparent,
-                    blendMode: BlendMode.src,
-                  ),
-          ),
+          suffixIcon: (widget.suffixIcon != null || widget.isPasswordField)
+              ? GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _isObscurePassword = !_isObscurePassword;
+                    });
+                  },
+                  child: (widget.isPasswordField)
+                      ? EyeCon(
+                          isPasswordVisible: _isObscurePassword,
+                          color: widget.suffixIconColor,
+                        )
+                      : Icon(
+                          widget.suffixIcon,
+                          color: widget.suffixIconColor,
+                          blendMode: BlendMode.src,
+                        ),
+                )
+              : null,
+          suffixIconColor: widget.suffixIconColor,
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(widget.borderRadius),
             borderSide: BorderSide(
@@ -116,7 +122,7 @@ class _MyCustTextfieldState extends State<MyCustTextfield> {
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(widget.borderRadius),
             borderSide: BorderSide(
-              color: Theme.of(context).primaryColor,
+              color: widget.activeBorderColor,
               width: widget.borderWidth + 1.5,
             ),
           ),
