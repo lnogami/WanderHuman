@@ -14,12 +14,12 @@ class LoginPage extends StatefulWidget {
 }
 
 // mainly for login
-TextEditingController emailController = TextEditingController();
-TextEditingController passwordController = TextEditingController();
+late TextEditingController emailController;
+late TextEditingController passwordController;
 // mainly for signup
-TextEditingController confirmPasswordController = TextEditingController();
+late TextEditingController confirmPasswordController;
 
-FocusNode passwordFocusNode = FocusNode();
+late FocusNode passwordFocusNode;
 // error notifier
 Color emailFieldColor = Colors.blue;
 Color passwordFieldColor = Colors.blue;
@@ -104,8 +104,14 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
+
+    emailController = TextEditingController();
     emailController.addListener(_latestValueOnEmailControllerListener);
 
+    passwordController = TextEditingController();
+    passwordFocusNode = FocusNode();
+
+    confirmPasswordController = TextEditingController();
     confirmPasswordController.addListener(
       _latestValueOnConfirmPasswordListener,
     );

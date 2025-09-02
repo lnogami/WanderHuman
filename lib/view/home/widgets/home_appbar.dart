@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
-import 'package:wanderhuman_app/view/home/widgets/bottom_modal_sheet.dart';
+import 'package:wanderhuman_app/view/home/widgets/menu_options.dart';
 
 class HomeAppBar extends StatefulWidget {
   const HomeAppBar({super.key});
@@ -11,44 +11,79 @@ class HomeAppBar extends StatefulWidget {
 }
 
 class _HomeAppBarState extends State<HomeAppBar> {
+  int animationDuration = 200;
+  double animatedOpacity = 0.0;
+  bool isExpanded = false;
+  double borderRadius = 50;
+
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadiusGeometry.circular(50),
-      child: Container(
-        width: MyDimensionAdapter.getWidth(context) * 0.80,
-        height: 50,
-        color: Colors.white70,
-        padding: EdgeInsets.only(left: 8, right: 10, top: 5, bottom: 5),
-        child: Row(
-          children: [
-            // the user avatar/pic/icon container
-            CircleAvatar(
-              backgroundColor: Colors.blue[100],
-              child: Icon(Icons.person_rounded, color: Colors.blue),
-            ),
-            SizedBox(width: 10),
-            // greeting text
-            SizedBox(
-              width: MyDimensionAdapter.getWidth(context) * 0.50,
-              child: Text(
-                "${dotenv.env['SAMPLE_TEXT']}",
-                // "a dnbajbdjab ahbdhjabd ajbdhwbahw abdabhj",
-                style: TextStyle(
-                  // color: Colors.,
-                  fontWeight: FontWeight.bold,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Spacer(),
-            // menu button
-            InkWell(
-              onTap: () => bottomModalSheet(context),
-              child: Icon(Icons.menu_rounded, size: 32, color: Colors.blue),
-            ),
-          ],
+    return AnimatedContainer(
+      duration: Duration(milliseconds: animationDuration),
+      width: MyDimensionAdapter.getWidth(context) * 0.80,
+      height: (isExpanded) ? 220 : 50,
+      decoration: BoxDecoration(
+        color: (isExpanded)
+            ? const Color.fromARGB(210, 255, 255, 255)
+            : Colors.white70,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(borderRadius),
+          topRight: Radius.circular(borderRadius),
+          bottomLeft: Radius.circular(borderRadius),
+          bottomRight: Radius.circular(borderRadius),
         ),
+      ),
+      padding: EdgeInsets.only(left: 8, right: 10, top: 5, bottom: 5),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              // the user avatar/pic/icon container
+              CircleAvatar(
+                backgroundColor: Colors.blue[100],
+                child: Icon(Icons.person_rounded, color: Colors.blue),
+              ),
+              SizedBox(width: 10),
+              // greeting text
+              SizedBox(
+                width: MyDimensionAdapter.getWidth(context) * 0.50,
+                child: Text(
+                  "${dotenv.env['SAMPLE_TEXT']}",
+                  // "a dnbajbdjab ahbdhjabd ajbdhwbahw abdabhj",
+                  style: TextStyle(
+                    // color: Colors.,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Spacer(),
+              // menu button
+              InkWell(
+                onTap: () {
+                  setState(() {
+                    isExpanded = !isExpanded;
+                    borderRadius = (isExpanded) ? 20 : 50;
+                  });
+                },
+                child: Icon(
+                  (isExpanded) ? Icons.close_rounded : Icons.menu_rounded,
+                  size: 32,
+                  color: (isExpanded) ? Colors.blueAccent : Colors.blue,
+                ),
+              ),
+
+              // to be fixed
+            ],
+          ),
+          // this contains the menu options
+          AnimatedOpacity(
+            opacity: (isExpanded) ? 1.0 : 0.0,
+            curve: Curves.easeInOut,
+            duration: Duration(milliseconds: animationDuration),
+            child: MyMenuOptions(isVisible: isExpanded),
+          ),
+        ],
       ),
     );
     // return SliverAppBar(
