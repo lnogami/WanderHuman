@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
@@ -45,7 +46,31 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
                 SizedBox(height: 10),
                 optionsContainer(
                   context,
-                  onTap: () {},
+                  onTap: () {
+                    try {
+                      final personalInfo = FirebaseFirestore.instance
+                          .collection("Personal Info")
+                          .add({
+                            "id": 1,
+                            "usertype": "Caregiver",
+                            "name": "Hori Zontal",
+                            "gender": "Caregiver",
+                            "contactNumber": "09876543210",
+                            "address": "NA",
+                            "notableTrait": "Imaginative, doer",
+                            "profilePictureUrl": "NA",
+                            "createdAt": FieldValue.serverTimestamp(),
+                          });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(personalInfo.toString())),
+                      );
+                      // } catch (e) {
+                    } on FirebaseException catch (e) {
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text(e.toString())));
+                    }
+                  },
                   Icons.add_outlined,
                   "Add Patient",
                 ),

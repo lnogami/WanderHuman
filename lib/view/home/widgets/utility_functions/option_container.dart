@@ -3,10 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/utilities/color_palette.dart';
 import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
 
+/// This is a button inside the home_appbar
 Container optionsContainer(
   BuildContext context,
   IconData icon,
   String text, {
+
+  /// Pass here an anonymous function (){}
   required VoidCallback onTap,
   Color bgColor = const Color.fromARGB(100, 33, 149, 243),
 }) {
