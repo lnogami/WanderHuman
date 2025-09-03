@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wanderhuman_app/utilities/color_palette.dart';
 import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
 
 class MyCustButton extends StatefulWidget {
@@ -64,7 +65,7 @@ class _MyCustButtonState extends State<MyCustButton> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(widget.borderRadius),
-          splashColor: Colors.blue[300],
+          splashColor: MyColorPalette.splashColor,
           onTap: () {
             widget.onTap();
           },

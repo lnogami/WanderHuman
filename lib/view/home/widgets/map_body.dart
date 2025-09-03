@@ -4,8 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart' as gl;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mp;
-import 'package:wanderhuman_app/view/home/widgets/bottom_modal_sheet.dart';
-import 'package:wanderhuman_app/view/home/widgets/show_alert_dialog.dart';
+import 'package:wanderhuman_app/view/home/widgets/utility_functions/bottom_modal_sheet.dart';
+import 'package:wanderhuman_app/view/home/widgets/utility_functions/show_alert_dialog.dart';
 
 class MapBody extends StatefulWidget {
   const MapBody({super.key});
@@ -71,6 +71,7 @@ class _MapBodyState extends State<MapBody> {
         borderWidth: 1,
         textBorderWidth: 0.2,
         marginBottom: 8,
+        marginLeft: 8,
       ),
     );
 

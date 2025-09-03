@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
+import 'package:wanderhuman_app/view/home/widgets/utility_functions/option_container.dart';
 
 class MyMenuOptions extends StatefulWidget {
   final bool isVisible;
@@ -21,6 +22,7 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
       child: SingleChildScrollView(
         child: Column(
           children: [
+            // this is just for drawing a thin horizontal line that acts as a border.
             Container(
               width: MyDimensionAdapter.getWidth(context) - 60,
               height: 1,
@@ -36,15 +38,21 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
                 SizedBox(height: 10),
                 optionsContainer(
                   context,
+                  onTap: () {},
                   Icons.person_outline_rounded,
                   "Acount",
                 ),
                 SizedBox(height: 10),
-                optionsContainer(context, Icons.add_outlined, "Add Patient"),
+                optionsContainer(
+                  context,
+                  onTap: () {},
+                  Icons.add_outlined,
+                  "Add Patient",
+                ),
                 SizedBox(height: 10),
               ],
             ),
-            SizedBox(height: 10),
+            SizedBox(height: 8),
             GestureDetector(
               onTap: () => FirebaseAuth.instance.signOut(),
               child: Row(
@@ -55,10 +63,14 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
                     context,
                     Icons.settings_outlined,
                     "Settings",
+                    onTap: () {},
                   ),
                   SizedBox(height: 10),
                   optionsContainer(
                     context,
+                    onTap: () {
+                      FirebaseAuth.instance.signOut();
+                    },
                     Icons.logout_outlined,
                     "Logout",
                     bgColor: const Color.fromARGB(130, 255, 108, 108),
@@ -126,30 +138,6 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
             // ),
           ],
         ),
-      ),
-    );
-  }
-
-  Container optionsContainer(
-    BuildContext context,
-    IconData icon,
-    String text, {
-    Color bgColor = const Color.fromARGB(100, 33, 149, 243),
-  }) {
-    return Container(
-      width: MyDimensionAdapter.getWidth(context) * 0.35,
-      height: 55,
-      padding: EdgeInsets.only(left: 5, right: 10),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.all(Radius.circular(5)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Icon(icon, color: Colors.black87),
-          Text(text),
-        ],
       ),
     );
   }
