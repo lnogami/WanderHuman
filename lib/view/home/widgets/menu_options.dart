@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/home/widgets/utility_functions/option_container.dart';
+import 'package:wanderhuman_app/view/home/widgets/utility_functions/my_animated_snackbar.dart';
 
 class MyMenuOptions extends StatefulWidget {
   final bool isVisible;
@@ -54,21 +55,31 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
                             "id": 1,
                             "usertype": "Caregiver",
                             "name": "Hori Zontal",
-                            "gender": "Caregiver",
+                            "gender": "male",
                             "contactNumber": "09876543210",
                             "address": "NA",
                             "notableTrait": "Imaginative, doer",
                             "profilePictureUrl": "NA",
                             "createdAt": FieldValue.serverTimestamp(),
                           });
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(personalInfo.toString())),
-                      );
+                      // showMySnackBar(
+                      //   context: context,
+                      //   dataToDisplay: personalInfo.toString(),
+                      // );
                       // } catch (e) {
+                      showMyAnimatedSnackBar(
+                        context: context,
+                        dataToDisplay: personalInfo.toString(),
+                      );
                     } on FirebaseException catch (e) {
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text(e.toString())));
+                      // showMySnackBar(
+                      //   context: context,
+                      //   dataToDisplay: e.message.toString(),
+                      // );
+                      showMyAnimatedSnackBar(
+                        context: context,
+                        dataToDisplay: e.message.toString(),
+                      );
                     }
                   },
                   Icons.add_outlined,
@@ -88,7 +99,21 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
                     context,
                     Icons.settings_outlined,
                     "Settings",
-                    onTap: () {},
+                    onTap: () {
+                      // showMySnackBar(
+                      //   context: context,
+                      //   dataToDisplay: "Testing",
+                      // );
+                      showMyAnimatedSnackBar(
+                        context: context,
+                        dataToDisplay: "Testing",
+                        //                         dataToDisplay: '''
+                        // hskbfkjf sfjbskjef sekjfbksejb sfkjbsekfje skjbfkjsbef efkjsbfkjes fskfjbskejbfs efsbfjksbe
+                        // sfnsefnkesjf sefkjsbfkjesfskjbfksjebfsfskjbfkjbs fkjbsejkf skjbfsf skfjbskjeb sfkjbeskjf sfkjbefkjbs fskjeb
+                        // sfnes skjfes sjefbksf skjfsjef sfk sekjf skej fskj fekjs fk esf eskj
+                        // ''',
+                      );
+                    },
                   ),
                   SizedBox(height: 10),
                   optionsContainer(

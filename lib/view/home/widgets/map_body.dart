@@ -104,7 +104,7 @@ class _MapBodyState extends State<MapBody> {
     // mounted refers to if the widget is still on the tree
     if (mounted) {
       // code to be added here to make this code appear again if the Location is still turned off.
-      showAlertDialog(context, isLocationServiceEnabled);
+      showMyDialogBox(context, isLocationServiceEnabled);
     }
   }
 
