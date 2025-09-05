@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_appbar.dart';
-import 'package:wanderhuman_app/view/home/widgets/map_body.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/map_body.dart';
+import 'package:wanderhuman_app/view/aTest/my_map.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -31,6 +32,7 @@ class _HomePageState extends State<HomePage> {
                 width: MyDimensionAdapter.getWidth(context),
                 height: MyDimensionAdapter.getHeight(context),
                 child: MapBody(),
+                // child: MyMapBody(),
               ),
             ),
             Positioned(top: 20, child: HomeAppBar()),

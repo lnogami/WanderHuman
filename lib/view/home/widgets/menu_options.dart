@@ -107,11 +107,6 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
                       showMyAnimatedSnackBar(
                         context: context,
                         dataToDisplay: "Testing",
-                        //                         dataToDisplay: '''
-                        // hskbfkjf sfjbskjef sekjfbksejb sfkjbsekfje skjbfkjsbef efkjsbfkjes fskfjbskejbfs efsbfjksbe
-                        // sfnsefnkesjf sefkjsbfkjesfskjbfksjebfsfskjbfkjbs fkjbsejkf skjbfsf skfjbskjeb sfkjbeskjf sfkjbefkjbs fskjeb
-                        // sfnes skjfes sjefbksf skjfsjef sfk sekjf skej fskj fekjs fk esf eskj
-                        // ''',
                       );
                     },
                   ),
