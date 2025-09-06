@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:wanderhuman_app/view/aTest/patient.dart';
+import 'package:wanderhuman_app/view/aTest_deletable/patient.dart';
 
 // This service is responsible for fetching/listening to patients from Firestore
 class PatientService {

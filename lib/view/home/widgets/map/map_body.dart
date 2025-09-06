@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -6,62 +8,10 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart' as gl;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mp;
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:wanderhuman_app/view/home/widgets/utility_functions/bottom_modal_sheet.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/independent_functions/move_to_user.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/independent_functions/show_all_users.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/users_history.dart';
 import 'package:wanderhuman_app/view/home/widgets/utility_functions/show_alert_dialog.dart';
-
-// User model for Firebase data
-class FirebaseUser {
-  final String id;
-  final String name;
-  final double latitude;
-  final double longitude;
-  final bool isOnline;
-  final DateTime lastUpdate;
-  final bool isInSafeZone;
-  final String status; // 'safe', 'warning', 'danger'
-  final Map<String, dynamic>? metadata;
-
-  FirebaseUser({
-    required this.id,
-    required this.name,
-    required this.latitude,
-    required this.longitude,
-    required this.isOnline,
-    required this.lastUpdate,
-    required this.isInSafeZone,
-    required this.status,
-    this.metadata,
-  });
-
-  factory FirebaseUser.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-    return FirebaseUser(
-      id: doc.id,
-      name: data['name'] ?? 'Unknown User',
-      latitude: (data['latitude'] ?? 0.0).toDouble(),
-      longitude: (data['longitude'] ?? 0.0).toDouble(),
-      isOnline: data['isOnline'] ?? false,
-      lastUpdate:
-          (data['lastUpdate'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      isInSafeZone: data['isInSafeZone'] ?? false,
-      status: data['status'] ?? 'safe',
-      metadata: data['metadata'],
-    );
-  }
-
-  Map<String, dynamic> toFirestore() {
-    return {
-      'name': name,
-      'latitude': latitude,
-      'longitude': longitude,
-      'isOnline': isOnline,
-      'lastUpdate': Timestamp.fromDate(lastUpdate),
-      'isInSafeZone': isInSafeZone,
-      'status': status,
-      'metadata': metadata,
-    };
-  }
-}
 
 // Safe zone configuration
 class SafeZone {
@@ -104,7 +54,7 @@ class _MapBodyState extends State<MapBody> {
 
   // Streams and timers
   StreamSubscription? userPositionStream;
-  StreamSubscription<QuerySnapshot>? firebaseUsersStream;
+  StreamSubscription<QuerySnapshot>? firebaseUserHistorysStream;
   Timer? locationUpdateTimer;
 
   // Data management
@@ -112,7 +62,7 @@ class _MapBodyState extends State<MapBody> {
   final Map<String, mp.PolylineAnnotation> userTrails = {};
   final Map<String, List<mp.Position>> userLocationHistory = {};
   final Map<String, Uint8List> preloadedImages = {};
-  List<FirebaseUser> allUsers = [];
+  List<FirebaseUserHistory> allUsers = [];
   gl.Position? myPosition;
 
   // Safe zone configuration
@@ -133,7 +83,7 @@ class _MapBodyState extends State<MapBody> {
   @override
   void dispose() {
     userPositionStream?.cancel();
-    firebaseUsersStream?.cancel();
+    firebaseUserHistorysStream?.cancel();
     locationUpdateTimer?.cancel();
     super.dispose();
   }
@@ -195,24 +145,29 @@ class _MapBodyState extends State<MapBody> {
           heroTag: "center_safe_zone",
           mini: true,
           onPressed: _centerOnSafeZone,
-          child: const Icon(Icons.location_searching),
           tooltip: "Center on Safe Zone",
+          child: const Icon(Icons.location_searching),
         ),
         const SizedBox(height: 8),
         FloatingActionButton(
           heroTag: "show_all_users",
           mini: true,
-          onPressed: _showAllUsers,
-          child: const Icon(Icons.people),
+          onPressed: () {
+            showAllUsers(
+              mapboxMapController: mapboxMapController!,
+              allUsers: allUsers,
+            );
+          },
           tooltip: "Show All Users",
+          child: const Icon(Icons.people),
         ),
         const SizedBox(height: 8),
         FloatingActionButton(
           heroTag: "clear_trails",
           mini: true,
           onPressed: _clearAllTrails,
-          child: const Icon(Icons.clear_all),
           tooltip: "Clear Trails",
+          child: const Icon(Icons.clear_all),
         ),
       ],
     );
@@ -305,7 +260,7 @@ class _MapBodyState extends State<MapBody> {
       circleRadius: _metersToCircleRadius(safeZone.radiusInMeters),
       circleColor: Colors.green.withAlpha(50).toARGB32(),
       circleStrokeColor: Colors.green.toARGB32(),
-      circleStrokeWidth: 2.0,
+      circleStrokeWidth: 12.0,
     );
 
     safeZoneCircle = await circleAnnotationManager?.create(circleOptions);
@@ -318,16 +273,16 @@ class _MapBodyState extends State<MapBody> {
 
   // Start Firebase real-time listener
   void _startFirebaseListener() {
-    firebaseUsersStream = FirebaseFirestore.instance
-        .collection('users')
-        .where('isOnline', isEqualTo: true)
+    firebaseUserHistorysStream = FirebaseFirestore.instance
+        .collection('History')
+        // .where('userType', isEqualTo: "Patient")
         .snapshots()
         .listen(
           (QuerySnapshot snapshot) {
             final users = snapshot.docs
-                .map((doc) => FirebaseUser.fromFirestore(doc))
+                .map((doc) => FirebaseUserHistory.fromFirestore(doc))
                 .toList();
-            _handleFirebaseUserUpdates(users);
+            _handleFirebaseUserHistoryUpdates(users);
           },
           onError: (error) {
             print("Firebase listener error: $error");
@@ -336,7 +291,7 @@ class _MapBodyState extends State<MapBody> {
   }
 
   // Handle Firebase user updates
-  void _handleFirebaseUserUpdates(List<FirebaseUser> users) {
+  void _handleFirebaseUserHistoryUpdates(List<FirebaseUserHistory> users) {
     setState(() {
       allUsers = users;
     });
@@ -381,7 +336,7 @@ class _MapBodyState extends State<MapBody> {
     if (pointAnnotationManager == null) return;
 
     // Get current user IDs
-    final currentUserIds = allUsers.map((u) => u.id).toSet();
+    final currentUserIds = allUsers.map((u) => u.patientID).toSet();
     final existingUserIds = userMarkers.keys.toSet();
 
     // Remove markers for users no longer online
@@ -392,7 +347,7 @@ class _MapBodyState extends State<MapBody> {
 
     // Update or create markers for current users
     for (final user in allUsers) {
-      if (userMarkers.containsKey(user.id)) {
+      if (userMarkers.containsKey(user.patientID)) {
         await _updateUserMarker(user);
       } else {
         await _createUserMarker(user);
@@ -409,22 +364,27 @@ class _MapBodyState extends State<MapBody> {
   }
 
   // Create marker for user
-  Future<void> _createUserMarker(FirebaseUser user) async {
+  Future<void> _createUserMarker(FirebaseUserHistory user) async {
     try {
-      final imageKey = _getImageKeyForUser(user);
-      final imageData = preloadedImages[imageKey];
-      if (imageData == null) return;
+      // final imageKey = _getImageKeyForUser(user);
+      // final imageData = preloadedImages[imageKey];
+      // if (imageData == null) return;
 
       final options = mp.PointAnnotationOptions(
         geometry: mp.Point(
-          coordinates: mp.Position(user.longitude, user.latitude),
+          // coordinates: mp.Position(user.longitude, user.latitude),
+          coordinates: mp.Position(
+            user.currentLocation.longitude,
+            user.currentLocation.latitude,
+          ),
         ),
-        image: imageData,
+        // image: imageData,
         iconSize: 0.15,
-        iconColor: _getColorForUser(user).toARGB32(),
-        textField: user.name,
+        // iconColor: _getColorForUser(user).toARGB32(),
+        // TODO: to be added Personal Info
+        // textField: user.name,
         textSize: 12.5,
-        textColor: _getColorForUser(user).toARGB32(),
+        // textColor: _getColorForUser(user).toARGB32(),
         textAnchor: mp.TextAnchor.BOTTOM,
         textOffset: [0, -1.2],
         isDraggable: false,
@@ -432,33 +392,40 @@ class _MapBodyState extends State<MapBody> {
 
       final annotation = await pointAnnotationManager?.create(options);
       if (annotation != null) {
-        userMarkers[user.id] = annotation;
+        userMarkers[user.patientID] = annotation;
       }
     } catch (e) {
-      print("Error creating marker for ${user.name}: $e");
+      // TODO: to be added Personal Info
+      // print("Error creating marker for ${user.name}: $e");
     }
   }
 
   // Update existing user marker
-  Future<void> _updateUserMarker(FirebaseUser user) async {
-    final annotation = userMarkers[user.id];
+  Future<void> _updateUserMarker(FirebaseUserHistory user) async {
+    final annotation = userMarkers[user.patientID];
     if (annotation == null) return;
 
     try {
-      final imageKey = _getImageKeyForUser(user);
-      final imageData = preloadedImages[imageKey];
-      if (imageData == null) return;
+      // final imageKey = _getImageKeyForUser(user);
+      // final imageData = preloadedImages[imageKey];
+      // if (imageData == null) return;
 
-      final updatedOptions = mp.PointAnnotationOptions(
+      // final updatedOptions =
+      mp.PointAnnotationOptions(
         geometry: mp.Point(
-          coordinates: mp.Position(user.longitude, user.latitude),
+          coordinates: mp.Position(
+            user.currentLocation.longitude,
+            user.currentLocation.latitude,
+          ),
         ),
-        image: imageData,
+        // image: imageData,
         iconSize: 0.15,
-        iconColor: _getColorForUser(user).toARGB32(),
-        textField: user.name,
+        // iconColor: _getColorForUser(user).toARGB32(),
+        // TODO: to be added Personal Info
+        // textField: user.name,
+        textField: "Temporary Name",
         textSize: 12.5,
-        textColor: _getColorForUser(user).toARGB32(),
+        // textColor: _getColorForUser(user).toARGB32(),
         textAnchor: mp.TextAnchor.BOTTOM,
         textOffset: [0, -1.2],
         isDraggable: false,
@@ -466,7 +433,8 @@ class _MapBodyState extends State<MapBody> {
 
       await pointAnnotationManager?.update(annotation);
     } catch (e) {
-      print("Error updating marker for ${user.name}: $e");
+      // TODO: to be added Personal Info
+      // print("Error updating marker for ${user.name}: $e");
     }
   }
 
@@ -488,14 +456,17 @@ class _MapBodyState extends State<MapBody> {
   }
 
   // Update user location history
-  void _updateUserLocationHistory(FirebaseUser user) {
-    final position = mp.Position(user.longitude, user.latitude);
+  void _updateUserLocationHistory(FirebaseUserHistory user) {
+    final position = mp.Position(
+      user.currentLocation.longitude,
+      user.currentLocation.latitude,
+    );
 
-    if (!userLocationHistory.containsKey(user.id)) {
-      userLocationHistory[user.id] = [];
+    if (!userLocationHistory.containsKey(user.patientID)) {
+      userLocationHistory[user.patientID] = [];
     }
 
-    final history = userLocationHistory[user.id]!;
+    final history = userLocationHistory[user.patientID]!;
 
     // Add new position if it's different from the last one
     if (history.isEmpty ||
@@ -511,15 +482,15 @@ class _MapBodyState extends State<MapBody> {
   }
 
   // Update user trail line
-  Future<void> _updateUserTrail(FirebaseUser user) async {
+  Future<void> _updateUserTrail(FirebaseUserHistory user) async {
     if (polylineAnnotationManager == null) return;
 
-    final history = userLocationHistory[user.id];
+    final history = userLocationHistory[user.patientID];
     if (history == null || history.length < 2) return;
 
     try {
       // Remove existing trail
-      final existingTrail = userTrails[user.id];
+      final existingTrail = userTrails[user.patientID];
       if (existingTrail != null) {
         await polylineAnnotationManager?.delete(existingTrail);
       }
@@ -534,37 +505,38 @@ class _MapBodyState extends State<MapBody> {
 
       final trail = await polylineAnnotationManager?.create(polylineOptions);
       if (trail != null) {
-        userTrails[user.id] = trail;
+        userTrails[user.patientID] = trail;
       }
     } catch (e) {
-      print("Error updating trail for ${user.name}: $e");
+      //
+      // print("Error updating trail for ${user.name}: $e");
     }
   }
 
   // Get appropriate image key for user status
-  String _getImageKeyForUser(FirebaseUser user) {
-    if (!user.isOnline) return 'offline';
-    return user.status;
-  }
+  // String _getImageKeyForUser(FirebaseUserHistory user) {
+  //   if (!user.isOnline) return 'offline';
+  //   return user.status;
+  // }
 
-  // Get color for user based on status
-  Color _getColorForUser(FirebaseUser user) {
-    if (!user.isOnline) return Colors.grey;
+  // // Get color for user based on status
+  // Color _getColorForUser(FirebaseUserHistory user) {
+  //   if (!user.isOnline) return Colors.grey;
 
-    switch (user.status) {
-      case 'safe':
-        return Colors.green;
-      case 'warning':
-        return Colors.orange;
-      case 'danger':
-        return Colors.red;
-      default:
-        return Colors.blue;
-    }
-  }
+  //   switch (user.status) {
+  //     case 'safe':
+  //       return Colors.green;
+  //     case 'warning':
+  //       return Colors.orange;
+  //     case 'danger':
+  //       return Colors.red;
+  //     default:
+  //       return Colors.blue;
+  //   }
+  // }
 
   // Get trail color for user
-  Color _getTrailColorForUser(FirebaseUser user) {
+  Color _getTrailColorForUser(FirebaseUserHistory user) {
     return user.isInSafeZone ? Colors.green : Colors.red;
   }
 
@@ -578,13 +550,13 @@ class _MapBodyState extends State<MapBody> {
         .key;
 
     if (tappedUserId.isNotEmpty) {
-      final user = allUsers.firstWhere((u) => u.id == tappedUserId);
+      final user = allUsers.firstWhere((u) => u.patientID == tappedUserId);
       _showUserBottomSheet(user);
     }
   }
 
   // Show user information bottom sheet
-  void _showUserBottomSheet(FirebaseUser user) {
+  void _showUserBottomSheet(FirebaseUserHistory user) {
     showModalBottomSheet(
       context: context,
       builder: (context) => Container(
@@ -594,7 +566,8 @@ class _MapBodyState extends State<MapBody> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              user.name,
+              // user.name,
+              "temporary name",
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
@@ -608,8 +581,8 @@ class _MapBodyState extends State<MapBody> {
                 Text(user.isInSafeZone ? "In Safe Zone" : "Outside Safe Zone"),
               ],
             ),
-            Text("Status: ${user.status.toUpperCase()}"),
-            Text("Last Update: ${user.lastUpdate.toString().substring(0, 16)}"),
+            // Text("Status: ${user.status.toUpperCase()}"),
+            // Text("Last Update: ${user.lastUpdate.toString().substring(0, 16)}"),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -617,14 +590,17 @@ class _MapBodyState extends State<MapBody> {
                 ElevatedButton(
                   onPressed: () {
                     Navigator.pop(context);
-                    _moveToUser(user);
+                    moveToUser(
+                      mapboxMapController: mapboxMapController!,
+                      user: user,
+                    );
                   },
                   child: const Text("Go to Location"),
                 ),
                 ElevatedButton(
                   onPressed: () {
                     Navigator.pop(context);
-                    _toggleUserTrail(user.id);
+                    _toggleUserTrail(user.patientID);
                   },
                   child: const Text("Toggle Trail"),
                 ),
@@ -637,16 +613,20 @@ class _MapBodyState extends State<MapBody> {
   }
 
   // Navigation methods
-  void _moveToUser(FirebaseUser user) {
-    mapboxMapController?.setCamera(
-      mp.CameraOptions(
-        center: mp.Point(
-          coordinates: mp.Position(user.longitude, user.latitude),
-        ),
-        zoom: 16.0,
-      ),
-    );
-  }
+  // GIBALHIN NA NI NAKOG SEPARATE FILE
+  // // void _moveToUser(FirebaseUserHistory user) {
+  // //   mapboxMapController?.setCamera(
+  // //     mp.CameraOptions(
+  // //       center: mp.Point(
+  // //         coordinates: mp.Position(
+  // //           user.currentLocation.longitude,
+  // //           user.currentLocation.latitude,
+  // //         ),
+  // //       ),
+  // //       zoom: 16.0,
+  // //     ),
+  // //   );
+  // // }
 
   void _centerOnSafeZone() {
     mapboxMapController?.setCamera(
@@ -662,37 +642,38 @@ class _MapBodyState extends State<MapBody> {
     );
   }
 
-  void _showAllUsers() {
-    if (allUsers.isEmpty) return;
+  // GIBALHIN NA NI NAKOG SEPARATE FILE
+  // // void _showAllUsers() {
+  // //   if (allUsers.isEmpty) return;
 
-    final lats = allUsers.map((u) => u.latitude).toList();
-    final lngs = allUsers.map((u) => u.longitude).toList();
+  // //   final lats = allUsers.map((u) => u.currentLocation.latitude).toList();
+  // //   final lngs = allUsers.map((u) => u.currentLocation.longitude).toList();
 
-    final minLat = lats.reduce(min);
-    final maxLat = lats.reduce(max);
-    final minLng = lngs.reduce(min);
-    final maxLng = lngs.reduce(max);
+  // //   final minLat = lats.reduce(min);
+  // //   final maxLat = lats.reduce(max);
+  // //   final minLng = lngs.reduce(min);
+  // //   final maxLng = lngs.reduce(max);
 
-    mapboxMapController?.setCamera(
-      mp.CameraOptions(
-        center: mp.Point(
-          coordinates: mp.Position(
-            (minLng + maxLng) / 2,
-            (minLat + maxLat) / 2,
-          ),
-        ),
-        zoom: _calculateZoomForBounds(maxLat - minLat, maxLng - minLng),
-      ),
-    );
-  }
+  // //   mapboxMapController?.setCamera(
+  // //     mp.CameraOptions(
+  // //       center: mp.Point(
+  // //         coordinates: mp.Position(
+  // //           (minLng + maxLng) / 2,
+  // //           (minLat + maxLat) / 2,
+  // //         ),
+  // //       ),
+  // //       zoom: _calculateZoomForBounds(maxLat - minLat, maxLng - minLng),
+  // //     ),
+  // //   );
+  // // }
 
-  double _calculateZoomForBounds(double latDiff, double lngDiff) {
-    final maxDiff = max(latDiff, lngDiff);
-    if (maxDiff < 0.01) return 14.0;
-    if (maxDiff < 0.05) return 11.0;
-    if (maxDiff < 0.1) return 9.0;
-    return 7.0;
-  }
+  // // double _calculateZoomForBounds(double latDiff, double lngDiff) {
+  // //   final maxDiff = max(latDiff, lngDiff);
+  // //   if (maxDiff < 0.01) return 14.0;
+  // //   if (maxDiff < 0.05) return 11.0;
+  // //   if (maxDiff < 0.1) return 9.0;
+  // //   return 7.0;
+  // // }
 
   // Toggle user trail visibility
   void _toggleUserTrail(String userId) {
@@ -704,7 +685,7 @@ class _MapBodyState extends State<MapBody> {
       userTrails.remove(userId);
     } else {
       // Trail doesn't exist, create it if user is outside safe zone
-      final user = allUsers.firstWhere((u) => u.id == userId);
+      final user = allUsers.firstWhere((u) => u.patientID == userId);
       if (!user.isInSafeZone) {
         _updateUserTrail(user);
       }

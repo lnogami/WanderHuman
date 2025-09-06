@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
+import 'package:wanderhuman_app/view/add_patient_form/add_patient_form.dart';
 import 'package:wanderhuman_app/view/home/widgets/utility_functions/option_container.dart';
 import 'package:wanderhuman_app/view/home/widgets/utility_functions/my_animated_snackbar.dart';
 
@@ -48,39 +49,44 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
                 optionsContainer(
                   context,
                   onTap: () {
-                    try {
-                      final personalInfo = FirebaseFirestore.instance
-                          .collection("Personal Info")
-                          .add({
-                            "id": 1,
-                            "usertype": "Caregiver",
-                            "name": "Hori Zontal",
-                            "gender": "male",
-                            "contactNumber": "09876543210",
-                            "address": "NA",
-                            "notableTrait": "Imaginative, doer",
-                            "profilePictureUrl": "NA",
-                            "createdAt": FieldValue.serverTimestamp(),
-                          });
-                      // showMySnackBar(
-                      //   context: context,
-                      //   dataToDisplay: personalInfo.toString(),
-                      // );
-                      // } catch (e) {
-                      showMyAnimatedSnackBar(
-                        context: context,
-                        dataToDisplay: personalInfo.toString(),
-                      );
-                    } on FirebaseException catch (e) {
-                      // showMySnackBar(
-                      //   context: context,
-                      //   dataToDisplay: e.message.toString(),
-                      // );
-                      showMyAnimatedSnackBar(
-                        context: context,
-                        dataToDisplay: e.message.toString(),
-                      );
-                    }
+                    // try {
+                    //   final personalInfo = FirebaseFirestore.instance
+                    //       .collection("Personal Info")
+                    //       .add({
+                    //         "id": 1,
+                    //         "usertype": "Caregiver",
+                    //         "name": "Hori Zontal",
+                    //         "gender": "male",
+                    //         "contactNumber": "09876543210",
+                    //         "address": "NA",
+                    //         "notableTrait": "Imaginative, doer",
+                    //         "profilePictureUrl": "NA",
+                    //         "createdAt": FieldValue.serverTimestamp(),
+                    //       });
+                    //   // showMySnackBar(
+                    //   //   context: context,
+                    //   //   dataToDisplay: personalInfo.toString(),
+                    //   // );
+                    //   // } catch (e) {
+                    //   showMyAnimatedSnackBar(
+                    //     context: context,
+                    //     dataToDisplay: personalInfo.toString(),
+                    //   );
+                    // } on FirebaseException catch (e) {
+                    //   // showMySnackBar(
+                    //   //   context: context,
+                    //   //   dataToDisplay: e.message.toString(),
+                    //   // );
+                    //   showMyAnimatedSnackBar(
+                    //     context: context,
+                    //     dataToDisplay: e.message.toString(),
+                    //   );
+                    // }
+                    AddPatientForm();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => AddPatientForm()),
+                    );
                   },
                   Icons.add_outlined,
                   "Add Patient",

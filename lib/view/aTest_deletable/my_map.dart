@@ -211,7 +211,8 @@ class _MyMapBodyState extends State<MyMapBody> {
 
       if (imageData == null) return;
 
-      final updatedOptions = mp.PointAnnotationOptions(
+      // final updatedOptions =
+      mp.PointAnnotationOptions(
         geometry: mp.Point(
           coordinates: mp.Position(user.longitude, user.latitude),
         ),

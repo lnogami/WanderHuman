@@ -17,6 +17,11 @@ class MyCustButton extends StatefulWidget {
   final VoidCallback onTap;
   final bool enableShadow;
   final Color buttonShadowColor;
+  final double buttonTextFontSize;
+  final double? buttonWidth;
+
+  // To be implemented pa ni in the future haha
+  // final bool isDecorated;
 
   const MyCustButton({
     super.key,
@@ -34,6 +39,9 @@ class MyCustButton extends StatefulWidget {
     required this.onTap,
     this.enableShadow = true,
     this.buttonShadowColor = Colors.blue,
+    this.buttonTextFontSize = 14,
+    this.buttonWidth,
+    // this.isDecorated = true,
   });
 
   @override
@@ -49,7 +57,9 @@ class _MyCustButtonState extends State<MyCustButton> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: MyDimensionAdapter.getWidth(context) * widget.widthPercentage,
+      width: (widget.buttonWidth != null)
+          ? widget.buttonWidth!
+          : MyDimensionAdapter.getWidth(context) * widget.widthPercentage,
       height: widget.height,
       decoration: BoxDecoration(
         color: widget.color,
@@ -77,6 +87,7 @@ class _MyCustButtonState extends State<MyCustButton> {
                 color: widget.buttonTextColor,
                 letterSpacing: widget.buttonTextSpacing,
                 fontFamily: widget.buttonTextFontFamily,
+                fontSize: widget.buttonTextFontSize,
               ),
             ),
           ),
