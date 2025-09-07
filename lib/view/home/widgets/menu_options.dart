@@ -1,8 +1,8 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/add_patient_form/add_patient_form.dart';
+import 'package:wanderhuman_app/view/add_patient_form/helper/firebase_services.dart';
 import 'package:wanderhuman_app/view/home/widgets/utility_functions/option_container.dart';
 import 'package:wanderhuman_app/view/home/widgets/utility_functions/my_animated_snackbar.dart';
 
@@ -41,55 +41,36 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
                 SizedBox(height: 10),
                 optionsContainer(
                   context,
-                  onTap: () {},
                   Icons.person_outline_rounded,
                   "Acount",
+                  onTap: () {
+                    MyFirebaseServices.getAllPatients()
+                        .then((value) {
+                          showMyAnimatedSnackBar(
+                            context: context,
+                            dataToDisplay: "${value.length}",
+                          );
+                        })
+                        .catchError((error) {
+                          showMyAnimatedSnackBar(
+                            context: context,
+                            dataToDisplay: error.toString(),
+                          );
+                        });
+                  },
                 ),
                 SizedBox(height: 10),
                 optionsContainer(
                   context,
+                  Icons.add_outlined,
+                  "Add Patient",
                   onTap: () {
-                    // try {
-                    //   final personalInfo = FirebaseFirestore.instance
-                    //       .collection("Personal Info")
-                    //       .add({
-                    //         "id": 1,
-                    //         "usertype": "Caregiver",
-                    //         "name": "Hori Zontal",
-                    //         "gender": "male",
-                    //         "contactNumber": "09876543210",
-                    //         "address": "NA",
-                    //         "notableTrait": "Imaginative, doer",
-                    //         "profilePictureUrl": "NA",
-                    //         "createdAt": FieldValue.serverTimestamp(),
-                    //       });
-                    //   // showMySnackBar(
-                    //   //   context: context,
-                    //   //   dataToDisplay: personalInfo.toString(),
-                    //   // );
-                    //   // } catch (e) {
-                    //   showMyAnimatedSnackBar(
-                    //     context: context,
-                    //     dataToDisplay: personalInfo.toString(),
-                    //   );
-                    // } on FirebaseException catch (e) {
-                    //   // showMySnackBar(
-                    //   //   context: context,
-                    //   //   dataToDisplay: e.message.toString(),
-                    //   // );
-                    //   showMyAnimatedSnackBar(
-                    //     context: context,
-                    //     dataToDisplay: e.message.toString(),
-                    //   );
-                    // }
                     AddPatientForm();
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => AddPatientForm()),
                     );
                   },
-                  Icons.add_outlined,
-                  "Add Patient",
                 ),
                 SizedBox(height: 10),
               ],
@@ -106,10 +87,6 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
                     Icons.settings_outlined,
                     "Settings",
                     onTap: () {
-                      // showMySnackBar(
-                      //   context: context,
-                      //   dataToDisplay: "Testing",
-                      // );
                       showMyAnimatedSnackBar(
                         context: context,
                         dataToDisplay: "Testing",

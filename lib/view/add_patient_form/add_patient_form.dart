@@ -1,8 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wanderhuman_app/components/button.dart';
 import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
-import 'package:wanderhuman_app/view/add_patient_form/widget/customed_textFormField.dart';
+import 'package:wanderhuman_app/view/add_patient_form/helper/firebase_patients.dart';
+import 'package:wanderhuman_app/view/add_patient_form/helper/firebase_services.dart';
+import 'package:wanderhuman_app/view/add_patient_form/widget/customed_text_form_field.dart';
 import 'package:wanderhuman_app/view/home/widgets/utility_functions/my_animated_snackbar.dart';
 
 class AddPatientForm extends StatefulWidget {
@@ -237,19 +240,19 @@ class _AddPatientFormState extends State<AddPatientForm> {
               return null;
             },
           ),
-          MyCustomizedTextFormField(
-            label: "Created at",
-            hintText: "Enter Age",
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return "Input something";
-              }
-              setState(() {
-                createdAtValue = DateTime.timestamp().toString();
-              });
-              return null;
-            },
-          ),
+          // MyCustomizedTextFormField(
+          //   label: "Created at",
+          //   hintText: "Enter Age",
+          //   validator: (value) {
+          //     if (value == null || value.isEmpty) {
+          //       return "Input something";
+          //     }
+          //     setState(() {
+          //       createdAtValue = DateTime.timestamp().toString();
+          //     });
+          //     return null;
+          //   },
+          // ),
           buttonArea(context),
         ],
       ),
@@ -274,6 +277,26 @@ class _AddPatientFormState extends State<AddPatientForm> {
             buttonWidth: MyDimensionAdapter.getWidth(context) * 0.40,
             onTap: () {
               if (_formKey.currentState!.validate()) {
+                // this method accepts Patients object so maong naay Patients diri
+                MyFirebaseServices.addPatient(
+                  Patients(
+                    name: nameValue,
+                    age: ageValue,
+                    sex: sexValue,
+                    birthdate: birthdateValue,
+                    guardianContactNumber: guardianContactNumberValue,
+                    address: addressValue,
+                    notableBehavior: notableBehaviorValue,
+                    picture: pictureValue,
+                    createdAt: DateTime.timestamp().toString(),
+                    lastUpdatedAt: DateTime.timestamp().toString(),
+                    registeredBy: FirebaseAuth.instance.currentUser?.uid ?? "",
+                    asignedCaregiver:
+                        FirebaseAuth.instance.currentUser?.uid ?? "",
+                    deviceID: "12345", // later na lang ni
+                    // email: "", // later na lang ni
+                  ),
+                );
                 showMyAnimatedSnackBar(
                   context: context,
                   dataToDisplay:
@@ -285,7 +308,9 @@ class _AddPatientFormState extends State<AddPatientForm> {
                       $addressValue \n 
                       $notableBehaviorValue \n 
                       $pictureValue \n 
-                      $createdAtValue""",
+                      $createdAtValue
+                      ${MyFirebaseServices.getAllUserID()}
+                      SUCCESSFULLY ADDED!""",
                 );
               }
             },
