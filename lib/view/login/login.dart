@@ -263,7 +263,8 @@ class _LoginPageState extends State<LoginPage> {
   MyCustButton confirmSignUpButton() {
     return MyCustButton(
       onTap: () async {
-        await createUserWithEmailAndPassword();
+        await createUserWithEmailAndPassword(); // TODO: replace this with register_account form, and that account form will call this function.
+
         print("CONFIRM SIGNUP BUTTON PRESSEDDDDDDDDDDDDDDDDDDDDDDDDDD");
       },
       buttonText: "CONFIRM SIGNUP",
