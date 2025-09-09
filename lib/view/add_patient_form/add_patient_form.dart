@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wanderhuman_app/components/button.dart';
+import 'package:wanderhuman_app/utilities/color_palette.dart';
 import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/add_patient_form/helper/firebase_patients.dart';
 import 'package:wanderhuman_app/view/add_patient_form/helper/firebase_services.dart';
@@ -49,13 +50,12 @@ class _AddPatientFormState extends State<AddPatientForm> {
     return Scaffold(
       body: SingleChildScrollView(
         scrollDirection: Axis.vertical,
+        // this is the main body of the Form
         child: Container(
           // padding: EdgeInsets.all(20),
           width: MyDimensionAdapter.getWidth(context),
           height: MyDimensionAdapter.getHeight(context) * 1.1,
-          decoration: const BoxDecoration(
-            color: Color.fromARGB(211, 186, 220, 247),
-          ),
+          decoration: const BoxDecoration(color: MyColorPalette.lightBlue),
           child: formSpace(context),
         ),
       ),
@@ -297,6 +297,7 @@ class _AddPatientFormState extends State<AddPatientForm> {
                     // email: "", // later na lang ni
                   ),
                 );
+                // this is just a sample display of the inputted data (deletable)
                 showMyAnimatedSnackBar(
                   context: context,
                   dataToDisplay:

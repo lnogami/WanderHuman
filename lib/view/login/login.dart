@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/utilities/color_palette.dart';
 import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
 import 'package:wanderhuman_app/components/button.dart';
+import 'package:wanderhuman_app/view/login/register_account.dart';
 import 'package:wanderhuman_app/view/login/widgets/layout_material.dart';
 import 'package:wanderhuman_app/view/login/widgets/textfield.dart';
 
@@ -262,16 +263,19 @@ class _LoginPageState extends State<LoginPage> {
 
   MyCustButton confirmSignUpButton() {
     return MyCustButton(
-      onTap: () async {
-        await createUserWithEmailAndPassword(); // TODO: replace this with register_account form, and that account form will call this function.
-
-        print("CONFIRM SIGNUP BUTTON PRESSEDDDDDDDDDDDDDDDDDDDDDDDDDD");
+      onTap: () {
+        bottomModalSheetOfSignUp(
+          context: context,
+          email: emailController.text,
+          password: passwordController.text,
+        );
       },
-      buttonText: "CONFIRM SIGNUP",
+      buttonText: "REGISTER ACCOUNT",
       color: Colors.blue,
       buttonTextFontWeight: FontWeight.w700,
       buttonTextColor: Colors.white,
       buttonTextSpacing: 1,
+      buttonWidth: 200,
     );
   }
 
@@ -307,6 +311,7 @@ class _LoginPageState extends State<LoginPage> {
         setState(() {
           // requestFocus() para mabalhin ang focus sa textfield before sya ma render out.
           passwordFocusNode.requestFocus();
+          passwordFocusNode.unfocus();
           isGoingToSignUp = !isGoingToSignUp;
           animatedContainerHeight = 0;
           emailController.clear();
