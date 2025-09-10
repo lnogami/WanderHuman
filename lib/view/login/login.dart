@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/utilities/color_palette.dart';
 import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
 import 'package:wanderhuman_app/components/button.dart';
+import 'package:wanderhuman_app/view/home/widgets/utility_functions/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/login/register_account.dart';
 import 'package:wanderhuman_app/view/login/widgets/layout_material.dart';
 import 'package:wanderhuman_app/view/login/widgets/textfield.dart';
@@ -42,31 +43,6 @@ class _LoginPageState extends State<LoginPage> {
             password: passwordController.text.trim(),
           );
       print("LOGGED IN: $userCredential");
-    } on FirebaseAuthException catch (e) {
-      print(e.message);
-    }
-  }
-
-  // FOR SIGN UP
-  Future<void> createUserWithEmailAndPassword() async {
-    try {
-      // final password = passwordController.text.trim();
-      // final confirmPassword = confirmPasswordController.text.trim();
-
-      // if (password.length <= 6) {
-      //   print("Password is too weak");
-      // }
-
-      // validates if the password and comfirmPassword contains the same value
-      if (passwordController.text.trim() ==
-          confirmPasswordController.text.trim()) {
-        final userCredential = await FirebaseAuth.instance
-            .createUserWithEmailAndPassword(
-              email: emailController.text.trim(),
-              password: passwordController.text.trim(),
-            );
-        print("SIGNED UP: $userCredential");
-      }
     } on FirebaseAuthException catch (e) {
       print(e.message);
     }
@@ -264,11 +240,30 @@ class _LoginPageState extends State<LoginPage> {
   MyCustButton confirmSignUpButton() {
     return MyCustButton(
       onTap: () {
-        bottomModalSheetOfSignUp(
-          context: context,
-          email: emailController.text,
-          password: passwordController.text,
-        );
+        // if Passwords does not match
+        if (passwordController.text.trim() !=
+            confirmPasswordController.text.trim()) {
+          showMyAnimatedSnackBar(
+            context: context,
+            dataToDisplay:
+                "Passwords does not match. Please take a look at it, thanks.",
+          );
+        }
+        // if Password does not have 6 or more characters
+        else if (passwordController.text.length < 6) {
+          showMyAnimatedSnackBar(
+            context: context,
+            dataToDisplay: "Password length must at least 6 characters.",
+          );
+        }
+        // if everything is complied, then proceed
+        else {
+          bottomModalSheetOfSignUp(
+            context: context,
+            email: emailController.text,
+            password: passwordController.text,
+          );
+        }
       },
       buttonText: "REGISTER ACCOUNT",
       color: Colors.blue,

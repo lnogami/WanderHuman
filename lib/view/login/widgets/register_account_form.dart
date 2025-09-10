@@ -1,7 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/components/button.dart';
 import 'package:wanderhuman_app/utilities/color_palette.dart';
 import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
+import 'package:wanderhuman_app/view/home/widgets/utility_functions/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/login/register_account.dart';
 import 'package:wanderhuman_app/view/login/widgets/textfield.dart';
 
@@ -47,6 +50,38 @@ class _RegisterAccountFormState extends State<RegisterAccountForm> {
   // deviceID = "", this is for patients only
   // email is provided by this class
   // status is automatically true by creation
+
+  // FOR SIGN UP
+  Future<void> createUserWithEmailAndPassword() async {
+    try {
+      // final password = passwordController.text.trim();
+      // final confirmPassword = confirmPasswordController.text.trim();
+
+      // if (password.length <= 6) {
+      //   print("Password is too weak");
+      // }
+
+      // validates if the password and comfirmPassword contains the same value
+      if (widget.password.trim() == widget.password.trim()) {
+        final userCredential = await FirebaseAuth.instance
+            .createUserWithEmailAndPassword(
+              email: widget.email.trim(),
+              password: widget.password.trim(),
+            );
+        print(" ✅✅✅ SIGNED UP: $userCredential");
+      }
+    } on FirebaseAuthException catch (e) {
+      print("❌❌❌❌❌❌❌ ${e.message}");
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    nameController.dispose();
+    contactNumberController.dispose();
+    addressController.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +135,50 @@ class _RegisterAccountFormState extends State<RegisterAccountForm> {
             buttonWidth: 250,
             buttonTextColor: Colors.white,
             onTap: () {
-              // await createUserWithEmailAndPassword(); // TODO: to be configured, in order to send data to Firestore
+              try {
+                print("✅✅✅✅✅✅");
+                createUserWithEmailAndPassword();
+                // to wait for the account authentication to finish first
+                Future.delayed(Duration(milliseconds: 15000), () {
+                  FirebaseFirestore.instance.collection("Personal Info").add({
+                    // "name": nameController.text.trim(),
+                    // "userType": currentUserTypeGroupvalue.toString().split('.').last,
+                    "id": FirebaseAuth.instance.currentUser!.uid,
+                    "name": nameController.text.trim(),
+                    "userType": currentUserTypeGroupvalue.name,
+                    "gender": currentGroupGenderValue.name,
+                    "contactNumber": contactNumberController.text.trim(),
+                    "address": addressController.text.trim(),
+                    "notableTrait":
+                        "", // empty String, as this is for patients only
+                    "profilePictureURL": "", // to be updated later
+                    "createdAt": FieldValue.serverTimestamp(),
+                    "lastUpdatedAt": FieldValue.serverTimestamp(),
+                    "registeredBy":
+                        "", // empty String, as this is for patients only
+                    "assignedCaregiver":
+                        "", // empty String, as this is for patients only
+                    "deviceID":
+                        "", // to be updated later, this one can be null at account creation but can have a value later on when added.
+                    "email": widget.email.trim(),
+
+                    // "status" : true,  // to be decided later, if ibutang ba jud ni
+                  });
+                });
+                // to remove this sheet, and proceed to Home Page
+                Navigator.pop(context);
+                showMyAnimatedSnackBar(
+                  context: context,
+                  dataToDisplay: FirebaseAuth.instance.currentUser!.uid
+                      .toString(),
+                );
+              } catch (e) {
+                print("Error during registration: $e");
+                showMyAnimatedSnackBar(
+                  context: context,
+                  dataToDisplay: e.toString(),
+                );
+              }
               // print("CONFIRM SIGNUP BUTTON PRESSEDDDDDDDDDDDDDDDDDDDDDDDDDD");
             },
           ),
@@ -230,9 +308,6 @@ class _RegisterAccountFormState extends State<RegisterAccountForm> {
     return MyCustButton(
       onTap: () {
         setState(() {
-          nameController.dispose();
-          contactNumberController.dispose();
-          addressController.dispose();
           Navigator.pop(context);
         });
       },
