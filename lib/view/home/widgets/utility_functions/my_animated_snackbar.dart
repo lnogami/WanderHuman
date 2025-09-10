@@ -50,7 +50,7 @@ void showMyAnimatedSnackBar({
   final overlayEntry = OverlayEntry(
     builder: (context) {
       return Positioned(
-        bottom: 30,
+        bottom: 70,
         left: 20,
         right: 20,
         child: TweenAnimationBuilder<Offset>(

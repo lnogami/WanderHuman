@@ -23,6 +23,7 @@ class MyCustTextfield extends StatefulWidget {
   final Color color;
   final IconData? suffixIcon;
   final Color suffixIconColor;
+  final bool isReadOnly;
 
   /// This will manage the data the textfield will accept
   final TextEditingController textController;
@@ -47,6 +48,7 @@ class MyCustTextfield extends StatefulWidget {
     this.isPasswordField = false,
     this.color = Colors.transparent,
     this.suffixIcon,
+    this.isReadOnly = false,
   });
 
   @override
@@ -69,6 +71,7 @@ class _MyCustTextfieldState extends State<MyCustTextfield> {
       child: TextField(
         controller: widget.textController,
         focusNode: widget.focusNode,
+        readOnly: widget.isReadOnly,
         obscureText: _isObscurePassword,
         obscuringCharacter: "*",
         decoration: InputDecoration(
