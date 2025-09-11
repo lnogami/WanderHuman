@@ -13,7 +13,7 @@ class Patients {
   final String registeredBy;
   final String asignedCaregiver;
   final String deviceID;
-  // final String email;
+  final String email;
 
   // Constructor
   Patients({
@@ -30,7 +30,7 @@ class Patients {
     required this.registeredBy,
     required this.asignedCaregiver,
     required this.deviceID,
-    // required this.email,
+    required this.email,
   });
 
   // Method Declaration
@@ -49,7 +49,7 @@ class Patients {
       registeredBy: data['registeredBy'] ?? "",
       asignedCaregiver: data['asignedCaregiver'] ?? "",
       deviceID: data['deviceID'] ?? "",
-      // email: data['email'] ?? "",
+      email: data['email'] ?? "",
     );
   }
 }

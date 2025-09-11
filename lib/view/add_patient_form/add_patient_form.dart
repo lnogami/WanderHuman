@@ -107,7 +107,7 @@ class _AddPatientFormState extends State<AddPatientForm> {
                 // Expanded(
                 //   child:
                 Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.end,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Text(
@@ -117,6 +117,7 @@ class _AddPatientFormState extends State<AddPatientForm> {
                         color: (sexValue == "")
                             ? const Color.fromARGB(255, 173, 57, 51)
                             : Colors.blue,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     SizedBox(
@@ -131,8 +132,10 @@ class _AddPatientFormState extends State<AddPatientForm> {
                             color: (sexValue == "") ? Colors.grey : Colors.blue,
                           ),
                         ),
-                        fillColor: WidgetStateProperty.all(
-                          const Color.fromARGB(255, 125, 184, 236),
+                        fillColor: WidgetStateProperty.resolveWith(
+                          (states) => states.contains(WidgetState.selected)
+                              ? Colors.blue
+                              : const Color.fromARGB(255, 125, 184, 236),
                         ),
                         value: Sex.male,
                         groupValue: groupCurrentValue,
@@ -148,9 +151,12 @@ class _AddPatientFormState extends State<AddPatientForm> {
                       width: MyDimensionAdapter.getWidth(context) * 0.45,
                       child: RadioListTile.adaptive(
                         // dense: true,
-                        fillColor: WidgetStateProperty.all(
-                          const Color.fromARGB(255, 125, 184, 236),
+                        fillColor: WidgetStateProperty.resolveWith(
+                          (states) => states.contains(WidgetState.selected)
+                              ? Colors.blue
+                              : const Color.fromARGB(255, 125, 184, 236),
                         ),
+
                         activeColor: Colors.blue,
                         title: Text(
                           "Female",
@@ -294,7 +300,7 @@ class _AddPatientFormState extends State<AddPatientForm> {
                     asignedCaregiver:
                         FirebaseAuth.instance.currentUser?.uid ?? "",
                     deviceID: "12345", // later na lang ni
-                    // email: "", // later na lang ni
+                    email: "N/A", // later na lang ni
                   ),
                 );
                 // this is just a sample display of the inputted data (deletable)

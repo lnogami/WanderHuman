@@ -243,8 +243,8 @@ class _RegisterAccountFormState extends State<RegisterAccountForm> {
       overflow: TextOverflow.ellipsis,
       style: TextStyle(
         fontSize: 16,
-        fontWeight: FontWeight.bold,
-        color: Colors.blue,
+        fontWeight: FontWeight.w600,
+        color: const Color.fromARGB(255, 68, 157, 230),
       ),
     );
   }
@@ -258,10 +258,20 @@ class _RegisterAccountFormState extends State<RegisterAccountForm> {
       height: 35,
       margin: EdgeInsets.only(top: 5),
       child: RadioListTile.adaptive(
+        activeColor: Colors.blue,
+        fillColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? Colors.blue
+              : const Color.fromARGB(255, 125, 184, 236),
+        ),
         title: Text(
           title,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(fontSize: 14),
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.blue,
+            fontWeight: FontWeight.w500,
+          ),
         ),
         value: enumValue,
         groupValue: currentUserTypeGroupvalue,
@@ -285,10 +295,19 @@ class _RegisterAccountFormState extends State<RegisterAccountForm> {
       height: 35,
       margin: EdgeInsets.only(top: 5),
       child: RadioListTile.adaptive(
+        fillColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? Colors.blue
+              : const Color.fromARGB(255, 125, 184, 236),
+        ),
         title: Text(
           title,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(fontSize: 14),
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.blue,
+            fontWeight: FontWeight.w500,
+          ),
         ),
         value: enumValue,
         groupValue: currentGroupGenderValue,

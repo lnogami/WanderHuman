@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart' as gl;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mp;
+import 'package:wanderhuman_app/view/home/widgets/map/point_annotation_options.dart';
 import 'package:wanderhuman_app/view/home/widgets/utility_functions/bottom_modal_sheet.dart';
 import 'package:wanderhuman_app/view/home/widgets/utility_functions/show_alert_dialog.dart';
 
@@ -185,33 +186,50 @@ class _MapBodyState extends State<MapBody> {
               // "assets/icons/isagi.jpg",
               "assets/icons/pin.png",
             );
+
+            /* 
+            NOTE: this was transferred to a separate file
             ///// final Uint8List imageData = await converter();
             // define markers
-            mp.PointAnnotationOptions
-            pointAnnotationOptions = mp.PointAnnotationOptions(
-              image: imageData,
-              ///// temporary (deletable)
-              ///// iconImage: "marker",
-              iconSize: 0.15,
-              // icon color is still static because I used a png image as marker
-              iconColor: Colors.blue.toARGB32(),
-              // THIS IS A PATIENT NAME
-              textField: "Hori Zontal",
-              textSize: 12.5,
-              textColor: Colors.blue.toARGB32(),
-              textOcclusionOpacity: 1,
-              isDraggable: true,
-              textAnchor: mp.TextAnchor.BOTTOM,
-              textOffset: [0, -1.2],
-              geometry: mp.Point(
-                coordinates: mp.Position(
-                  // THIS IS THE PATIENTS CURRENT COORDINATES
-                  // temporary coordinates
-                  myPosition!.longitude,
-                  myPosition!.latitude,
-                ),
-              ),
-            );
+            // mp.PointAnnotationOptions
+            // pointAnnotationOptions = mp.PointAnnotationOptions(
+            //   image: imageData,
+            //   ///// temporary (deletable)
+            //   ///// iconImage: "marker",
+            //   iconSize: 0.15,
+            //   // icon color is still static because I used a png image as marker
+            //   iconColor: Colors.blue.toARGB32(),
+            //   // THIS IS A PATIENT NAME
+            //   textField: "Hori Zontal",
+            //   textSize: 12.5,
+            //   textColor: Colors.blue.toARGB32(),
+            //   textOcclusionOpacity: 1,
+            //   isDraggable: true,
+            //   textAnchor: mp.TextAnchor.BOTTOM,
+            //   textOffset: [0, -1.2],
+            //   geometry: mp.Point(
+            //     coordinates: mp.Position(
+            //       // THIS IS THE PATIENTS CURRENT COORDINATES
+            //       // temporary coordinates
+            //       myPosition!.longitude,
+            //       myPosition!.latitude,
+            //     ),
+            //   ),
+            // );
+            */
+
+            mp.PointAnnotationOptions pointAnnotationOptions =
+                myPointAnnotationOptions(
+                  imageData: imageData,
+                  name: const Text("Hori Zontal"),
+                  textSize: 12.5,
+                  myPosition: mp.Position(
+                    // THIS IS THE PATIENTS CURRENT COORDINATES
+                    // temporary coordinates
+                    myPosition!.longitude,
+                    myPosition!.latitude,
+                  ),
+                );
 
             // add the marker to the map
             pointAnnotationManager?.create(pointAnnotationOptions);
