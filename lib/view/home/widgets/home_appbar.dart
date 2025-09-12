@@ -1,7 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:wanderhuman_app/helper/firebase_services.dart';
+import 'package:wanderhuman_app/model/firebase_patients.dart';
 import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/home/widgets/menu_options.dart';
+import 'package:wanderhuman_app/view/home/widgets/utility_functions/my_animated_snackbar.dart';
 
 class HomeAppBar extends StatefulWidget {
   const HomeAppBar({super.key});
@@ -15,6 +19,66 @@ class _HomeAppBarState extends State<HomeAppBar> {
   double animatedOpacity = 0.0;
   bool isExpanded = false;
   double borderRadius = 50;
+
+  List<Patients> usersList = [];
+  String userName = "User";
+
+  // to fetch patients (users) from firestore through MyFirebaseServices
+  // List<Patients> fetchedPatients() {
+  //   List<Patients> patientsList =
+  //       MyFirebaseServices.getAllPatients() as List<Patients>;
+  //   return patientsList;
+  // }
+
+  //// TO BE CLEANED
+  // FutureBuilder<List<Patients>>(
+  //     future: MyFirebaseServices.getSpecificUserName(personsList: await MyFirebaseServices.getAllPatients(), userIDToLookFor: FirebaseAuth.instance.currentUser!.uid),
+  //     builder: (context, snapshot) {
+  //       if (snapshot.connectionState == ConnectionState.waiting) {
+  //         return CircularProgressIndicator();
+  //       } else if (snapshot.hasError) {
+  //         return Text("Error: ${snapshot.error}");
+  //       } else if (snapshot.hasData) {
+  //         List<Patients> patients = snapshot.data!;
+  //         return patients;
+  //       } else {
+  //         return Text("No data found");
+  //       },
+  //   ),
+
+  // fetches all the users from firestore through MyFirebaseServices
+  Future<void> fetchUsers() async {
+    usersList = await MyFirebaseServices.getAllPatients();
+    showMyAnimatedSnackBar(
+      context: context,
+      dataToDisplay: "Number of users ${usersList.length.toString()}",
+    );
+  }
+
+  // to get the current user's name
+  Future<void> fetchAndSetUsername() async {
+    try {
+      await fetchUsers();
+      String name = MyFirebaseServices.getSpecificUserName(
+        personsList: usersList,
+        userIDToLookFor: FirebaseAuth.instance.currentUser!.uid,
+      );
+      setState(() {
+        userName = name;
+      });
+    } catch (e) {
+      print("❌❌❌ Error fetching user name: $e");
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchAndSetUsername();
+    // if (userName != "") {
+    //   print("✅✅✅✅✅ Fetched user name: $userName");
+    // }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,15 +111,34 @@ class _HomeAppBarState extends State<HomeAppBar> {
               // greeting text
               SizedBox(
                 width: MyDimensionAdapter.getWidth(context) * 0.50,
-                child: Text(
-                  "${dotenv.env['SAMPLE_TEXT']}",
-                  // "a dnbajbdjab ahbdhjabd ajbdhwbahw abdabhj",
-                  style: TextStyle(
-                    // color: Colors.,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
+                child: (userName == "User")
+                    ? CircularProgressIndicator()
+                    : Text(
+                        // "${dotenv.env['SAMPLE_TEXT']}",
+                        // "a dnbajbdjab ahbdhjabd ajbdhwbahw abdabhj",
+                        userName,
+                        style: TextStyle(
+                          // color: Colors.,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+
+                // FutureBuilder(
+                //     future: fetchAndSetUsername(),
+                //     builder: (context, snapshot) {
+                //       if (snapshot.connectionState ==
+                //           ConnectionState.waiting) {
+                //         return CircularProgressIndicator();
+                //       } else if (snapshot.hasError) {
+                //         return Text("Error: ${snapshot.error}");
+                //       } else if (snapshot.hasData) {
+                //         return Text(userName);
+                //       } else {
+                //         return Text("No data found");
+                //       }
+                //     },
+                //   ),
               ),
               Spacer(),
               // menu button
@@ -86,67 +169,5 @@ class _HomeAppBarState extends State<HomeAppBar> {
         ],
       ),
     );
-    // return SliverAppBar(
-    //   automaticallyImplyLeading: false,
-    //   // leading: Icon(Icons.menu),
-    //   leading: Container(
-    //     margin: const EdgeInsets.only(left: 20.0, top: 5.0, bottom: 5.0),
-    //     child: CircleAvatar(
-    //       backgroundColor: Colors.white,
-    //       child: Icon(Icons.person, color: Colors.blue),
-    //     ),
-    //   ),
-    //   actions: [
-    //     InkWell(
-    //       onTap: () {
-    //         bottomModalSheet(context);
-    //       },
-    //       child: Icon(Icons.menu, color: Colors.white60),
-    //     ),
-    //     SizedBox(width: 20),
-    //   ],
-    //   title: Text(
-    //     // "Hello!",
-    //     "${dotenv.env['SAMPLE_TEXT']}",
-    //     style: TextStyle(
-    //       color: Colors.white,
-    //       fontWeight: FontWeight.bold,
-    //       letterSpacing: 2.0,
-    //     ),
-    //   ),
-    //   // centerTitle: true,
-    //   backgroundColor: Colors.blue,
-    //   expandedHeight: MyDimensionAdapter.getHeight(context) * 0.15,
-    //   pinned: true,
-    //   elevation: 5.0,
-    //   forceElevated: true,
-    //   flexibleSpace: FlexibleSpaceBar(
-    //     background: Container(
-    //       margin: const EdgeInsets.only(
-    //         top: kToolbarHeight,
-    //         left: 20,
-    //         right: 20,
-    //       ),
-    //       padding: EdgeInsets.only(bottom: 5.0),
-    //       decoration: BoxDecoration(color: Colors.blue),
-    //       child: SingleChildScrollView(
-    //         scrollDirection: Axis.vertical,
-    //         child: Text(
-    //           "Placeholder text hewihhwb akjdbajb ajbdajwbdja abdab ajwbdjkwbaj waa d awbadba dakjbdkaj",
-    //         ),
-    //       ),
-    //     ),
-    //     // title: Text(
-    //     //   "HOME",
-    //     //   style: TextStyle(
-    //     //     color: Colors.white,
-    //     //     fontWeight: FontWeight.bold,
-    //     //     letterSpacing: 2.0,
-    //     //   ),
-    //     // ),
-    //     centerTitle: true,
-    //     // titlePadding: EdgeInsets.all(0),
-    //   ),
-    // );
   }
 }

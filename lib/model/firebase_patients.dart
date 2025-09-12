@@ -1,5 +1,6 @@
 class Patients {
   // Instance Variables
+  final String userID;
   final String name;
   final String age;
   final String sex;
@@ -17,6 +18,7 @@ class Patients {
 
   // Constructor
   Patients({
+    required this.userID,
     required this.name,
     required this.age,
     required this.sex,
@@ -36,6 +38,7 @@ class Patients {
   // Method Declaration
   factory Patients.fromFirestore(String id, Map<String, dynamic> data) {
     return Patients(
+      userID: data['userID'] ?? "",
       name: data['name'] ?? "",
       age: data['age'] ?? "",
       sex: data['sex'] ?? "",

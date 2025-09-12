@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:wanderhuman_app/utilities/universal_sizes.dart';
 
 PointAnnotationOptions myPointAnnotationOptions({
   Uint8List? imageData,
@@ -19,9 +20,8 @@ PointAnnotationOptions myPointAnnotationOptions({
     iconSize: 0.15,
     // icon color is still static because I used a png image as marker
     iconColor: Colors.blue.toARGB32(),
-
     textField: name, // THIS IS A PATIENT NAME
-    textSize: 12.5,
+    textSize: MySizes().mapTextFieldSize,
     textColor: Colors.white.toARGB32(),
     textOcclusionOpacity: 1,
     isDraggable: true,

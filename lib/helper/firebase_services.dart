@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:wanderhuman_app/view/add_patient_form/helper/firebase_patients.dart';
+import 'package:wanderhuman_app/model/firebase_patients.dart';
 
 // final personalInfo = FirebaseFirestore.instance
 //                           .collection("Personal Info")
@@ -21,9 +21,15 @@ class MyFirebaseServices {
       .instance
       .collection("Personal Info");
 
+  static DocumentReference _genereatePatientID() {
+    return _collectionReference.doc();
+  }
+
   // add patients
   static void addPatient(Patients patient) {
-    FirebaseFirestore.instance.collection("Personal Info").add({
+    // FirebaseFirestore.instance.collection("Personal Info").add({
+    _genereatePatientID().set({
+      "userID": _genereatePatientID().id,
       "name": patient.name,
       "age": patient.age,
       "sex": patient.sex,
@@ -63,16 +69,34 @@ class MyFirebaseServices {
     }
   }
 
-  static Future<List<String>> getAllUserID() async {
-    try {
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection("Personal Info")
-          .get();
-      List<String> userIDs = querySnapshot.docs.map((doc) => doc.id).toList();
-      return userIDs;
-    } catch (e) {
-      // ignore: avoid_print
-      throw Exception("Error fetching user IDs: $e");
+  // to get the name of a specific user
+  static String getSpecificUserName({
+    required List<Patients> personsList,
+    required String userIDToLookFor,
+  }) {
+    List userIDs = [];
+    for (var person in personsList) {
+      if (person.userID == userIDToLookFor) {
+        return person.name;
+      }
+      userIDs.add(person.name);
     }
+    print(" ✅✅✅✅✅✅ List of User IDs: $userIDs");
+
+    return "No User Found!";
   }
+
+  //// NOT WORKING YET
+  // static Future<List<String>> getAllUserID() async {
+  //   try {
+  //     QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+  //         .collection("Personal Info")
+  //         .get();
+  //     List<String> userIDs = querySnapshot.docs.map((doc) => doc.id).toList();
+  //     return userIDs;
+  //   } catch (e) {
+  //     // ignore: avoid_print
+  //     throw Exception("Error fetching user IDs: $e");
+  //   }
+  // }
 }

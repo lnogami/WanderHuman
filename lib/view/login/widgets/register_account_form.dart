@@ -143,7 +143,7 @@ class _RegisterAccountFormState extends State<RegisterAccountForm> {
                   FirebaseFirestore.instance.collection("Personal Info").add({
                     // "name": nameController.text.trim(),
                     // "userType": currentUserTypeGroupvalue.toString().split('.').last,
-                    "id": FirebaseAuth.instance.currentUser!.uid,
+                    "userID": FirebaseAuth.instance.currentUser!.uid,
                     "name": nameController.text.trim(),
                     "userType": currentUserTypeGroupvalue.name,
                     "gender": currentGroupGenderValue.name,

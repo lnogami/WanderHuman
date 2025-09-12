@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/add_patient_form/add_patient_form.dart';
-import 'package:wanderhuman_app/view/add_patient_form/helper/firebase_services.dart';
+import 'package:wanderhuman_app/helper/firebase_services.dart';
 import 'package:wanderhuman_app/view/home/widgets/utility_functions/option_container.dart';
 import 'package:wanderhuman_app/view/home/widgets/utility_functions/my_animated_snackbar.dart';
 
