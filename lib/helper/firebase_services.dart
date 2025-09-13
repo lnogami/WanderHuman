@@ -1,33 +1,20 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wanderhuman_app/model/firebase_patients.dart';
 
-// final personalInfo = FirebaseFirestore.instance
-//                           .collection("Personal Info")
-//                           .add({
-//                             "id": 1,
-//                             "usertype": "Caregiver",
-//                             "name": "Hori Zontal",
-//                             "gender": "male",
-//                             "contactNumber": "09876543210",
-//                             "address": "NA",
-//                             "notableTrait": "Imaginative, doer",
-//                             "profilePictureUrl": "NA",
-//                             "createdAt": FieldValue.serverTimestamp(),
-//                           });
-
 class MyFirebaseServices {
   // cache of Personal Info
   static final CollectionReference _collectionReference = FirebaseFirestore
       .instance
       .collection("Personal Info");
 
+  // this will create the document reference with a unique ID. (It is just a document without data yet).
   static DocumentReference _genereatePatientID() {
     return _collectionReference.doc();
   }
 
-  // add patients
+  // this will add data to the document with the unique ID
   static void addPatient(Patients patient) {
-    // FirebaseFirestore.instance.collection("Personal Info").add({
+    // .set method is just an add({}), but here we can specify the document ID which is the purpose of _genereatePatientID() method.
     _genereatePatientID().set({
       "userID": _genereatePatientID().id,
       "name": patient.name,

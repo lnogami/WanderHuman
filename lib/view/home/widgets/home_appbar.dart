@@ -1,11 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:wanderhuman_app/helper/firebase_services.dart';
 import 'package:wanderhuman_app/model/firebase_patients.dart';
 import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/home/widgets/menu_options.dart';
-import 'package:wanderhuman_app/view/home/widgets/utility_functions/my_animated_snackbar.dart';
 
 class HomeAppBar extends StatefulWidget {
   const HomeAppBar({super.key});
@@ -20,42 +18,20 @@ class _HomeAppBarState extends State<HomeAppBar> {
   bool isExpanded = false;
   double borderRadius = 50;
 
+  // pang cache sa user (patient) list
   List<Patients> usersList = [];
   String userName = "User";
-
-  // to fetch patients (users) from firestore through MyFirebaseServices
-  // List<Patients> fetchedPatients() {
-  //   List<Patients> patientsList =
-  //       MyFirebaseServices.getAllPatients() as List<Patients>;
-  //   return patientsList;
-  // }
-
-  //// TO BE CLEANED
-  // FutureBuilder<List<Patients>>(
-  //     future: MyFirebaseServices.getSpecificUserName(personsList: await MyFirebaseServices.getAllPatients(), userIDToLookFor: FirebaseAuth.instance.currentUser!.uid),
-  //     builder: (context, snapshot) {
-  //       if (snapshot.connectionState == ConnectionState.waiting) {
-  //         return CircularProgressIndicator();
-  //       } else if (snapshot.hasError) {
-  //         return Text("Error: ${snapshot.error}");
-  //       } else if (snapshot.hasData) {
-  //         List<Patients> patients = snapshot.data!;
-  //         return patients;
-  //       } else {
-  //         return Text("No data found");
-  //       },
-  //   ),
 
   // fetches all the users from firestore through MyFirebaseServices
   Future<void> fetchUsers() async {
     usersList = await MyFirebaseServices.getAllPatients();
-    showMyAnimatedSnackBar(
-      context: context,
-      dataToDisplay: "Number of users ${usersList.length.toString()}",
-    );
+    // showMyAnimatedSnackBar(
+    //   context: context,
+    //   dataToDisplay: "Number of users ${usersList.length.toString()}",
+    // );
   }
 
-  // to get the current user's name
+  // to get the current user's name and UPDATE the userName variable's state
   Future<void> fetchAndSetUsername() async {
     try {
       await fetchUsers();
@@ -75,9 +51,6 @@ class _HomeAppBarState extends State<HomeAppBar> {
   void initState() {
     super.initState();
     fetchAndSetUsername();
-    // if (userName != "") {
-    //   print("✅✅✅✅✅ Fetched user name: $userName");
-    // }
   }
 
   @override
@@ -111,6 +84,7 @@ class _HomeAppBarState extends State<HomeAppBar> {
               // greeting text
               SizedBox(
                 width: MyDimensionAdapter.getWidth(context) * 0.50,
+                // this userName will be updated by setState
                 child: (userName == "User")
                     ? CircularProgressIndicator()
                     : Text(
@@ -123,22 +97,6 @@ class _HomeAppBarState extends State<HomeAppBar> {
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
-
-                // FutureBuilder(
-                //     future: fetchAndSetUsername(),
-                //     builder: (context, snapshot) {
-                //       if (snapshot.connectionState ==
-                //           ConnectionState.waiting) {
-                //         return CircularProgressIndicator();
-                //       } else if (snapshot.hasError) {
-                //         return Text("Error: ${snapshot.error}");
-                //       } else if (snapshot.hasData) {
-                //         return Text(userName);
-                //       } else {
-                //         return Text("No data found");
-                //       }
-                //     },
-                //   ),
               ),
               Spacer(),
               // menu button
