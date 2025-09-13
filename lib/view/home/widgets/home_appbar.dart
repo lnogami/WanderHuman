@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/helper/firebase_services.dart';
-import 'package:wanderhuman_app/model/firebase_patients.dart';
+import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/home/widgets/menu_options.dart';
 
@@ -19,16 +19,12 @@ class _HomeAppBarState extends State<HomeAppBar> {
   double borderRadius = 50;
 
   // pang cache sa user (patient) list
-  List<Patients> usersList = [];
+  List<PersonalInfo> usersList = [];
   String userName = "User";
 
   // fetches all the users from firestore through MyFirebaseServices
   Future<void> fetchUsers() async {
     usersList = await MyFirebaseServices.getAllPatients();
-    // showMyAnimatedSnackBar(
-    //   context: context,
-    //   dataToDisplay: "Number of users ${usersList.length.toString()}",
-    // );
   }
 
   // to get the current user's name and UPDATE the userName variable's state
@@ -58,7 +54,11 @@ class _HomeAppBarState extends State<HomeAppBar> {
     return AnimatedContainer(
       duration: Duration(milliseconds: animationDuration),
       width: MyDimensionAdapter.getWidth(context) * 0.80,
-      height: (isExpanded) ? 220 : 50,
+      height: (isExpanded)
+          ? (MyFirebaseServices.getUserType() == "admin")
+                ? 290
+                : 220
+          : 50,
       decoration: BoxDecoration(
         color: (isExpanded)
             ? const Color.fromARGB(210, 255, 255, 255)

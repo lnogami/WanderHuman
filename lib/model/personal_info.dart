@@ -1,6 +1,7 @@
-class Patients {
+class PersonalInfo {
   // Instance Variables
   final String userID;
+  final String userType;
   final String name;
   final String age;
   final String sex;
@@ -17,8 +18,9 @@ class Patients {
   final String email;
 
   // Constructor
-  Patients({
+  PersonalInfo({
     required this.userID,
+    required this.userType,
     required this.name,
     required this.age,
     required this.sex,
@@ -36,9 +38,10 @@ class Patients {
   });
 
   // Method Declaration
-  factory Patients.fromFirestore(String id, Map<String, dynamic> data) {
-    return Patients(
+  factory PersonalInfo.fromFirestore(String id, Map<String, dynamic> data) {
+    return PersonalInfo(
       userID: data['userID'] ?? "",
+      userType: data['userType'] ?? "",
       name: data['name'] ?? "",
       age: data['age'] ?? "",
       sex: data['sex'] ?? "",

@@ -10,4 +10,4 @@ class HomeAppBarProvider extends ChangeNotifier {
   }
 }
 
-// not yet implemented, or it may be wont implemented at all.
+// NOTE: not yet implemented, or it may be wont implemented at all.

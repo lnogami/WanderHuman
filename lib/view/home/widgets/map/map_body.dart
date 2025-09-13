@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart' as gl;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mp;
-import 'package:wanderhuman_app/view/home/widgets/map/independent_functions/point_annotation_options.dart';
+import 'package:wanderhuman_app/view/home/widgets/utility_functions/map_functions/point_annotation_options.dart';
 import 'package:wanderhuman_app/view/home/widgets/utility_functions/bottom_modal_sheet.dart';
 import 'package:wanderhuman_app/view/home/widgets/utility_functions/show_alert_dialog.dart';
 

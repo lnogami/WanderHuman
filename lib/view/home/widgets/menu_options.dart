@@ -15,15 +15,25 @@ class MyMenuOptions extends StatefulWidget {
 }
 
 class _MyMenuOptionsState extends State<MyMenuOptions> {
+  double buttonsHorizontalGap = 8;
+
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
-      duration: Duration(milliseconds: 180),
+      duration: Duration(
+        milliseconds: (MyFirebaseServices.getUserType() == "admin") ? 200 : 180,
+      ),
       // color: Colors.amber,
       width: MyDimensionAdapter.getWidth(context) - 60,
-      height: (widget.isVisible) ? 150 : 0,
+      height: (widget.isVisible)
+          // nested conditional operator haha
+          ? (MyFirebaseServices.getUserType() == "admin")
+                ? 220
+                : 150
+          : 0,
       child: SingleChildScrollView(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // this is just for drawing a thin horizontal line that acts as a border.
             Container(
@@ -33,8 +43,53 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
                 color: Colors.grey[400],
                 borderRadius: BorderRadius.all(Radius.circular(30)),
               ),
-              margin: EdgeInsets.only(top: 5, bottom: 22.5),
+              margin: EdgeInsets.only(top: 5), // bottom: 22.5),
             ),
+
+            // displays user type
+            toDisplayUserType(),
+
+            SizedBox(
+              height: MyFirebaseServices.getUserType() == "admin" ? 15 : 2,
+            ),
+
+            // admin exclusive options
+            (MyFirebaseServices.getUserType() == "admin")
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      SizedBox(height: 10),
+                      optionsContainer(
+                        context,
+                        Icons.person_outline_rounded,
+                        "Placeholder",
+                        onTap: () {
+                          showMyAnimatedSnackBar(
+                            context: context,
+                            dataToDisplay: "Admin Privilege",
+                          );
+                        },
+                      ),
+                      SizedBox(height: 10),
+                      optionsContainer(
+                        context,
+                        Icons.add_outlined,
+                        "Placeholder",
+                        onTap: () {
+                          showMyAnimatedSnackBar(
+                            context: context,
+                            dataToDisplay: "Admin Privilege",
+                          );
+                        },
+                      ),
+                      SizedBox(height: 10),
+                    ],
+                  )
+                : SizedBox(height: 0),
+
+            SizedBox(height: buttonsHorizontalGap),
+
+            // buttons/options
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -75,39 +130,37 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
                 SizedBox(height: 10),
               ],
             ),
-            SizedBox(height: 8),
-            GestureDetector(
-              onTap: () => FirebaseAuth.instance.signOut(),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  SizedBox(height: 10),
-                  optionsContainer(
-                    context,
-                    Icons.settings_outlined,
-                    "Settings",
-                    onTap: () {
-                      showMyAnimatedSnackBar(
-                        context: context,
-                        dataToDisplay: "Testing",
-                      );
-                    },
-                  ),
-                  SizedBox(height: 10),
-                  optionsContainer(
-                    context,
-                    onTap: () {
-                      FirebaseAuth.instance.signOut();
-                    },
-                    Icons.logout_outlined,
-                    "Logout",
-                    bgColor: const Color.fromARGB(130, 255, 108, 108),
-                  ),
-                  SizedBox(height: 10),
-                ],
-              ),
-            ),
 
+            SizedBox(height: buttonsHorizontalGap),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                SizedBox(height: 10),
+                optionsContainer(
+                  context,
+                  Icons.settings_outlined,
+                  "Settings",
+                  onTap: () {
+                    showMyAnimatedSnackBar(
+                      context: context,
+                      dataToDisplay: "Testing",
+                    );
+                  },
+                ),
+                SizedBox(height: 10),
+                optionsContainer(
+                  context,
+                  onTap: () {
+                    FirebaseAuth.instance.signOut();
+                  },
+                  Icons.logout_outlined,
+                  "Logout",
+                  bgColor: const Color.fromARGB(130, 255, 108, 108),
+                ),
+                SizedBox(height: 10),
+              ],
+            ),
             // SizedBox(height: 20),
             // Row(
             //   mainAxisAlignment: MainAxisAlignment.end,
@@ -167,6 +220,30 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
           ],
         ),
       ),
+    );
+  }
+
+  Row toDisplayUserType() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          // for grammatical purposes
+          (MyFirebaseServices.getUserType() == "admin")
+              ? "You are an "
+              : "You are a ",
+          style: TextStyle(fontSize: 11, color: Colors.blueGrey),
+        ),
+        Text(
+          MyFirebaseServices.getUserType().toUpperCase(),
+          style: TextStyle(
+            fontSize: 11,
+            // fontStyle: FontStyle.italic,
+            fontWeight: FontWeight.w500,
+            color: Colors.blueGrey,
+          ),
+        ),
+      ],
     );
   }
 }

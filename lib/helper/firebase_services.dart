@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:wanderhuman_app/model/firebase_patients.dart';
+import 'package:wanderhuman_app/model/personal_info.dart';
 
 class MyFirebaseServices {
   // cache of Personal Info
@@ -7,16 +7,19 @@ class MyFirebaseServices {
       .instance
       .collection("Personal Info");
 
+  static String _userType = "";
+
   // this will create the document reference with a unique ID. (It is just a document without data yet).
   static DocumentReference _genereatePatientID() {
     return _collectionReference.doc();
   }
 
   // this will add data to the document with the unique ID
-  static void addPatient(Patients patient) {
+  static void addPatient(PersonalInfo patient) {
     // .set method is just an add({}), but here we can specify the document ID which is the purpose of _genereatePatientID() method.
     _genereatePatientID().set({
       "userID": _genereatePatientID().id,
+      "userType": patient.userType,
       "name": patient.name,
       "age": patient.age,
       "sex": patient.sex,
@@ -34,16 +37,15 @@ class MyFirebaseServices {
     });
   }
 
-  // Still Cannot fetch data from the firestore
   // get all patients
-  static Future<List<Patients>> getAllPatients() async {
+  static Future<List<PersonalInfo>> getAllPatients() async {
     try {
       QuerySnapshot querySnapshot = await _collectionReference
           // .where("userType", isEqualTo: "Patient")
           .get();
-      List<Patients> patients = querySnapshot.docs.map((doc) {
+      List<PersonalInfo> patients = querySnapshot.docs.map((doc) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        return Patients.fromFirestore(doc.id, data);
+        return PersonalInfo.fromFirestore(doc.id, data);
       }).toList();
 
       // ignore: avoid_print
@@ -58,19 +60,21 @@ class MyFirebaseServices {
 
   // to get the name of a specific user
   static String getSpecificUserName({
-    required List<Patients> personsList,
+    required List<PersonalInfo> personsList,
     required String userIDToLookFor,
   }) {
-    List userIDs = [];
     for (var person in personsList) {
       if (person.userID == userIDToLookFor) {
+        _userType = person.userType;
         return person.name;
       }
-      userIDs.add(person.name);
     }
-    print(" ✅✅✅✅✅✅ List of User IDs: $userIDs");
-
     return "No User Found!";
+  }
+
+  /// to get the role of the current user (Caregiver or Admin)
+  static String getUserType() {
+    return _userType;
   }
 
   //// NOT WORKING YET

@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:wanderhuman_app/components/button.dart';
 import 'package:wanderhuman_app/utilities/color_palette.dart';
 import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
-import 'package:wanderhuman_app/model/firebase_patients.dart';
+import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/helper/firebase_services.dart';
 import 'package:wanderhuman_app/view/add_patient_form/widget/customed_text_form_field.dart';
 import 'package:wanderhuman_app/view/home/widgets/utility_functions/my_animated_snackbar.dart';
@@ -285,8 +285,9 @@ class _AddPatientFormState extends State<AddPatientForm> {
               if (_formKey.currentState!.validate()) {
                 // this method accepts Patients object so maong naay Patients diri
                 MyFirebaseServices.addPatient(
-                  Patients(
+                  PersonalInfo(
                     userID: FirebaseAuth.instance.currentUser!.uid,
+                    userType: "patient",
                     name: nameValue,
                     age: ageValue,
                     sex: sexValue,
