@@ -19,6 +19,7 @@ class _MapBodyState extends State<MapBody> {
   // controller for the map
   mp.MapboxMap? mapboxMapController;
 
+  // to listen to the user's location changes
   StreamSubscription? userPositionStream;
 
   // temporary
@@ -27,7 +28,7 @@ class _MapBodyState extends State<MapBody> {
   @override
   void initState() {
     super.initState();
-    setup();
+    setupMapboxAccessToken();
     checkAndRequestLocationPermission();
   }
 
@@ -38,7 +39,7 @@ class _MapBodyState extends State<MapBody> {
     super.dispose();
   }
 
-  Future<void> setup() async {
+  Future<void> setupMapboxAccessToken() async {
     mp.MapboxOptions.setAccessToken(dotenv.env['MAPBOX_ACCESS_TOKEN']!);
   }
 
@@ -99,14 +100,13 @@ class _MapBodyState extends State<MapBody> {
 
     // I AM NOT ALLOWED TO HIDE THE MAPBOX LOGO BECAUSE IT'S IN SERVICE TERMS AND POLICES.
 
-    bool isLocationServiceEnabled =
-        await gl.Geolocator.isLocationServiceEnabled();
-
-    // mounted refers to if the widget is still on the tree
-    if (mounted) {
-      // code to be added here to make this code appear again if the Location is still turned off.
-      showMyDialogBox(context, isLocationServiceEnabled);
-    }
+    // bool isLocationServiceEnabled =
+    //     await gl.Geolocator.isLocationServiceEnabled();
+    // // mounted refers to if the widget is still on the tree
+    // if (mounted) {
+    //   // code to be added here to make this code appear again if the Location is still turned off.
+    //   showMyDialogBox(context, isLocationServiceEnabled);
+    // }
   }
 
   //------------------------------------------------------------------------------
