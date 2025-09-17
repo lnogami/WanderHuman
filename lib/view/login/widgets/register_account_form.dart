@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/components/button.dart';
 import 'package:wanderhuman_app/utilities/color_palette.dart';
 import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
-import 'package:wanderhuman_app/view/home/widgets/utility_functions/my_animated_snackbar.dart';
+import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/login/register_account.dart';
 import 'package:wanderhuman_app/view/login/widgets/textfield.dart';
 

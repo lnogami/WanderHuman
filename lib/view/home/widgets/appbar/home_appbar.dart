@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/helper/firebase_services.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
-import 'package:wanderhuman_app/view/home/widgets/menu_options.dart';
+import 'package:wanderhuman_app/view/home/widgets/appbar/menu_options.dart';
 
 class HomeAppBar extends StatefulWidget {
   const HomeAppBar({super.key});

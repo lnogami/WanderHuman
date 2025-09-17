@@ -7,7 +7,7 @@ import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/helper/firebase_services.dart';
 import 'package:wanderhuman_app/view/add_patient_form/widget/customed_text_form_field.dart';
-import 'package:wanderhuman_app/view/home/widgets/utility_functions/my_animated_snackbar.dart';
+import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 
 class AddPatientForm extends StatefulWidget {
   const AddPatientForm({super.key});
