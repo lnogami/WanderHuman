@@ -28,14 +28,6 @@ PointAnnotationOptions myPointAnnotationOptions({
     isDraggable: true,
     textAnchor: TextAnchor.BOTTOM,
     textOffset: [0, -1.2],
-    geometry: Point(
-      coordinates: myPosition,
-      // coordinates: Position(
-      //   // THIS IS THE PATIENTS CURRENT COORDINATES
-      //   // temporary coordinates
-      //   myPosition!.longitude,
-      //   myPosition!.latitude,
-      // ),
-    ),
+    geometry: Point(coordinates: myPosition),
   );
 }

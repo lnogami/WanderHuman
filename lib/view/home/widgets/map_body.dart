@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart' as gl;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mp;
 import 'package:wanderhuman_app/view/home/widgets/utility_functions/map_functions/point_annotation_options.dart';
 import 'package:wanderhuman_app/view/home/widgets/utility_functions/bottom_modal_sheet.dart';
+import 'package:wanderhuman_app/view/home/widgets/utility_functions/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/home/widgets/utility_functions/show_alert_dialog.dart';
 
 class MapBody extends StatefulWidget {
@@ -100,13 +101,13 @@ class _MapBodyState extends State<MapBody> {
 
     // I AM NOT ALLOWED TO HIDE THE MAPBOX LOGO BECAUSE IT'S IN SERVICE TERMS AND POLICES.
 
-    // bool isLocationServiceEnabled =
-    //     await gl.Geolocator.isLocationServiceEnabled();
-    // // mounted refers to if the widget is still on the tree
-    // if (mounted) {
-    //   // code to be added here to make this code appear again if the Location is still turned off.
-    //   showMyDialogBox(context, isLocationServiceEnabled);
-    // }
+    bool isLocationServiceEnabled =
+        await gl.Geolocator.isLocationServiceEnabled();
+    // mounted refers to if the widget is still on the tree
+    if (mounted) {
+      // code to be added here to make this code appear again if the Location is still turned off.
+      showMyDialogBox(context, isLocationServiceEnabled);
+    }
   }
 
   //------------------------------------------------------------------------------
@@ -135,6 +136,13 @@ class _MapBodyState extends State<MapBody> {
     }
 
     if (permission == gl.LocationPermission.deniedForever) {
+      showMyAnimatedSnackBar(
+        // ignore: use_build_context_synchronously
+        context: context,
+        isAutoDismiss: false,
+        dataToDisplay:
+            "NOTICE: The device's Location permission is permanently denied. Please turn it on in your phone's Settings",
+      );
       // Permissions are permanently denied
       return Future.error(
         "Location permissions are permanently denied, we cannot request permissions.",
@@ -233,7 +241,7 @@ class _MapBodyState extends State<MapBody> {
 
             // add the marker to the map
             pointAnnotationManager?.create(pointAnnotationOptions);
-            // pointAnnotationManager?.createMulti(list of pointAnnotationOptions);
+            // pointAnnotationManager?.createMulti(List<mp.PointAnnotation>);
 
             // setting tap events to the marker
             pointAnnotationManager?.tapEvents(

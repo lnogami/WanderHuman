@@ -45,6 +45,7 @@ void showMyAnimatedSnackBar({
   required String dataToDisplay,
   Color borderColor = Colors.white,
   Color bgColor = Colors.white60,
+  bool isAutoDismiss = true,
 }) {
   final overlay = Overlay.of(context);
   final overlayEntry = OverlayEntry(
@@ -81,6 +82,8 @@ void showMyAnimatedSnackBar({
 
   // Auto dismiss after 2s
   Future.delayed(const Duration(milliseconds: 3500), () {
-    overlayEntry.remove();
+    if (isAutoDismiss) {
+      overlayEntry.remove();
+    }
   });
 }
