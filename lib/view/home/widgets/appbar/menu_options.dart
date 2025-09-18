@@ -5,7 +5,7 @@ import 'package:wanderhuman_app/view/add_patient_form/add_patient_form.dart';
 import 'package:wanderhuman_app/helper/firebase_services.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/option_container.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
-import 'package:wanderhuman_app/view/home/widgets/map/patient_simulator_map.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/patient_simulator_container.dart';
 
 class MyMenuOptions extends StatefulWidget {
   final bool isVisible;
@@ -66,16 +66,11 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
                         bgColor: Colors.green[300]!,
                         "Simulate",
                         onTap: () {
-                          showMyAnimatedSnackBar(
-                            context: context,
-                            dataToDisplay: "Simulating a Patient",
-                            isAutoDismiss: false,
-                          );
                           //
-                          Navigator.pop(context);
-                          Navigator.of(context).push(
+                          // Navigator.pop(context);
+                          Navigator.of(context).pushReplacement(
                             MaterialPageRoute(
-                              builder: (context) => PatientSimulator(),
+                              builder: (context) => PatientSimulatorContainer(),
                             ),
                           );
                         },

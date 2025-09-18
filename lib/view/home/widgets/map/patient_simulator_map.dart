@@ -32,7 +32,7 @@ class _PatientSimulatorState extends State<PatientSimulator> {
     super.initState();
     setupMapboxAccessToken();
     checkAndRequestLocationPermission();
-    WakelockPlus.enabled;
+    WakelockPlus.enable();
   }
 
   @override
@@ -40,7 +40,6 @@ class _PatientSimulatorState extends State<PatientSimulator> {
     // cancels the subscriptionStream to avoid memory leaks
     userPositionStream?.cancel();
     super.dispose();
-    WakelockPlus.disable();
   }
 
   Future<void> setupMapboxAccessToken() async {
@@ -156,7 +155,7 @@ class _PatientSimulatorState extends State<PatientSimulator> {
     // Permissions are granted, proceed with location functionality
     gl.LocationSettings locationSettings = gl.LocationSettings(
       accuracy: gl.LocationAccuracy.high,
-      distanceFilter: 100,
+      distanceFilter: 10,
     );
 
     /*
@@ -176,7 +175,7 @@ class _PatientSimulatorState extends State<PatientSimulator> {
             myPosition = position;
             mapboxMapController?.setCamera(
               mp.CameraOptions(
-                zoom: 15.0,
+                zoom: 18.0,
                 center: mp.Point(
                   coordinates: mp.Position(
                     position.longitude,
