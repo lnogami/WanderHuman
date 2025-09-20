@@ -1,17 +1,21 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:wanderhuman_app/model/history.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 
 class MyFirebaseServices {
   // cache of Personal Info
-  static final CollectionReference _collectionReference = FirebaseFirestore
-      .instance
-      .collection("Personal Info");
+  static final CollectionReference _personalInfoCollectionReference =
+      FirebaseFirestore.instance.collection("Personal Info");
+
+  static final CollectionReference _historyCollectionReference =
+      FirebaseFirestore.instance.collection("History");
 
   static String _userType = "";
+  static List<PersonalInfo> _personalInfoRecords = []; // caching purposes
 
   // this will create the document reference with a unique ID. (It is just a document without data yet).
   static DocumentReference _genereatePatientID() {
-    return _collectionReference.doc();
+    return _personalInfoCollectionReference.doc();
   }
 
   // this will add data to the document with the unique ID
@@ -37,16 +41,18 @@ class MyFirebaseServices {
     });
   }
 
-  // get all patients
   static Future<List<PersonalInfo>> getAllPatients() async {
     try {
-      QuerySnapshot querySnapshot = await _collectionReference
+      QuerySnapshot querySnapshot = await _personalInfoCollectionReference
           // .where("userType", isEqualTo: "Patient")
           .get();
       List<PersonalInfo> patients = querySnapshot.docs.map((doc) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
         return PersonalInfo.fromFirestore(doc.id, data);
       }).toList();
+
+      // to cache personal innfo records, for the purpose of getPatientIdAandName()
+      _personalInfoRecords = patients;
 
       // ignore: avoid_print
       print('✅🔍 Successfully fetched ${patients.length} patients');
@@ -89,5 +95,35 @@ class MyFirebaseServices {
   //     // ignore: avoid_print
   //     throw Exception("Error fetching user IDs: $e");
   //   }
+  // }
+
+  // FOR PATIENT SIMULATION
+  static Future<void> savePatientLocaion(PatientHistory patient) async {
+    try {
+      _historyCollectionReference.doc().set({
+        "patientID": patient.patientID,
+        "isInSafeZone": patient.isInSafeZone,
+        "currentLocation": patient.currentLocation,
+        "currentlyIn": patient.currentlyIn,
+        "timeStamp": patient.timeStamp,
+        "deviceBatteryPercentage": patient.deviceBatteryPercentage,
+      });
+    } on FirebaseException catch (e) {
+      // ignore: avoid_print
+      print("❌ Error on saving user location:${e.message}");
+      throw Exception();
+    }
+  }
+
+  // static Map<String, String> getPatientIdAandName() {
+  //   try {
+  //     _personalInfoRecords;
+  //   } catch (e) {
+  //     // ignore: avoid_print
+  //     print("❌ Error getting patient id and name: $e");
+  //     throw Exception();
+  //   }
+
+  //   return {};
   // }
 }

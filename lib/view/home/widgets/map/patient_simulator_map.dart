@@ -1,10 +1,14 @@
 import 'dart:async';
+import 'package:battery_plus/battery_plus.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart' as gl;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mp;
 import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:wanderhuman_app/helper/firebase_services.dart';
+import 'package:wanderhuman_app/model/history.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/point_annotation_options.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/bottom_modal_sheet.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
@@ -33,6 +37,7 @@ class _PatientSimulatorState extends State<PatientSimulator> {
     setupMapboxAccessToken();
     checkAndRequestLocationPermission();
     WakelockPlus.enable();
+    _getDeviceBatteryPercentage();
   }
 
   @override
@@ -40,6 +45,16 @@ class _PatientSimulatorState extends State<PatientSimulator> {
     // cancels the subscriptionStream to avoid memory leaks
     userPositionStream?.cancel();
     super.dispose();
+  }
+
+  // NOTE: this is not final yet, may or may not be implemented.
+  final Battery battery = Battery();
+  int deviceBatteryPercentage = 0;
+  Future<void> _getDeviceBatteryPercentage() async {
+    final level = await battery.batteryLevel;
+    setState(() {
+      deviceBatteryPercentage = level;
+    });
   }
 
   Future<void> setupMapboxAccessToken() async {
@@ -185,6 +200,23 @@ class _PatientSimulatorState extends State<PatientSimulator> {
               ),
             );
 
+            // (deltable)
+            // Timer.periodic(Duration(seconds: 5), (timer) {
+            //   showMyAnimatedSnackBar(
+            //     context: context,
+            //     dataToDisplay: "5 seconds passed",
+            //   );
+            // });
+
+            // (deletable)
+            // // for saving data to Firebase
+            // Timer.periodic(Duration(seconds: 30), (timer) {
+            //   showMyAnimatedSnackBar(
+            //     context: context,
+            //     dataToDisplay: "30 seconds passed",
+            //   );
+            // });
+
             /* 
               logic for adding annotations (marker),
               diri sya ibutang para marender sya if naa nay narender nga
@@ -255,6 +287,28 @@ class _PatientSimulatorState extends State<PatientSimulator> {
             );
           }
         });
+
+    // Experimental Patient Simulation, not yet final
+    Timer.periodic(Duration(seconds: 30), (timer) {
+      showMyAnimatedSnackBar(
+        context: context,
+        dataToDisplay: "30 seconds passed",
+      );
+
+      MyFirebaseServices.savePatientLocaion(
+        PatientHistory(
+          patientID: "${FirebaseAuth.instance.currentUser!.uid}_as_PATIENT",
+          isInSafeZone: true,
+          currentlyIn: "Livingroom",
+          currentLocation: mp.Position(
+            myPosition!.longitude,
+            myPosition!.latitude,
+          ),
+          timeStamp: DateTime.timestamp(),
+          deviceBatteryPercentage: deviceBatteryPercentage.toString(),
+        ),
+      );
+    });
   }
 
   //// // this is a helper function to convert the image to Uint8List
