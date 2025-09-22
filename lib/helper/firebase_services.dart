@@ -11,7 +11,7 @@ class MyFirebaseServices {
       FirebaseFirestore.instance.collection("History");
 
   static String _userType = "";
-  static List<PersonalInfo> _personalInfoRecords = []; // caching purposes
+  // static List<PersonalInfo> _personalInfoRecords = []; // caching purposes
 
   // this will create the document reference with a unique ID. (It is just a document without data yet).
   static DocumentReference _genereatePatientID() {
@@ -51,8 +51,8 @@ class MyFirebaseServices {
         return PersonalInfo.fromFirestore(doc.id, data);
       }).toList();
 
-      // to cache personal innfo records, for the purpose of getPatientIdAandName()
-      _personalInfoRecords = patients;
+      // // to cache personal innfo records, for the purpose of getPatientIdAandName()
+      // _personalInfoRecords = patients;
 
       // ignore: avoid_print
       print('✅🔍 Successfully fetched ${patients.length} patients');

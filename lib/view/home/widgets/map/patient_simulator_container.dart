@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wakelock_plus/wakelock_plus.dart';
+// import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/home/home.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/patient_simulator_map.dart';
@@ -15,13 +15,13 @@ class PatientSimulatorContainer extends StatefulWidget {
 class _PatientSimulatorContainerState extends State<PatientSimulatorContainer> {
   @override
   void initState() {
-    WakelockPlus.enable();
+    // WakelockPlus.enable();
     super.initState();
   }
 
   @override
   void dispose() {
-    WakelockPlus.disable();
+    // WakelockPlus.disable();
     super.dispose();
   }
 
