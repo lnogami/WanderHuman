@@ -98,7 +98,7 @@ class MyFirebaseServices {
   // }
 
   // FOR PATIENT SIMULATION
-  static Future<void> savePatientLocaion(PatientHistory patient) async {
+  static Future<void> savePatientLocation(PatientHistory patient) async {
     try {
       _historyCollectionReference.doc().set({
         "patientID": patient.patientID,

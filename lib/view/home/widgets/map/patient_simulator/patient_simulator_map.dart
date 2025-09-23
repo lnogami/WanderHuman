@@ -13,6 +13,7 @@ import 'package:wanderhuman_app/view/home/widgets/map/map_functions/point_annota
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/bottom_modal_sheet.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/show_alert_dialog.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/patient_simulator/location_saver.dart';
 
 class PatientSimulator extends StatefulWidget {
   const PatientSimulator({super.key});
@@ -23,13 +24,18 @@ class PatientSimulator extends StatefulWidget {
 
 class _PatientSimulatorState extends State<PatientSimulator> {
   // controller for the map
-  mp.MapboxMap? mapboxMapController;
+  mp.MapboxMap? mbMapController;
+
+  mp.PointAnnotationManager? pointAnnotationManager;
 
   // to listen to the user's location changes
   StreamSubscription? userPositionStream;
 
   // temporary
   gl.Position? myPosition;
+
+  // for triggering the save
+  DateTime? lastSaveTime;
 
   @override
   void initState() {
@@ -72,18 +78,22 @@ class _PatientSimulatorState extends State<PatientSimulator> {
 
   void _onMapCreated(mp.MapboxMap controller) async {
     setState(() {
-      mapboxMapController = controller;
+      mbMapController = controller;
     });
+
+    // to create a pointAnnotationManager
+    pointAnnotationManager = await mbMapController?.annotations
+        .createPointAnnotationManager();
     //temporary ra ni (deletable)
     // controller.annotations.createPointAnnotationManager();
 
     // logic for displaying user position/location on the map
-    mapboxMapController?.location.updateSettings(
+    mbMapController?.location.updateSettings(
       mp.LocationComponentSettings(enabled: true, pulsingEnabled: true),
     );
 
     // scaleBar indicator, indicator of how much the map is zoomed in/out
-    mapboxMapController!.scaleBar.updateSettings(
+    mbMapController!.scaleBar.updateSettings(
       mp.ScaleBarSettings(
         enabled: true,
         position: mp.OrnamentPosition.BOTTOM_LEFT,
@@ -98,7 +108,7 @@ class _PatientSimulatorState extends State<PatientSimulator> {
     );
 
     // the mapbox logo can be moved, but cannot be hidden as per MapBox's Terms and Policy
-    mapboxMapController!.logo.updateSettings(
+    mbMapController!.logo.updateSettings(
       mp.LogoSettings(
         position: mp.OrnamentPosition.BOTTOM_RIGHT,
         marginRight: 25,
@@ -106,7 +116,7 @@ class _PatientSimulatorState extends State<PatientSimulator> {
     );
 
     // the stroked i icon next to MapBox icon
-    mapboxMapController!.attribution.updateSettings(
+    mbMapController!.attribution.updateSettings(
       mp.AttributionSettings(
         iconColor: const Color.fromARGB(100, 33, 149, 243).toARGB32(),
         position: mp.OrnamentPosition.BOTTOM_RIGHT,
@@ -114,7 +124,7 @@ class _PatientSimulatorState extends State<PatientSimulator> {
     );
 
     // the compass icon in the map that only appears if the map is tilted
-    mapboxMapController!.compass.updateSettings(
+    mbMapController!.compass.updateSettings(
       mp.CompassSettings(marginTop: 80, marginRight: 15, opacity: 0.70),
     );
 
@@ -184,11 +194,11 @@ class _PatientSimulatorState extends State<PatientSimulator> {
         gl.Geolocator.getPositionStream(
           locationSettings: locationSettings,
         ).listen((gl.Position? position) async {
-          if (position != null && mapboxMapController != null) {
+          if (position != null && mbMapController != null) {
             // print(position);
             // temporary
             myPosition = position;
-            mapboxMapController?.setCamera(
+            mbMapController?.setCamera(
               mp.CameraOptions(
                 zoom: 18.0,
                 center: mp.Point(
@@ -222,9 +232,7 @@ class _PatientSimulatorState extends State<PatientSimulator> {
               diri sya ibutang para marender sya if naa nay narender nga
               map og user postion
             */
-            final pointAnnotationManager = await mapboxMapController
-                ?.annotations
-                .createPointAnnotationManager();
+
             // load image as the marker
             final Uint8List imageData = await imageToIconLoader(
               // "assets/icons/isagi.jpg",
@@ -285,30 +293,46 @@ class _PatientSimulatorState extends State<PatientSimulator> {
                 bottomModalSheet(context);
               },
             );
+
+            bool isSaved = await savePatientLocation(
+              patientID: "${FirebaseAuth.instance.currentUser!.uid}_as_PATIENT",
+              lastSaved:
+                  lastSaveTime ??
+                  DateTime.now().subtract(Duration(seconds: 30)),
+              currentPositon: mp.Position(
+                myPosition!.longitude,
+                myPosition!.latitude,
+              ),
+              deviceBatteryPercentage: deviceBatteryPercentage,
+              context: context,
+            );
+            if (isSaved) {
+              lastSaveTime = DateTime.now();
+            }
           }
         });
 
-    // Experimental Patient Simulation, not yet final
-    Timer.periodic(Duration(seconds: 30), (timer) {
-      showMyAnimatedSnackBar(
-        context: context,
-        dataToDisplay: "30 seconds passed",
-      );
+    // // Experimental Patient Simulation, not yet final
+    // Timer.periodic(Duration(seconds: 30), (timer) {
+    //   showMyAnimatedSnackBar(
+    //     context: context,
+    //     dataToDisplay: "30 seconds passed",
+    //   );
 
-      MyFirebaseServices.savePatientLocaion(
-        PatientHistory(
-          patientID: "${FirebaseAuth.instance.currentUser!.uid}_as_PATIENT",
-          isInSafeZone: true,
-          currentlyIn: "Livingroom",
-          currentLocation: mp.Position(
-            myPosition!.longitude,
-            myPosition!.latitude,
-          ),
-          timeStamp: DateTime.timestamp(),
-          deviceBatteryPercentage: deviceBatteryPercentage.toString(),
-        ),
-      );
-    });
+    //   MyFirebaseServices.savePatientLocation(
+    //     PatientHistory(
+    //       patientID: "${FirebaseAuth.instance.currentUser!.uid}_as_PATIENT",
+    //       isInSafeZone: true,
+    //       currentlyIn: "Livingroom",
+    //       currentLocation: mp.Position(
+    //         myPosition!.longitude,
+    //         myPosition!.latitude,
+    //       ),
+    //       timeStamp: DateTime.timestamp(),
+    //       deviceBatteryPercentage: deviceBatteryPercentage.toString(),
+    //     ),
+    //   );
+    // });
   }
 
   //// // this is a helper function to convert the image to Uint8List
