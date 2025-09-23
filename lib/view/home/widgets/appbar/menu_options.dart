@@ -5,7 +5,7 @@ import 'package:wanderhuman_app/view/add_patient_form/add_patient_form.dart';
 import 'package:wanderhuman_app/helper/firebase_services.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/option_container.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
-import 'package:wanderhuman_app/view/home/widgets/map/patient_simulator_container.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/patient_simulator/patient_simulator_container.dart';
 
 class MyMenuOptions extends StatefulWidget {
   final bool isVisible;

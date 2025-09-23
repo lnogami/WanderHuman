@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-// import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/home/home.dart';
-import 'package:wanderhuman_app/view/home/widgets/map/patient_simulator_map.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/patient_simulator/patient_simulator_map.dart';
 
 class PatientSimulatorContainer extends StatefulWidget {
   const PatientSimulatorContainer({super.key});

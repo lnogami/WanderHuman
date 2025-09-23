@@ -123,7 +123,48 @@ class MyFirebaseServices {
   //     print("❌ Error getting patient id and name: $e");
   //     throw Exception();
   //   }
-
+  //
   //   return {};
   // }
+
+  /// Retrieves all the latest records of patients
+  static Future<List<PatientHistory>> getAllPatientsLatestHistory() async {
+    try {
+      // for caching until retrieval of certain needed records (documents)
+      List<PatientHistory> allPatientLatestHistory = [];
+
+      // for conditional purposes only
+      final lastTimeEncounter = DateTime.now();
+
+      // StreamSubscription
+      _historyCollectionReference.snapshots().listen((snapshot) {
+        // for every document in snapshot of documents
+        for (var doc in snapshot.docs) {
+          // retrieves a single document as a Map<String, dynamic>
+          var data = doc.data() as Map<String, dynamic>;
+          // retieve the timeStamp in the map
+          DateTime timeStamp = DateTime.parse(data["timeStamp"]);
+          // only retrive the document I needed, in this case, the latest patient record (document) their is.
+          if (timeStamp.difference(lastTimeEncounter).inSeconds <= 30) {
+            // if it is latest, then add the PatientHisotry to the List of PatientHistory
+            allPatientLatestHistory.add(
+              PatientHistory(
+                patientID: doc["patientID"],
+                isInSafeZone: doc["isInSafeZone"],
+                currentlyIn: doc["currentlyIn"],
+                currentLocation: doc["currentLocation"],
+                timeStamp: timeStamp,
+                deviceBatteryPercentage: doc["deviceBatteryPercentage"],
+              ),
+            );
+          }
+        }
+      });
+
+      return allPatientLatestHistory;
+    } catch (e) {
+      print("❌ Something went wrong in getAllPatientHistory function: $e");
+      throw Exception();
+    }
+  }
 }
