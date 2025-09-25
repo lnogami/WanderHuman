@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -20,8 +21,13 @@ class _MapBodyState extends State<MapBody> {
   // controller for the map
   mp.MapboxMap? mapboxMapController;
 
+  late mp.PointAnnotationManager pointAnnotationManager;
+
   // to listen to the user's location changes
   StreamSubscription? userPositionStream;
+  
+  // Keep track of existing annotations by Firestore document ID
+  Map<String, mp.PointAnnotation> userAnnotations = {};
 
   // temporary
   gl.Position? myPosition;
@@ -57,6 +63,12 @@ class _MapBodyState extends State<MapBody> {
     setState(() {
       mapboxMapController = controller;
     });
+
+    
+            final pointAnnotationManager = await mapboxMapController
+                ?.annotations
+                .createPointAnnotationManager();
+
     //temporary ra ni (deletable)
     // controller.annotations.createPointAnnotationManager();
 
@@ -110,6 +122,26 @@ class _MapBodyState extends State<MapBody> {
       // code to be added here to make this code appear again if the Location is still turned off.
       showMyDialogBox(context, isLocationServiceEnabled);
     }
+  }
+
+  void listenToPatients() {
+    // "RealTime"
+    FirebaseFirestore.instance.collection("History").snapshots().listen((
+      snapshot,
+    ) {
+      for (var doc in snapshot.docs) {
+        var data = doc.data();
+        
+        // Extract coordinates and name
+        double lng = data["currentLocation"][0]; // naka list man gud ni maong ingani
+        double lat = data["currentLocation"][1];
+        String name = data["name"];
+        
+        // If the user already has an annotation, update its position
+        if (userAnnotations.containsKey(doc.id)) {
+          userAnnotations[doc.id] = annotaiona
+      }
+    });
   }
 
   //------------------------------------------------------------------------------
@@ -188,9 +220,7 @@ class _MapBodyState extends State<MapBody> {
               diri sya ibutang para marender sya if naa nay narender nga
               map og user postion
             */
-            final pointAnnotationManager = await mapboxMapController
-                ?.annotations
-                .createPointAnnotationManager();
+
             // load image as the marker
             final Uint8List imageData = await imageToIconLoader(
               // "assets/icons/isagi.jpg",
