@@ -21,6 +21,7 @@ class PatientHistory {
     String patientID,
     bool isInSafeZone,
     String currentlyIn,
+    // this will become an array in Firestore, but ma List sya inig retrieve ["currentPosition"][0] for longhitude and ["currentPosition"][1] for latitude
     Position currentLocation,
     DateTime timeStamp,
     String deviceBatteryPercentage,

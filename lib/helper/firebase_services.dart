@@ -41,7 +41,8 @@ class MyFirebaseServices {
     });
   }
 
-  static Future<List<PersonalInfo>> getAllPatients() async {
+  // returns all the records there is in PersonalInfo collection in database (FirebaseFirestore)
+  static Future<List<PersonalInfo>> getAllPersonalInfoRecords() async {
     try {
       QuerySnapshot querySnapshot = await _personalInfoCollectionReference
           // .where("userType", isEqualTo: "Patient")

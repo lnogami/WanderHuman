@@ -29,6 +29,8 @@ class _PatientSimulatorState extends State<PatientSimulator> {
   // to listen to the user's location changes
   StreamSubscription? userPositionStream;
 
+  // List<StreamSubscription> patientStream = [];
+
   // temporary
   gl.Position? myPosition;
 

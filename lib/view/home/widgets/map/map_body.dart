@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart' as gl;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mp;
+import 'package:wanderhuman_app/helper/firebase_services.dart';
+import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/point_annotation_options.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/bottom_modal_sheet.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
@@ -21,11 +23,11 @@ class _MapBodyState extends State<MapBody> {
   // controller for the map
   mp.MapboxMap? mapboxMapController;
 
-  late mp.PointAnnotationManager pointAnnotationManager;
+  mp.PointAnnotationManager? pointAnnotationManager;
 
   // to listen to the user's location changes
   StreamSubscription? userPositionStream;
-  
+
   // Keep track of existing annotations by Firestore document ID
   Map<String, mp.PointAnnotation> userAnnotations = {};
 
@@ -64,10 +66,8 @@ class _MapBodyState extends State<MapBody> {
       mapboxMapController = controller;
     });
 
-    
-            final pointAnnotationManager = await mapboxMapController
-                ?.annotations
-                .createPointAnnotationManager();
+    pointAnnotationManager = await mapboxMapController?.annotations
+        .createPointAnnotationManager();
 
     //temporary ra ni (deletable)
     // controller.annotations.createPointAnnotationManager();
@@ -122,24 +122,69 @@ class _MapBodyState extends State<MapBody> {
       // code to be added here to make this code appear again if the Location is still turned off.
       showMyDialogBox(context, isLocationServiceEnabled);
     }
+
+    // Start listening to Firebase users
+    listenToPatients();
   }
 
-  void listenToPatients() {
-    // "RealTime"
+  // Listen to Firestore collection "users" in real-time
+  void listenToPatients() async {
+    // History is just a placeholder,    "RealTime" is the collection here.
     FirebaseFirestore.instance.collection("History").snapshots().listen((
       snapshot,
-    ) {
-      for (var doc in snapshot.docs) {
-        var data = doc.data();
-        
-        // Extract coordinates and name
-        double lng = data["currentLocation"][0]; // naka list man gud ni maong ingani
-        double lat = data["currentLocation"][1];
-        String name = data["name"];
-        
-        // If the user already has an annotation, update its position
-        if (userAnnotations.containsKey(doc.id)) {
-          userAnnotations[doc.id] = annotaiona
+    ) async {
+      try {
+        // to get user name
+        List<PersonalInfo> personsList =
+            await MyFirebaseServices.getAllPersonalInfoRecords();
+
+        for (var doc in snapshot.docs) {
+          var data = doc.data();
+
+          // Extract coordinates   // naka list man gud ni maong ingani [""][0]   naka List ni sya pag save sa firestore kay Position object man gud ang gisend, naconvert sya into array pag abot sa firestore
+          double lng = data["currentLocation"][0] ?? "NULL lng";
+          double lat = data["currentLocation"][1] ?? "NULL lat";
+          // to get user name
+          String name = MyFirebaseServices.getSpecificUserName(
+            personsList: personsList,
+            userIDToLookFor: data["patientID"],
+          );
+
+          // If the user already has an annotation, update its position
+          if (userAnnotations.containsKey(doc.id)) {
+            // remove old annotation
+            pointAnnotationManager?.delete(userAnnotations[doc.id]!);
+            // create new annotation at the updated location
+            var newAnnotation = await pointAnnotationManager?.create(
+              myPointAnnotationOptions(
+                name: name,
+                myPosition: mp.Position(lng, lat),
+              ),
+            );
+
+            userAnnotations[doc.id] = newAnnotation!;
+          } else {
+            // create new annation
+            var newAnnotation = await pointAnnotationManager?.create(
+              myPointAnnotationOptions(
+                name: name,
+                myPosition: mp.Position(lng, lat),
+              ),
+            );
+
+            userAnnotations[doc.id] = newAnnotation!;
+          }
+          // showMyAnimatedSnackBar(
+          //   context: context,
+          //   dataToDisplay: doc.toString(),
+          // );
+          // print(
+          //   "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO",
+          // );
+        }
+      } catch (e) {
+        // showMyAnimatedSnackBar(context: context, dataToDisplay: e.toString());
+        print("ERROR ON LISTENTOPATIENTS METHOD: ${e.toString()}");
       }
     });
   }

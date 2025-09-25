@@ -24,7 +24,7 @@ class _HomeAppBarState extends State<HomeAppBar> {
 
   // fetches all the users from firestore through MyFirebaseServices
   Future<void> fetchUsers() async {
-    usersList = await MyFirebaseServices.getAllPatients();
+    usersList = await MyFirebaseServices.getAllPersonalInfoRecords();
   }
 
   // to get the current user's name and UPDATE the userName variable's state

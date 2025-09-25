@@ -104,7 +104,7 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
                   Icons.person_outline_rounded,
                   "Acount",
                   onTap: () {
-                    MyFirebaseServices.getAllPatients()
+                    MyFirebaseServices.getAllPersonalInfoRecords()
                         .then((value) {
                           showMyAnimatedSnackBar(
                             context: context,
