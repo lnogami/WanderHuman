@@ -322,6 +322,8 @@ class _AddPatientFormState extends State<AddPatientForm> {
                       SUCCESSFULLY ADDED!""",
                   //${MyFirebaseServices.getAllUserID()}
                 );
+
+                Navigator.pop(context);
               }
             },
           ),

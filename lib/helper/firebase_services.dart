@@ -20,9 +20,13 @@ class MyFirebaseServices {
 
   // this will add data to the document with the unique ID
   static void addPatient(PersonalInfo patient) {
-    // .set method is just an add({}), but here we can specify the document ID which is the purpose of _genereatePatientID() method.
-    _genereatePatientID().set({
-      "userID": _genereatePatientID().id,
+    DocumentReference docRef = _genereatePatientID();
+
+    // .set method is just an add({}), but here we can specify the document ID
+    //      which is the purpose of _genereatePatientID() method (to create a
+    //      document first, then use that created document's ID as the ID).
+    docRef.set({
+      "userID": docRef.id,
       "userType": patient.userType,
       "name": patient.name,
       "age": patient.age,
@@ -64,9 +68,6 @@ class MyFirebaseServices {
       throw Exception();
     }
   }
-
-  // To get the name of a specific Logged In user.
-  // And behind the scene sets the userType which is callable by getUserType() method
 
   /// Gets the name of the currently logged-in user and sets their userType
   /// in the static [_userType] variable for app-wide access.
@@ -141,7 +142,7 @@ class MyFirebaseServices {
         return person.name;
       }
     }
-    // print("NO USER FOUND!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+
     return "No User Found!";
   }
 

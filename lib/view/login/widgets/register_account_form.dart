@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/components/button.dart';
+import 'package:wanderhuman_app/helper/firebase_services.dart';
+import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/color_palette.dart';
 import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
@@ -68,9 +70,15 @@ class _RegisterAccountFormState extends State<RegisterAccountForm> {
               email: widget.email.trim(),
               password: widget.password.trim(),
             );
+        // ignore: avoid_print
         print(" ✅✅✅ SIGNED UP: $userCredential");
+
+        // to wait for the account authentication to finish first
+        String userID = userCredential.user!.uid;
+        toSetAndLoadNewUserCredentials(userID: userID);
       }
     } on FirebaseAuthException catch (e) {
+      // ignore: avoid_print
       print("❌❌❌❌❌❌❌ ${e.message}");
     }
   }
@@ -138,40 +146,9 @@ class _RegisterAccountFormState extends State<RegisterAccountForm> {
               try {
                 print("✅✅✅✅✅✅");
                 createUserWithEmailAndPassword();
-                // to wait for the account authentication to finish first
-                Future.delayed(Duration(milliseconds: 15000), () {
-                  FirebaseFirestore.instance.collection("Personal Info").add({
-                    // "name": nameController.text.trim(),
-                    // "userType": currentUserTypeGroupvalue.toString().split('.').last,
-                    "userID": FirebaseAuth.instance.currentUser!.uid,
-                    "userType": currentUserTypeGroupvalue.name,
-                    "name": nameController.text.trim(),
-                    "gender": currentGroupGenderValue.name,
-                    "contactNumber": contactNumberController.text.trim(),
-                    "address": addressController.text.trim(),
-                    "notableTrait":
-                        "", // empty String, as this is for patients only
-                    "profilePictureURL": "", // to be updated later
-                    "createdAt": FieldValue.serverTimestamp(),
-                    "lastUpdatedAt": FieldValue.serverTimestamp(),
-                    "registeredBy":
-                        "", // empty String, as this is for patients only
-                    "assignedCaregiver":
-                        "", // empty String, as this is for patients only
-                    "deviceID":
-                        "", // to be updated later, this one can be null at account creation but can have a value later on when added.
-                    "email": widget.email.trim(),
 
-                    // "status" : true,  // to be decided later, if ibutang ba jud ni
-                  });
-                });
                 // to remove this sheet, and proceed to Home Page
                 Navigator.pop(context);
-                showMyAnimatedSnackBar(
-                  context: context,
-                  dataToDisplay: FirebaseAuth.instance.currentUser!.uid
-                      .toString(),
-                );
               } catch (e) {
                 print("Error during registration: $e");
                 showMyAnimatedSnackBar(
@@ -187,6 +164,67 @@ class _RegisterAccountFormState extends State<RegisterAccountForm> {
           cancelButton(),
         ],
       ),
+    );
+  }
+
+  // when the new user account is created, this will load the name and userType of the user.
+  void toSetAndLoadNewUserCredentials({required String userID}) async {
+    Future.delayed(Duration(milliseconds: 100), () {
+      DocumentReference docRef = FirebaseFirestore.instance
+          .collection("Personal Info")
+          .doc(userID);
+
+      docRef.set({
+        "userID": userID,
+        "userType": currentUserTypeGroupvalue.name,
+        "name": nameController.text.trim(),
+        "gender": currentGroupGenderValue.name,
+        "contactNumber": contactNumberController.text.trim(),
+        "address": addressController.text.trim(),
+        "notableTrait": "", // empty String, as this is for patients only
+        "profilePictureURL": "", // to be updated later
+        "createdAt": FieldValue.serverTimestamp(),
+        "lastUpdatedAt": FieldValue.serverTimestamp(),
+        "registeredBy": "", // empty String, as this is for patients only
+        "assignedCaregiver": "", // empty String, as this is for patients only
+        "deviceID":
+            "", // to be updated later, this one can be null at account creation but can have a value later on when added.
+        "email": widget.email.trim(),
+
+        // "status" : true,  // to be decided later, if ibutang ba jud ni
+      });
+
+      // FirebaseFirestore.instance.collection("Personal Info").add({
+      //   // "name": nameController.text.trim(),
+      //   // "userType": currentUserTypeGroupvalue.toString().split('.').last,
+      //   "userID": FirebaseAuth.instance.currentUser!.uid,
+      //   "userType": currentUserTypeGroupvalue.name,
+      //   "name": nameController.text.trim(),
+      //   "gender": currentGroupGenderValue.name,
+      //   "contactNumber": contactNumberController.text.trim(),
+      //   "address": addressController.text.trim(),
+      //   "notableTrait":
+      //       "", // empty String, as this is for patients only
+      //   "profilePictureURL": "", // to be updated later
+      //   "createdAt": FieldValue.serverTimestamp(),
+      //   "lastUpdatedAt": FieldValue.serverTimestamp(),
+      //   "registeredBy":
+      //       "", // empty String, as this is for patients only
+      //   "assignedCaregiver":
+      //       "", // empty String, as this is for patients only
+      //   "deviceID":
+      //       "", // to be updated later, this one can be null at account creation but can have a value later on when added.
+      //   "email": widget.email.trim(),
+
+      //   // "status" : true,  // to be decided later, if ibutang ba jud ni
+      // });
+    });
+
+    List<PersonalInfo> personsList =
+        await MyFirebaseServices.getAllPersonalInfoRecords();
+    MyFirebaseServices.getSpecificUserNameOfTheLoggedInAccount(
+      personsList: personsList,
+      userIDToLookFor: FirebaseAuth.instance.currentUser!.uid,
     );
   }
 

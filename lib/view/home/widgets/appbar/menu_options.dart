@@ -104,25 +104,19 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
                   Icons.person_outline_rounded,
                   "Acount",
                   onTap: () {
-                    // MyFirebaseServices.getAllPersonalInfoRecords()
-                    //     .then((value) {
-                    //       showMyAnimatedSnackBar(
-                    //         context: context,
-                    //         dataToDisplay: "${value.length}",
-                    //       );
-                    //     })
-                    //     .catchError((error) {
-                    //       showMyAnimatedSnackBar(
-                    //         context: context,
-                    //         dataToDisplay: error.toString(),
-                    //       );
-                    //     });
-
-                    // for debug purposes ra ni kay nawala ang data nga gi fetch dapat aning getUserType
-                    showMyAnimatedSnackBar(
-                      context: context,
-                      dataToDisplay: MyFirebaseServices.getUserType(),
-                    );
+                    MyFirebaseServices.getAllPersonalInfoRecords()
+                        .then((value) {
+                          showMyAnimatedSnackBar(
+                            context: context,
+                            dataToDisplay: "${value.length}",
+                          );
+                        })
+                        .catchError((error) {
+                          showMyAnimatedSnackBar(
+                            context: context,
+                            dataToDisplay: error.toString(),
+                          );
+                        });
                   },
                 ),
                 SizedBox(height: 10),
