@@ -134,7 +134,7 @@ class _MapBodyState extends State<MapBody> {
       snapshot,
     ) async {
       try {
-        // to get user name
+        // to get user name, I must firs retrieve all the records in PersonalInfo
         List<PersonalInfo> personsList =
             await MyFirebaseServices.getAllPersonalInfoRecords();
 
@@ -149,6 +149,7 @@ class _MapBodyState extends State<MapBody> {
             personsList: personsList,
             userIDToLookFor: data["patientID"],
           );
+          // String name = "Coach Anzai";
 
           // If the user already has an annotation, update its position
           if (userAnnotations.containsKey(doc.id)) {

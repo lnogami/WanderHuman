@@ -31,7 +31,7 @@ class _HomeAppBarState extends State<HomeAppBar> {
   Future<void> fetchAndSetUsername() async {
     try {
       await fetchUsers();
-      String name = MyFirebaseServices.getSpecificUserName(
+      String name = MyFirebaseServices.getSpecificUserNameOfTheLoggedInAccount(
         personsList: usersList,
         userIDToLookFor: FirebaseAuth.instance.currentUser!.uid,
       );

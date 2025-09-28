@@ -65,13 +65,39 @@ class MyFirebaseServices {
     }
   }
 
-  // to get the name of a specific user
-  static String getSpecificUserName({
+  // To get the name of a specific Logged In user.
+  // And behind the scene sets the userType which is callable by getUserType() method
+
+  /// Gets the name of the currently logged-in user and sets their userType
+  /// in the static [_userType] variable for app-wide access.
+  ///
+  /// ⚠️ **Important:** This should ONLY be called during login/authentication process
+  /// as it modifies the global user state.
+  ///
+  /// **Parameters:**
+  /// - [personsList] - List containing user records from Firestore
+  /// - [userIDToLookFor] - The authenticated user's ID
+  ///
+  /// **Side effects:**
+  /// - Sets the static [_userType] variable
+  /// - Prints debug information to console
+  ///
+  /// **Example:**
+  /// ```dart
+  /// List<PersonalInfo> allUsers = await getAllPersonalInfoRecords();
+  /// String currentUserName = getSpecificUserNameOfTheLoggedInAccount(
+  ///   personsList: allUsers,
+  ///   userIDToLookFor: authenticatedUserID,
+  /// );
+  /// // Now getUserType() will return the correct user type
+  /// ```
+  static String getSpecificUserNameOfTheLoggedInAccount({
     required List<PersonalInfo> personsList,
     required String userIDToLookFor,
   }) {
     for (var person in personsList) {
       if (person.userID == userIDToLookFor) {
+        // sets user type behind the scene, accessible only on getUserType method.
         _userType = person.userType;
         return person.name;
       }
@@ -79,9 +105,44 @@ class MyFirebaseServices {
     return "No User Found!";
   }
 
-  /// to get the role of the current user (Caregiver or Admin)
+  /// To get the role of the current user (Caregiver or Admin).
   static String getUserType() {
     return _userType;
+  }
+
+  /// Gets the name of any user from the records without affecting
+  /// the logged-in user's context or [_userType] variable.
+  /// Use this for general lookups, displaying patient names, etc.
+  ///
+  /// **Parameters:**
+  /// - [personsList] - List of all PersonalInfo records
+  /// - [userIDToLookFor] - The user ID to search for
+  ///
+  /// **Returns:** The user's name if found, `"No User Found!"` otherwise.
+  ///
+  /// **Example usage:**
+  /// ```dart
+  /// List<PersonalInfo> users = await MyFirebaseServices.getAllPersonalInfoRecords();
+  /// String userName = MyFirebaseServices.getSpecificUserName(
+  ///   personsList: users,
+  ///   userIDToLookFor: "some-user-id"
+  /// );
+  /// ```
+  static String getSpecificUserName({
+    required List<PersonalInfo> personsList,
+    required String userIDToLookFor,
+  }) {
+    for (var person in personsList) {
+      if (person.userID == userIDToLookFor) {
+        // ignore: avoid_print
+        print(
+          "FOUNDDDDDDDDDDDDDDDDDDDDDDDDDDDD User: ${person.name}  with user type: $_userType",
+        );
+        return person.name;
+      }
+    }
+    // print("NO USER FOUND!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    return "No User Found!";
   }
 
   //// NOT WORKING YET
@@ -161,7 +222,6 @@ class MyFirebaseServices {
           }
         }
       });
-
       return allPatientLatestHistory;
     } catch (e) {
       print("❌ Something went wrong in getAllPatientHistory function: $e");

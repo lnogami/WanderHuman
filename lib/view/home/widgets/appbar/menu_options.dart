@@ -51,7 +51,7 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
             toDisplayUserType(),
 
             SizedBox(
-              height: MyFirebaseServices.getUserType() == "admin" ? 15 : 2,
+              height: (MyFirebaseServices.getUserType() == "admin") ? 15 : 2,
             ),
 
             // admin exclusive options
@@ -104,19 +104,25 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
                   Icons.person_outline_rounded,
                   "Acount",
                   onTap: () {
-                    MyFirebaseServices.getAllPersonalInfoRecords()
-                        .then((value) {
-                          showMyAnimatedSnackBar(
-                            context: context,
-                            dataToDisplay: "${value.length}",
-                          );
-                        })
-                        .catchError((error) {
-                          showMyAnimatedSnackBar(
-                            context: context,
-                            dataToDisplay: error.toString(),
-                          );
-                        });
+                    // MyFirebaseServices.getAllPersonalInfoRecords()
+                    //     .then((value) {
+                    //       showMyAnimatedSnackBar(
+                    //         context: context,
+                    //         dataToDisplay: "${value.length}",
+                    //       );
+                    //     })
+                    //     .catchError((error) {
+                    //       showMyAnimatedSnackBar(
+                    //         context: context,
+                    //         dataToDisplay: error.toString(),
+                    //       );
+                    //     });
+
+                    // for debug purposes ra ni kay nawala ang data nga gi fetch dapat aning getUserType
+                    showMyAnimatedSnackBar(
+                      context: context,
+                      dataToDisplay: MyFirebaseServices.getUserType(),
+                    );
                   },
                 ),
                 SizedBox(height: 10),
