@@ -7,8 +7,8 @@ import 'package:geolocator/geolocator.dart' as gl;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mp;
 import 'package:wanderhuman_app/helper/firebase_services.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
+import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/bottom_modal_sheet_for_patient.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/point_annotation_options.dart';
-import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/bottom_modal_sheet.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/show_alert_dialog.dart';
 
@@ -261,12 +261,6 @@ class _MapBodyState extends State<MapBody> {
               ),
             );
 
-            /* 
-              logic for adding annotations (marker),
-              diri sya ibutang para marender sya if naa nay narender nga
-              map og user postion
-            */
-
             // load image as the marker
             final Uint8List imageData = await imageToIconLoader(
               // "assets/icons/isagi.jpg",
@@ -324,7 +318,9 @@ class _MapBodyState extends State<MapBody> {
             // setting tap events to the marker
             pointAnnotationManager?.tapEvents(
               onTap: (mp.PointAnnotation tappedAnnotation) {
-                bottomModalSheet(context);
+                // bottomModalSheet(context);
+
+                showMyBottomNavigationSheet(context);
               },
             );
           }

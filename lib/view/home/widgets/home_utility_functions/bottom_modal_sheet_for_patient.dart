@@ -1,0 +1,197 @@
+import 'package:flutter/material.dart';
+import 'package:wanderhuman_app/components/button.dart';
+import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
+
+void showMyBottomNavigationSheet(BuildContext context) {
+  showBottomSheet(
+    context: context,
+    backgroundColor: const Color.fromARGB(235, 255, 255, 255),
+    builder: (context) {
+      return Container(
+        width: MyDimensionAdapter.getWidth(context),
+        height: MyDimensionAdapter.getHeight(context) * 0.8,
+        decoration: BoxDecoration(
+          // color: Colors.purple[100],
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
+        child: Stack(
+          alignment: Alignment.topCenter,
+          children: [
+            Positioned(
+              top: 8,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(50),
+                child: Container(
+                  width: MyDimensionAdapter.getWidth(context) * .30,
+                  height: 8,
+                  color: Colors.grey,
+                ),
+              ),
+            ),
+
+            // Picture of the Patient
+            Positioned(
+              top: 45,
+              child: CircleAvatar(
+                backgroundColor: Colors.blue.withAlpha(200),
+                radius: 45,
+              ),
+            ),
+
+            // Name of the Patient
+            Positioned(
+              top: 145,
+              child: Text(
+                "Hori Zontal",
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+              ),
+            ),
+
+            // Primary Details Area
+            Positioned(
+              top: 200,
+              child: Container(
+                width: MyDimensionAdapter.getWidth(context) - 40,
+                height: 55,
+                // color: Colors.amber,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    flexibleSizedContainers(
+                      flex: 2,
+                      textLabel: "Age",
+                      textValue: "56",
+                    ),
+                    verticalLine(),
+                    flexibleSizedContainers(
+                      flex: 4,
+                      textLabel: "Sex",
+                      textValue: "Female",
+                    ),
+                    verticalLine(),
+                    flexibleSizedContainers(
+                      flex: 8,
+                      textLabel: "Guardian's Contact",
+                      textValue: "09876543210",
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Address Area
+            Positioned(
+              top: 275,
+              child: Container(
+                width: MyDimensionAdapter.getWidth(context) - 40,
+                height: 75,
+                // color: Colors.amber,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    flexibleSizedContainers(
+                      flex: 2,
+                      textValueSize: 15,
+                      isPossibleToContainLongValue: true,
+                      textLabel: "Address",
+                      textValue:
+                          "Purok 3, Palette Town, Indigo Plateau, Kanto Region, Poke World",
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Notable Trait Area
+            Positioned(
+              top: 365,
+              child: Container(
+                width: MyDimensionAdapter.getWidth(context) - 40,
+                height: 100,
+                // color: Colors.amber,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    flexibleSizedContainers(
+                      flex: 2,
+                      textValueSize: 15,
+                      isPossibleToContainLongValue: true,
+                      textLabel: "Notable Trait",
+                      textValue:
+                          "Often found lying in bed, or sitting in the living room. Needs regular monitoring.",
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Button
+            Positioned(
+              top: 480,
+              child: MyCustButton(
+                buttonText: "Check Patient",
+                buttonTextColor: Colors.white,
+                buttonTextFontWeight: FontWeight.w600,
+                onTap: () {},
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+// for visual separation purposes only
+Container verticalLine({Color color = Colors.grey}) {
+  return Container(
+    width: 1,
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(50),
+      color: color,
+    ),
+  );
+}
+
+Flexible flexibleSizedContainers({
+  int flex = 1,
+  String textValue = "NO VALUE",
+  String textLabel = "NO LABEL",
+  double textLabelSize = 12,
+  double textValueSize = 18,
+  bool isPossibleToContainLongValue = false,
+}) {
+  return Flexible(
+    flex: flex,
+    child: Container(
+      // decoration: BoxDecoration(color: Colors.green),
+      child: Column(
+        //// experimental layout
+        // crossAxisAlignment: (isPossibleToContainLongValue)
+        //     ? CrossAxisAlignment.start
+        //     : CrossAxisAlignment.center,
+        children: [
+          Text(
+            textLabel,
+            style: TextStyle(
+              fontSize: textLabelSize,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+          (isPossibleToContainLongValue) ? SizedBox(height: 10) : Spacer(),
+          Text(
+            textValue,
+            softWrap: true,
+            style: TextStyle(
+              fontSize: textValueSize,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
