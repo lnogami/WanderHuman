@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/components/button.dart';
 import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
 
-void showMyBottomNavigationSheet(BuildContext context) {
+void showMyBottomNavigationSheet({
+  required BuildContext context,
+  required String name,
+}) {
   showBottomSheet(
     context: context,
     backgroundColor: const Color.fromARGB(235, 255, 255, 255),
@@ -45,7 +48,7 @@ void showMyBottomNavigationSheet(BuildContext context) {
             Positioned(
               top: 145,
               child: Text(
-                "Hori Zontal",
+                name,
                 style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
               ),
             ),

@@ -127,6 +127,9 @@ class _MapBodyState extends State<MapBody> {
     listenToPatients();
   }
 
+  // Add this to your state variables
+  Map<String, Map<String, dynamic>> annotationData = {};
+
   // Listen to Firestore collection "users" in real-time
   void listenToPatients() async {
     // History is just a placeholder,    "RealTime" is the collection here.
@@ -134,13 +137,17 @@ class _MapBodyState extends State<MapBody> {
       snapshot,
     ) async {
       try {
-        // to get user name, I must firs retrieve all the records in PersonalInfo
+        // to get user name, I must first retrieve all the records in PersonalInfo
         List<PersonalInfo> personsList =
             await MyFirebaseServices.getAllPersonalInfoRecords();
-
+        showMyAnimatedSnackBar(
+          context: context,
+          dataToDisplay: personsList.length.toString(),
+        );
+        int n = 0; // (deletable) for debugging purposes only
         for (var doc in snapshot.docs) {
           var data = doc.data();
-
+          n++;
           // Extract coordinates   // naka list man gud ni maong ingani [""][0]   naka List ni sya pag save sa firestore kay Position object man gud ang gisend, naconvert sya into array pag abot sa firestore
           double lng = data["currentLocation"][0] ?? "NULL lng";
           double lat = data["currentLocation"][1] ?? "NULL lat";
@@ -149,7 +156,27 @@ class _MapBodyState extends State<MapBody> {
             personsList: personsList,
             userIDToLookFor: data["patientID"],
           );
-          // String name = "Coach Anzai";
+
+          // Store the data associated with this document
+          annotationData[doc.id] = {
+            'name': name,
+            'patientID': data["patientID"],
+            'number': n, //for debugging purposes only, might delete later on
+            'lng': lng,
+            'lat': lat,
+            'currentlyIn': data["currentlyIn"],
+            'isInSafeZone': data["isInSafeZone"],
+            'timeStamp': data["timeStamp"],
+            'deviceBatteryPercentage': data["deviceBatteryPercentage"],
+          };
+
+          // (deletable) pang debug ra ni
+          if (name == "Coach Anzai") {
+            showMyAnimatedSnackBar(
+              context: context,
+              dataToDisplay: "$n). $name: ${doc.data().toString()}",
+            );
+          }
 
           // If the user already has an annotation, update its position
           if (userAnnotations.containsKey(doc.id)) {
@@ -175,13 +202,36 @@ class _MapBodyState extends State<MapBody> {
 
             userAnnotations[doc.id] = newAnnotation!;
           }
-          // showMyAnimatedSnackBar(
-          //   context: context,
-          //   dataToDisplay: doc.toString(),
+
+          // // setting tap events to the marker
+          // pointAnnotationManager?.tapEvents(
+          //   onTap: (mp.PointAnnotation tappedAnnotation) {
+          //     // bottomModalSheet(context);
+          //     print("NAMEEEEEEEEEEEEEEEEEEEEEEEE: $name");
+          //     showMyBottomNavigationSheet(context: context, name: "$name: $n");
+          //   },
           // );
-          // print(
-          //   "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO",
-          // );
+
+          // set up tap events ONCE, outside the loop
+          pointAnnotationManager?.tapEvents(
+            onTap: (mp.PointAnnotation tappedAnnotation) {
+              // Find which document this annotation belongs to
+              String? docId = userAnnotations.entries
+                  .firstWhere(
+                    (entry) => entry.value == tappedAnnotation,
+                    orElse: () => MapEntry('', tappedAnnotation),
+                  )
+                  .key;
+
+              if (docId.isNotEmpty && annotationData.containsKey(docId)) {
+                var data = annotationData[docId]!;
+                showMyBottomNavigationSheet(
+                  context: context,
+                  name: "${data['name']} : ${data['number']}",
+                );
+              }
+            },
+          );
         }
       } catch (e) {
         // showMyAnimatedSnackBar(context: context, dataToDisplay: e.toString());
@@ -315,12 +365,16 @@ class _MapBodyState extends State<MapBody> {
             pointAnnotationManager?.create(pointAnnotationOptions);
             // pointAnnotationManager?.createMulti(List<mp.PointAnnotation>);
 
+            // this was move to listenToPatients method
             // setting tap events to the marker
             pointAnnotationManager?.tapEvents(
               onTap: (mp.PointAnnotation tappedAnnotation) {
                 // bottomModalSheet(context);
 
-                showMyBottomNavigationSheet(context);
+                showMyBottomNavigationSheet(
+                  context: context,
+                  name: "Hori Zontal",
+                );
               },
             );
           }
