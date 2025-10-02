@@ -146,6 +146,7 @@ class _MapBodyState extends State<MapBody> {
           dataToDisplay: personsList.length.toString(),
         );
         int n = 0; // (deletable) for debugging purposes only
+
         for (var doc in snapshot.docs) {
           var data = doc.data();
           n++;
@@ -158,8 +159,11 @@ class _MapBodyState extends State<MapBody> {
             userIDToLookFor: data["patientID"],
           );
 
-          // PersonalInfo personalInfo =
-          //     await MyFirebaseServices.getSpecificPersonalInfo(userID: doc.id);
+          // to get personal info based on patient's ID
+          PersonalInfo personalInfo =
+              await MyFirebaseServices.getSpecificPersonalInfo(
+                userID: data["patientID"],
+              );
 
           // Store the data associated with this document
           annotationData[doc.id] = {
@@ -173,11 +177,11 @@ class _MapBodyState extends State<MapBody> {
             'timeStamp': data["timeStamp"],
             'deviceBatteryPercentage': data["deviceBatteryPercentage"],
             //
-            // 'age': personalInfo.age,
-            // 'sex': personalInfo.sex,
-            // 'contactInfo': personalInfo.guardianContactNumber,
-            // 'address': personalInfo.address,
-            // 'notableTrait': personalInfo.notableBehavior,
+            'age': personalInfo.age,
+            'sex': personalInfo.sex,
+            'contactInfo': personalInfo.guardianContactNumber,
+            'address': personalInfo.address,
+            'notableBehavior': personalInfo.notableBehavior,
           };
 
           // (deletable) pang debug ra ni
@@ -242,7 +246,8 @@ class _MapBodyState extends State<MapBody> {
                   age: data['age'] ?? "NO DATA ACQUIRED",
                   contactInfo: data['contactInfo'] ?? "NO DATA ACQUIRED",
                   address: data['address'] ?? "NO DATA ACQUIRED",
-                  notableTrait: data['notableTrait'] ?? "NO DATA ACQUIRED",
+                  notableBehavior:
+                      data['notableBehavior'] ?? "NO DATA ACQUIRED",
                 );
               }
             },

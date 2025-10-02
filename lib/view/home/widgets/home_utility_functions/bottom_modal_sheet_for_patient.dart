@@ -9,7 +9,7 @@ void showMyBottomNavigationSheet({
   required String sex,
   required String contactInfo,
   required String address,
-  required String notableTrait,
+  required String notableBehavior,
   // String profilePicture,   // not yet implemented
 }) {
   showBottomSheet(
@@ -130,7 +130,7 @@ void showMyBottomNavigationSheet({
                       textLabel: "Notable Trait",
                       textValue:
                           // "Often found lying in bed, or sitting in the living room. Needs regular monitoring.",
-                          notableTrait,
+                          notableBehavior,
                     ),
                   ],
                 ),

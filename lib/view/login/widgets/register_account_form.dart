@@ -41,6 +41,7 @@ class _RegisterAccountFormState extends State<RegisterAccountForm> {
   TextEditingController nameController = TextEditingController();
   // userType is a Radio button
   // gender is a Radio button too
+  TextEditingController ageController = TextEditingController();
   TextEditingController contactNumberController = TextEditingController();
   TextEditingController addressController = TextEditingController();
   // notableTrait = null, because this is for Admin and Caregiver registration Form
@@ -125,12 +126,19 @@ class _RegisterAccountFormState extends State<RegisterAccountForm> {
           ),
           SizedBox(height: 15),
           MyCustTextfield(
+            labelText: "Age",
+            prefixIcon: Icons.calendar_month_rounded,
+            textController: ageController,
+            borderRadius: 10,
+          ),
+          SizedBox(height: 10),
+          MyCustTextfield(
             labelText: "Contact Number",
             prefixIcon: Icons.call_rounded,
             textController: contactNumberController,
             borderRadius: 10,
           ),
-          SizedBox(height: 15),
+          SizedBox(height: 10),
           MyCustTextfield(
             labelText: "Address",
             prefixIcon: Icons.person_rounded,
@@ -178,10 +186,11 @@ class _RegisterAccountFormState extends State<RegisterAccountForm> {
         "userID": userID,
         "userType": currentUserTypeGroupvalue.name,
         "name": nameController.text.trim(),
-        "gender": currentGroupGenderValue.name,
+        "sex": currentGroupGenderValue.name,
+        "age": ageController.text.trim(),
         "contactNumber": contactNumberController.text.trim(),
         "address": addressController.text.trim(),
-        "notableTrait": "", // empty String, as this is for patients only
+        "notableBehavior": "", // empty String, as this is for patients only
         "profilePictureURL": "", // to be updated later
         "createdAt": FieldValue.serverTimestamp(),
         "lastUpdatedAt": FieldValue.serverTimestamp(),
