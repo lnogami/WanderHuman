@@ -27,7 +27,7 @@ class _AddPatientFormState extends State<AddPatientForm> {
   String ageValue = "";
   String sexValue = "";
   String birthdateValue = "";
-  String guardianContactNumberValue = "";
+  String contactNumberValue = "";
   String addressValue = "";
   String notableBehaviorValue = "";
   String pictureValue = "";
@@ -202,7 +202,7 @@ class _AddPatientFormState extends State<AddPatientForm> {
                 return "Input a valid number";
               }
               setState(() {
-                guardianContactNumberValue = value;
+                contactNumberValue = value;
               });
               return null;
             },
@@ -292,7 +292,7 @@ class _AddPatientFormState extends State<AddPatientForm> {
                     age: ageValue,
                     sex: sexValue,
                     birthdate: birthdateValue,
-                    guardianContactNumber: guardianContactNumberValue,
+                    contactNumber: contactNumberValue,
                     address: addressValue,
                     notableBehavior: notableBehaviorValue,
                     picture: pictureValue,
@@ -313,7 +313,7 @@ class _AddPatientFormState extends State<AddPatientForm> {
                       $ageValue \n 
                       $sexValue \n 
                       $birthdateValue \n 
-                      $guardianContactNumberValue \n 
+                      $contactNumberValue \n 
                       $addressValue \n 
                       $notableBehaviorValue \n 
                       $pictureValue \n 

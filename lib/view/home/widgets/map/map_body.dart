@@ -179,7 +179,7 @@ class _MapBodyState extends State<MapBody> {
             //
             'age': personalInfo.age,
             'sex': personalInfo.sex,
-            'contactInfo': personalInfo.guardianContactNumber,
+            'contactInfo': personalInfo.contactNumber,
             'address': personalInfo.address,
             'notableBehavior': personalInfo.notableBehavior,
           };

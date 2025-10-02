@@ -6,7 +6,10 @@ class PersonalInfo {
   final String age;
   final String sex;
   final String birthdate;
-  final String guardianContactNumber;
+
+  /// For patients, this is for their guardians emergency contact.
+  /// For caregiver and admin this is their contact number.
+  final String contactNumber;
   final String address;
   final String notableBehavior;
   final String picture;
@@ -25,7 +28,7 @@ class PersonalInfo {
     required this.age,
     required this.sex,
     required this.birthdate,
-    required this.guardianContactNumber,
+    required this.contactNumber,
     required this.address,
     required this.notableBehavior,
     required this.picture,
@@ -46,7 +49,7 @@ class PersonalInfo {
       age: data['age'] ?? "",
       sex: data['sex'] ?? "",
       birthdate: data['birthdate'] ?? "",
-      guardianContactNumber: data['guardianContactNumber'] ?? "",
+      contactNumber: data['contactNumber'] ?? "",
       address: data['address'] ?? "",
       notableBehavior: data['notableBehavior'] ?? "",
       picture: data['picture'] ?? "",
