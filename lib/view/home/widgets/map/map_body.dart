@@ -140,6 +140,7 @@ class _MapBodyState extends State<MapBody> {
         // to get user name, I must first retrieve all the records in PersonalInfo
         List<PersonalInfo> personsList =
             await MyFirebaseServices.getAllPersonalInfoRecords();
+
         showMyAnimatedSnackBar(
           context: context,
           dataToDisplay: personsList.length.toString(),
@@ -157,6 +158,9 @@ class _MapBodyState extends State<MapBody> {
             userIDToLookFor: data["patientID"],
           );
 
+          // PersonalInfo personalInfo =
+          //     await MyFirebaseServices.getSpecificPersonalInfo(userID: doc.id);
+
           // Store the data associated with this document
           annotationData[doc.id] = {
             'name': name,
@@ -168,6 +172,12 @@ class _MapBodyState extends State<MapBody> {
             'isInSafeZone': data["isInSafeZone"],
             'timeStamp': data["timeStamp"],
             'deviceBatteryPercentage': data["deviceBatteryPercentage"],
+            //
+            // 'age': personalInfo.age,
+            // 'sex': personalInfo.sex,
+            // 'contactInfo': personalInfo.guardianContactNumber,
+            // 'address': personalInfo.address,
+            // 'notableTrait': personalInfo.notableBehavior,
           };
 
           // (deletable) pang debug ra ni
@@ -228,6 +238,11 @@ class _MapBodyState extends State<MapBody> {
                 showMyBottomNavigationSheet(
                   context: context,
                   name: "${data['name']} : ${data['number']}",
+                  sex: data['sex'] ?? "NO DATA ACQUIRED",
+                  age: data['age'] ?? "NO DATA ACQUIRED",
+                  contactInfo: data['contactInfo'] ?? "NO DATA ACQUIRED",
+                  address: data['address'] ?? "NO DATA ACQUIRED",
+                  notableTrait: data['notableTrait'] ?? "NO DATA ACQUIRED",
                 );
               }
             },
@@ -365,18 +380,18 @@ class _MapBodyState extends State<MapBody> {
             pointAnnotationManager?.create(pointAnnotationOptions);
             // pointAnnotationManager?.createMulti(List<mp.PointAnnotation>);
 
-            // this was move to listenToPatients method
-            // setting tap events to the marker
-            pointAnnotationManager?.tapEvents(
-              onTap: (mp.PointAnnotation tappedAnnotation) {
-                // bottomModalSheet(context);
+            // // this was move to listenToPatients method
+            // // setting tap events to the marker
+            // pointAnnotationManager?.tapEvents(
+            //   onTap: (mp.PointAnnotation tappedAnnotation) {
+            //     // bottomModalSheet(context);
 
-                showMyBottomNavigationSheet(
-                  context: context,
-                  name: "Hori Zontal",
-                );
-              },
-            );
+            //     showMyBottomNavigationSheet(
+            //       context: context,
+            //       name: "Hori Zontal",
+            //     );
+            //   },
+            // );
           }
         });
   }

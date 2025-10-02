@@ -5,6 +5,12 @@ import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
 void showMyBottomNavigationSheet({
   required BuildContext context,
   required String name,
+  required String age,
+  required String sex,
+  required String contactInfo,
+  required String address,
+  required String notableTrait,
+  // String profilePicture,   // not yet implemented
 }) {
   showBottomSheet(
     context: context,
@@ -66,19 +72,19 @@ void showMyBottomNavigationSheet({
                     flexibleSizedContainers(
                       flex: 2,
                       textLabel: "Age",
-                      textValue: "56",
+                      textValue: age,
                     ),
                     verticalLine(),
                     flexibleSizedContainers(
                       flex: 4,
                       textLabel: "Sex",
-                      textValue: "Female",
+                      textValue: sex,
                     ),
                     verticalLine(),
                     flexibleSizedContainers(
                       flex: 8,
                       textLabel: "Guardian's Contact",
-                      textValue: "09876543210",
+                      textValue: contactInfo,
                     ),
                   ],
                 ),
@@ -100,8 +106,7 @@ void showMyBottomNavigationSheet({
                       textValueSize: 15,
                       isPossibleToContainLongValue: true,
                       textLabel: "Address",
-                      textValue:
-                          "Purok 3, Palette Town, Indigo Plateau, Kanto Region, Poke World",
+                      textValue: address,
                     ),
                   ],
                 ),
@@ -124,7 +129,8 @@ void showMyBottomNavigationSheet({
                       isPossibleToContainLongValue: true,
                       textLabel: "Notable Trait",
                       textValue:
-                          "Often found lying in bed, or sitting in the living room. Needs regular monitoring.",
+                          // "Often found lying in bed, or sitting in the living room. Needs regular monitoring.",
+                          notableTrait,
                     ),
                   ],
                 ),

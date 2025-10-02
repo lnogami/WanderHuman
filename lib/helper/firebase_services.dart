@@ -69,6 +69,47 @@ class MyFirebaseServices {
     }
   }
 
+  static Future<PersonalInfo> getSpecificPersonalInfo({
+    required String userID,
+  }) async {
+    try {
+      List<PersonalInfo> allPersonalInfoRecords =
+          await getAllPersonalInfoRecords();
+      PersonalInfo? personalInfo;
+
+      for (var individualRecord in allPersonalInfoRecords) {
+        if (individualRecord.userID == userID) {
+          personalInfo = individualRecord;
+        }
+      }
+
+      if (personalInfo == null)
+        throw Exception("❌❌❌ No PersonalInfo found for userID: $userID");
+
+      return PersonalInfo(
+        userID: personalInfo.userID,
+        userType: personalInfo.userType,
+        name: personalInfo.name,
+        age: personalInfo.age,
+        sex: personalInfo.sex,
+        birthdate: personalInfo.birthdate,
+        guardianContactNumber: personalInfo.guardianContactNumber,
+        address: personalInfo.address,
+        notableBehavior: personalInfo.notableBehavior,
+        picture: personalInfo.picture,
+        createdAt: personalInfo.createdAt,
+        lastUpdatedAt: personalInfo.lastUpdatedAt,
+        registeredBy: personalInfo.registeredBy,
+        asignedCaregiver: personalInfo.asignedCaregiver,
+        deviceID: personalInfo.deviceID,
+        email: personalInfo.email,
+      );
+    } catch (e) {
+      print("❌ AN EXCEPTION OCCURRED IN getSpecificPersonalInfo METHOD: $e");
+      throw Exception();
+    }
+  }
+
   /// Gets the name of the currently logged-in user and sets their userType
   /// in the static [_userType] variable for app-wide access.
   ///
