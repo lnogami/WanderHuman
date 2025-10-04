@@ -229,7 +229,7 @@ class _MapBodyState extends State<MapBody> {
           // set up tap events ONCE, outside the loop
           pointAnnotationManager?.tapEvents(
             onTap: (mp.PointAnnotation tappedAnnotation) {
-              // Find which document this annotation belongs to
+              // find which document this annotation belongs to
               String? docId = userAnnotations.entries
                   .firstWhere(
                     (entry) => entry.value == tappedAnnotation,

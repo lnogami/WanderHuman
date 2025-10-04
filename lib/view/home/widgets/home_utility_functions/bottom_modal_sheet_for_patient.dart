@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/components/button.dart';
 import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
+import 'package:wanderhuman_app/view/view_patient_details/patient_details_page.dart';
 
 void showMyBottomNavigationSheet({
   required BuildContext context,
@@ -144,7 +145,15 @@ void showMyBottomNavigationSheet({
                 buttonText: "Check Patient",
                 buttonTextColor: Colors.white,
                 buttonTextFontWeight: FontWeight.w600,
-                onTap: () {},
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return PatientDetailsPage();
+                      },
+                    ),
+                  );
+                },
               ),
             ),
           ],
