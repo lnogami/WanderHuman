@@ -149,7 +149,7 @@ void showMyBottomNavigationSheet({
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) {
-                        return PatientDetailsPage();
+                        return PatientDetailsPage(name: name);
                       },
                     ),
                   );
