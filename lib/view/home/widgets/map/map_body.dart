@@ -184,13 +184,13 @@ class _MapBodyState extends State<MapBody> {
             'notableBehavior': personalInfo.notableBehavior,
           };
 
-          // (deletable) pang debug ra ni
-          if (name == "Coach Anzai") {
-            showMyAnimatedSnackBar(
-              context: context,
-              dataToDisplay: "$n). $name: ${doc.data().toString()}",
-            );
-          }
+          // // (deletable) pang debug ra ni
+          // if (name == "Coach Anzai") {
+          //   showMyAnimatedSnackBar(
+          //     context: context,
+          //     dataToDisplay: "$n). $name: ${doc.data().toString()}",
+          //   );
+          // }
 
           // If the user already has an annotation, update its position
           if (userAnnotations.containsKey(doc.id)) {

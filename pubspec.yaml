@@ -30,6 +30,7 @@ flutter:
   assets:
     - .env
     - assets/icons/
+    - assets/icons/longwidth_placeholder.jpg
     - assets/icons/location_marker.png
   uses-material-design: true
   fonts:

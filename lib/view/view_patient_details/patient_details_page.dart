@@ -10,14 +10,16 @@ class PatientDetailsPage extends StatefulWidget {
 }
 
 class _PatientDetailsPageState extends State<PatientDetailsPage> {
+  double headerBarExpandedHeight = 200;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 212, 212, 212),
+      backgroundColor: const Color.fromARGB(255, 7, 191, 53),
       body: Container(
         width: MyDimensionAdapter.getWidth(context),
         height: MyDimensionAdapter.getHeight(context),
-        color: Colors.amber,
+        color: Colors.purple.shade200,
         child: CustomScrollView(
           slivers: [
             appBar(context),
@@ -46,26 +48,32 @@ class _PatientDetailsPageState extends State<PatientDetailsPage> {
     return SliverAppBar(
       primary: true,
       actionsPadding: EdgeInsets.all(0),
+      forceMaterialTransparency: true,
+      // backgroundColor: const Color.fromARGB(255, 239, 249, 255),
       title: Container(
         width: MyDimensionAdapter.getWidth(context),
         height: kToolbarHeight,
-        color: Colors.amber.withAlpha(100),
-        child: Row(
-          children: [
-            Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
-            SizedBox(width: 15),
-            SizedBox(
-              // color: Colors.grey,
-              width: MyDimensionAdapter.getWidth(context) * 0.63,
-              child: Text(
-                widget.name, // the name of the patient
-                // "Hellooooooooooooooooooooooooooo",
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
-              ),
-            ),
-          ],
+        decoration: BoxDecoration(
+          // color: Colors.amber.withAlpha(100),
+          borderRadius: BorderRadius.only(
+            bottomRight: Radius.circular(100),
+            topLeft: Radius.circular(10),
+            bottomLeft: Radius.circular(10),
+          ),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              const Color.fromARGB(255, 209, 234, 255),
+              const Color.fromARGB(255, 242, 248, 250),
+              Colors.white70,
+              Colors.white12,
+              // Colors.white10,
+              Colors.transparent,
+            ],
+          ),
         ),
+        child: appBarTitleArea(context),
       ),
       centerTitle: true,
       forceElevated: true,
@@ -74,19 +82,26 @@ class _PatientDetailsPageState extends State<PatientDetailsPage> {
       automaticallyImplyLeading: false,
       // backgroundColor: Colors.green,
       collapsedHeight: kToolbarHeight,
-      expandedHeight: 200,
+      expandedHeight: headerBarExpandedHeight,
       flexibleSpace: FlexibleSpaceBar(
         // background: Image.asset("assets/icons/isagi.jpg"),
         background: Container(
           decoration: BoxDecoration(
-            color: Colors.blue.withAlpha(200),
+            // color: Colors.blue.withAlpha(200),
+            gradient: LinearGradient(
+              colors: [
+                const Color.fromARGB(255, 209, 234, 255),
+                const Color.fromARGB(255, 246, 248, 249),
+                Colors.white,
+              ],
+            ),
             borderRadius: BorderRadius.only(
               bottomLeft: Radius.circular(15),
               bottomRight: Radius.circular(15),
             ),
           ),
           child: Container(
-            color: Colors.blue,
+            // color: Colors.blue,
             child: SafeArea(
               child: Stack(
                 alignment: Alignment.center,
@@ -95,20 +110,31 @@ class _PatientDetailsPageState extends State<PatientDetailsPage> {
                     right: -5,
                     child: Container(
                       width: MyDimensionAdapter.getWidth(context) * 0.45,
-                      height: MyDimensionAdapter.getHeight(context),
+                      height: headerBarExpandedHeight,
                       // color: Colors.green.withAlpha(100),
                       child: Image.asset(
                         "assets/icons/isagi.jpg",
-                        fit: BoxFit.fitWidth,
+                        // "icons/longwidth_placeholder.jpg",
+                        fit: BoxFit.fitHeight,
                       ),
                     ),
                   ),
+
+                  // image's left gradient
+                  imageLeftGradient(context),
+
+                  // image's top gradient
+                  imageTopGradient(context),
+
+                  // image's bottom gradient
+                  imageBottomGradient(context),
+
                   Positioned(
                     left: 0,
                     child: Container(
                       width: MyDimensionAdapter.getWidth(context) * 0.65,
                       height: MyDimensionAdapter.getHeight(context),
-                      color: Colors.green.withAlpha(100),
+                      // color: Colors.green.withAlpha(100),
                     ),
                   ),
                 ],
@@ -137,6 +163,114 @@ class _PatientDetailsPageState extends State<PatientDetailsPage> {
             ),
           ),
           // ),
+        ),
+      ),
+    );
+  }
+
+  Row appBarTitleArea(BuildContext context) {
+    return Row(
+      children: [
+        GestureDetector(
+          onTap: () {
+            Navigator.pop(context);
+          },
+          child: Icon(Icons.arrow_back_ios_new_rounded, color: Colors.blue),
+        ),
+        SizedBox(width: 15),
+        SizedBox(
+          // color: Colors.grey,
+          width: MyDimensionAdapter.getWidth(context) * 0.63,
+          child: Text(
+            widget.name, // the name of the patient
+            // "Hellooooooooooooooooooooooooooo",
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Positioned imageBottomGradient(BuildContext context) {
+    return Positioned(
+      // this is proportionally based on the container widht of the image
+      bottom: 0,
+      right: 0,
+      child: Container(
+        width: MyDimensionAdapter.getWidth(context) * 0.44,
+        height: 35,
+        decoration: BoxDecoration(
+          // color: Colors.deepOrange.withAlpha(150),
+          gradient: LinearGradient(
+            begin: Alignment.bottomCenter,
+            end: Alignment.topCenter,
+            stops: [0.0, 0.15, 0.3, 0.6, 1.0],
+            colors: [
+              Colors.white,
+              Colors.white70,
+              Colors.white38,
+              Colors.white10,
+              Colors.transparent,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Positioned imageTopGradient(BuildContext context) {
+    return Positioned(
+      // this is proportionally based on the container widht of the image
+      top: 0,
+      right: 0,
+      child: Container(
+        width: MyDimensionAdapter.getWidth(context) * 0.44,
+        height: 35,
+        decoration: BoxDecoration(
+          // color: Colors.deepOrange.withAlpha(150),
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            stops: [0.0, 0.1, 0.3, 0.6, 1.0],
+            colors: [
+              Colors.white,
+              Colors.white70,
+              Colors.white38,
+              Colors.white10,
+              Colors.transparent,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Positioned imageLeftGradient(BuildContext context) {
+    return Positioned(
+      // this is proportionally based on the container widht of the image
+      right: MyDimensionAdapter.getWidth(context) * 0.34,
+      child: Container(
+        width: MyDimensionAdapter.getWidth(context) * 0.10,
+        height: headerBarExpandedHeight,
+        decoration: BoxDecoration(
+          // color: Colors.deepOrange.withAlpha(150),
+          gradient: LinearGradient(
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+            // stops: [0.0, 0.6, 1.0],
+            colors: [
+              const Color.fromARGB(255, 246, 248, 249),
+              const Color.fromARGB(255, 247, 248, 249),
+              // Colors.white,
+              //   Colors.white,
+              // Colors.white70,
+              Colors.white54,
+              Colors.white24,
+              Colors.white10,
+              Colors.transparent,
+            ],
+          ),
         ),
       ),
     );
@@ -172,22 +306,22 @@ class _PatientDetailsPageState extends State<PatientDetailsPage> {
   //   );
   // }
 
-  SizedBox expandedPatientDemographicHeader(BuildContext context) {
-    return SizedBox(
-      width: MyDimensionAdapter.getWidth(context),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // SizedBox(width: 13),
-          Spacer(),
-          Image.asset(
-            "assets/icons/isagi.jpg",
-            height: MyDimensionAdapter.getHeight(context) * 0.15,
-          ),
-          SizedBox(width: 12),
-        ],
-      ),
-    );
-  }
+  // SizedBox expandedPatientDemographicHeader(BuildContext context) {
+  //   return SizedBox(
+  //     width: MyDimensionAdapter.getWidth(context),
+  //     child: Row(
+  //       mainAxisAlignment: MainAxisAlignment.end,
+  //       crossAxisAlignment: CrossAxisAlignment.center,
+  //       children: [
+  //         // SizedBox(width: 13),
+  //         Spacer(),
+  //         Image.asset(
+  //           "assets/icons/isagi.jpg",
+  //           height: MyDimensionAdapter.getHeight(context) * 0.15,
+  //         ),
+  //         SizedBox(width: 12),
+  //       ],
+  //     ),
+  //   );
+  // }
 }
