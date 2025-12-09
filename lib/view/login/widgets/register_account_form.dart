@@ -1,11 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:wanderhuman_app/components/button.dart';
+import 'package:wanderhuman_app/view/components/button.dart';
 import 'package:wanderhuman_app/helper/firebase_services.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
-import 'package:wanderhuman_app/utilities/color_palette.dart';
-import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
+import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
+import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/login/register_account.dart';
 import 'package:wanderhuman_app/view/login/widgets/textfield.dart';

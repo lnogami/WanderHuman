@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,18 +9,20 @@ import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/helper/firebase_services.dart';
 import 'package:wanderhuman_app/view/add_patient_form/widget/customed_text_form_field.dart';
+import 'package:wanderhuman_app/view/components/image_displayer.dart';
+import 'package:wanderhuman_app/view/components/image_picker.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 
-class AddPatientForm extends StatefulWidget {
-  const AddPatientForm({super.key});
+class AddStaffForm extends StatefulWidget {
+  const AddStaffForm({super.key});
 
   @override
-  State<AddPatientForm> createState() => _AddPatientFormState();
+  State<AddStaffForm> createState() => _AddStaffFormState();
 }
 
 enum Sex { male, female, other }
 
-class _AddPatientFormState extends State<AddPatientForm> {
+class _AddStaffFormState extends State<AddStaffForm> {
   final _formKey = GlobalKey<FormState>();
   Sex groupCurrentValue = Sex.other;
 
@@ -26,7 +30,7 @@ class _AddPatientFormState extends State<AddPatientForm> {
   String nameValue = "";
   String ageValue = "";
   String sexValue = "";
-  String birthdateValue = "";
+  String userRole = "";
   String contactNumberValue = "";
   String addressValue = "";
   String notableBehaviorValue = "";
@@ -83,6 +87,20 @@ class _AddPatientFormState extends State<AddPatientForm> {
               return null;
             },
           ),
+          //might change later to drop down menu
+          MyCustomizedTextFormField(
+            label: "Role/Position",
+            hintText: "Social Service, Home Life, etc.",
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return "Input valid name";
+              }
+              setState(() {
+                userRole = value;
+              });
+              return null;
+            },
+          ),
           SizedBox(
             // color: Colors.amber.shade100,
             height: MyDimensionAdapter.getHeight(context) * 0.15,
@@ -123,7 +141,7 @@ class _AddPatientFormState extends State<AddPatientForm> {
                     SizedBox(
                       width: MyDimensionAdapter.getWidth(context) * 0.45,
                       height: 35,
-                      child: RadioListTile.adaptive(
+                      child: RadioListTile<Sex>.adaptive(
                         // dense: true,
                         title: Text(
                           "Male",
@@ -181,21 +199,9 @@ class _AddPatientFormState extends State<AddPatientForm> {
               ],
             ),
           ),
+
           MyCustomizedTextFormField(
-            label: "Birth date",
-            hintText: "Month/Day/Year",
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return "Input valid name";
-              }
-              setState(() {
-                birthdateValue = value;
-              });
-              return null;
-            },
-          ),
-          MyCustomizedTextFormField(
-            label: "Guardian Contact Number",
+            label: "Contact Number",
             hintText: "ex. 09123456789",
             validator: (value) {
               if (value == null || value.isEmpty) {
@@ -220,30 +226,13 @@ class _AddPatientFormState extends State<AddPatientForm> {
               return null;
             },
           ),
-          MyCustomizedTextFormField(
-            label: "Notable Behavior",
-            hintText: "ex. wakes up early",
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return "Input something";
-              }
-              setState(() {
-                notableBehaviorValue = value;
-              });
-              return null;
-            },
-          ),
-          MyCustomizedTextFormField(
-            label: "Picture",
-            hintText: "Enter Name",
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return "Input something";
-              }
-              setState(() {
-                pictureValue = value;
-              });
-              return null;
+
+          MyImageDisplayer(),
+
+          MyCustButton(
+            buttonText: "Pick an Image as User Profile",
+            onTap: () {
+              MyImageProcessor.myImagePicker();
             },
           ),
           // MyCustomizedTextFormField(
@@ -283,7 +272,7 @@ class _AddPatientFormState extends State<AddPatientForm> {
             buttonWidth: MyDimensionAdapter.getWidth(context) * 0.40,
             onTap: () {
               if (_formKey.currentState!.validate()) {
-                // this method accepts Patients object so maong naay Patients diri
+                // TODO: to update form, change to addStaff function
                 MyFirebaseServices.addPatient(
                   PersonalInfo(
                     userID: FirebaseAuth.instance.currentUser!.uid,
@@ -291,7 +280,7 @@ class _AddPatientFormState extends State<AddPatientForm> {
                     name: nameValue,
                     age: ageValue,
                     sex: sexValue,
-                    birthdate: birthdateValue,
+                    birthdate: userRole,
                     contactNumber: contactNumberValue,
                     address: addressValue,
                     notableBehavior: notableBehaviorValue,
@@ -312,7 +301,7 @@ class _AddPatientFormState extends State<AddPatientForm> {
                       """$nameValue \n 
                       $ageValue \n 
                       $sexValue \n 
-                      $birthdateValue \n 
+                      $userRole \n 
                       $contactNumberValue \n 
                       $addressValue \n 
                       $notableBehaviorValue \n 

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
+import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 
 class PatientDetailsPage extends StatefulWidget {
   final String name;
@@ -114,7 +114,7 @@ class _PatientDetailsPageState extends State<PatientDetailsPage> {
                       // color: Colors.green.withAlpha(100),
                       child: Image.asset(
                         "assets/icons/isagi.jpg",
-                        // "icons/longwidth_placeholder.jpg",
+                        // "assets/icons/longwidth_placeholder.jpg",
                         fit: BoxFit.fitHeight,
                       ),
                     ),

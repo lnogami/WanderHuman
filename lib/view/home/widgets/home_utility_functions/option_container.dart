@@ -1,7 +1,7 @@
 // this will serve as an option button.
 import 'package:flutter/material.dart';
-import 'package:wanderhuman_app/utilities/color_palette.dart';
-import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
+import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
+import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 
 /// This is a button inside the home_appbar
 Container optionsContainer(
@@ -9,6 +9,7 @@ Container optionsContainer(
   IconData icon,
   String text, {
   double buttonWidthMultiplier = 1,
+  double fontSize = kDefaultFontSize,
 
   /// Pass here an anonymous function (){}
   required VoidCallback onTap,
@@ -36,7 +37,13 @@ Container optionsContainer(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             Icon(icon, color: Colors.black87),
-            Text(text, style: TextStyle(overflow: TextOverflow.ellipsis)),
+            Text(
+              text,
+              style: TextStyle(
+                fontSize: fontSize,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
       ),

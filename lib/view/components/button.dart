@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:wanderhuman_app/utilities/color_palette.dart';
-import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
+import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
+import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 
 class MyCustButton extends StatefulWidget {
   final double widthPercentage;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:wanderhuman_app/components/button.dart';
-import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
+import 'package:wanderhuman_app/view/components/button.dart';
+import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/view_patient_details/patient_details_page.dart';
 
 void showMyBottomNavigationSheet({

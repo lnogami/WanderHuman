@@ -1,11 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
-import 'package:wanderhuman_app/view/add_patient_form/add_patient_form.dart';
+import 'package:wanderhuman_app/view/components/appbar/userRolePrevilige.dart';
+import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/helper/firebase_services.dart';
+import 'package:wanderhuman_app/utilities/properties/universal_sizes.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/option_container.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
-import 'package:wanderhuman_app/view/home/widgets/map/patient_simulator/patient_simulator_container.dart';
 
 class MyMenuOptions extends StatefulWidget {
   final bool isVisible;
@@ -16,8 +16,6 @@ class MyMenuOptions extends StatefulWidget {
 }
 
 class _MyMenuOptionsState extends State<MyMenuOptions> {
-  double buttonsHorizontalGap = 8;
-
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
@@ -29,7 +27,9 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
       height: (widget.isVisible)
           // nested conditional operator haha
           ? (MyFirebaseServices.getUserType() == "admin")
-                ? 220
+                // ? 220
+                // : 150
+                ? 150
                 : 150
           : 0,
       child: SingleChildScrollView(
@@ -50,93 +50,16 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
             // displays user type
             toDisplayUserType(),
 
-            SizedBox(
-              height: (MyFirebaseServices.getUserType() == "admin") ? 15 : 2,
+            // might be back later (still deciding)
+            Container(
+              // height: (MyFirebaseServices.getUserType() == "admin") ? 15 : 2,
+              height: 15,
             ),
 
-            // admin exclusive options
-            (MyFirebaseServices.getUserType() == "admin")
-                ? Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      SizedBox(height: 10),
-                      optionsContainer(
-                        context,
-                        Icons.person_pin_circle_outlined,
-                        bgColor: Colors.green[300]!,
-                        "Simulate",
-                        onTap: () {
-                          //
-                          // Navigator.pop(context);
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(
-                              builder: (context) => PatientSimulatorContainer(),
-                            ),
-                          );
-                        },
-                      ),
-                      SizedBox(height: 10),
-                      optionsContainer(
-                        context,
-                        Icons.add_outlined,
-                        "Placeholder",
-                        onTap: () {
-                          showMyAnimatedSnackBar(
-                            context: context,
-                            dataToDisplay: "Admin Privilege",
-                          );
-                        },
-                      ),
-                      SizedBox(height: 10),
-                    ],
-                  )
-                : SizedBox(height: 0),
+            // Determine user role privilege options to display
+            MyUserRolePrevilige(),
 
-            SizedBox(height: buttonsHorizontalGap),
-
-            // buttons/options
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                SizedBox(height: 10),
-                optionsContainer(
-                  context,
-                  Icons.person_outline_rounded,
-                  "Acount",
-                  onTap: () {
-                    MyFirebaseServices.getAllPersonalInfoRecords()
-                        .then((value) {
-                          showMyAnimatedSnackBar(
-                            context: context,
-                            dataToDisplay: "${value.length}",
-                          );
-                        })
-                        .catchError((error) {
-                          showMyAnimatedSnackBar(
-                            context: context,
-                            dataToDisplay: error.toString(),
-                          );
-                        });
-                  },
-                ),
-                SizedBox(height: 10),
-                optionsContainer(
-                  context,
-                  Icons.add_outlined,
-                  "Add Patient",
-                  onTap: () {
-                    AddPatientForm();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => AddPatientForm()),
-                    );
-                  },
-                ),
-                SizedBox(height: 10),
-              ],
-            ),
-
-            SizedBox(height: buttonsHorizontalGap),
+            SizedBox(height: MySizes.buttonsHorizontalGap),
 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
