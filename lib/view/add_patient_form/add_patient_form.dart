@@ -7,7 +7,7 @@ import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/helper/firebase_services.dart';
 import 'package:wanderhuman_app/view/add_patient_form/widget/customed_text_form_field.dart';
-import 'package:wanderhuman_app/view/home/widgets/utility_functions/my_animated_snackbar.dart';
+import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 
 class AddPatientForm extends StatefulWidget {
   const AddPatientForm({super.key});
@@ -27,7 +27,7 @@ class _AddPatientFormState extends State<AddPatientForm> {
   String ageValue = "";
   String sexValue = "";
   String birthdateValue = "";
-  String guardianContactNumberValue = "";
+  String contactNumberValue = "";
   String addressValue = "";
   String notableBehaviorValue = "";
   String pictureValue = "";
@@ -202,7 +202,7 @@ class _AddPatientFormState extends State<AddPatientForm> {
                 return "Input a valid number";
               }
               setState(() {
-                guardianContactNumberValue = value;
+                contactNumberValue = value;
               });
               return null;
             },
@@ -292,7 +292,7 @@ class _AddPatientFormState extends State<AddPatientForm> {
                     age: ageValue,
                     sex: sexValue,
                     birthdate: birthdateValue,
-                    guardianContactNumber: guardianContactNumberValue,
+                    contactNumber: contactNumberValue,
                     address: addressValue,
                     notableBehavior: notableBehaviorValue,
                     picture: pictureValue,
@@ -313,7 +313,7 @@ class _AddPatientFormState extends State<AddPatientForm> {
                       $ageValue \n 
                       $sexValue \n 
                       $birthdateValue \n 
-                      $guardianContactNumberValue \n 
+                      $contactNumberValue \n 
                       $addressValue \n 
                       $notableBehaviorValue \n 
                       $pictureValue \n 
@@ -322,6 +322,8 @@ class _AddPatientFormState extends State<AddPatientForm> {
                       SUCCESSFULLY ADDED!""",
                   //${MyFirebaseServices.getAllUserID()}
                 );
+
+                Navigator.pop(context);
               }
             },
           ),

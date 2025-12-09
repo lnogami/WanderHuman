@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:wanderhuman_app/firebase_options.dart';
 import 'package:wanderhuman_app/utilities/color_palette.dart';
 import 'package:wanderhuman_app/view-model/home_appbar_proider.dart';
@@ -16,6 +17,8 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   // Load environment variables from .env file
   await dotenv.load(fileName: ".env");
+  // To prevent the device from sleeping.
+  WakelockPlus.enable();
   runApp(const MainApp());
 }
 

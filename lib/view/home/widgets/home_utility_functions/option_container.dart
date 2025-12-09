@@ -8,13 +8,16 @@ Container optionsContainer(
   BuildContext context,
   IconData icon,
   String text, {
+  double buttonWidthMultiplier = 1,
 
   /// Pass here an anonymous function (){}
   required VoidCallback onTap,
   Color bgColor = const Color.fromARGB(100, 33, 149, 243),
 }) {
   return Container(
-    width: MyDimensionAdapter.getWidth(context) * 0.35,
+    width:
+        MyDimensionAdapter.getWidth(context) *
+        ((buttonWidthMultiplier == 1) ? 0.35 : buttonWidthMultiplier),
     height: 55,
     // padding: EdgeInsets.only(left: 5, right: 10),
     decoration: BoxDecoration(
@@ -33,7 +36,7 @@ Container optionsContainer(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             Icon(icon, color: Colors.black87),
-            Text(text),
+            Text(text, style: TextStyle(overflow: TextOverflow.ellipsis)),
           ],
         ),
       ),

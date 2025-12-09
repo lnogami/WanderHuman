@@ -1,13 +1,16 @@
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart' as gl;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mp;
-import 'package:wanderhuman_app/view/home/widgets/utility_functions/map_functions/point_annotation_options.dart';
-import 'package:wanderhuman_app/view/home/widgets/utility_functions/bottom_modal_sheet.dart';
-import 'package:wanderhuman_app/view/home/widgets/utility_functions/my_animated_snackbar.dart';
-import 'package:wanderhuman_app/view/home/widgets/utility_functions/show_alert_dialog.dart';
+import 'package:wanderhuman_app/helper/firebase_services.dart';
+import 'package:wanderhuman_app/model/personal_info.dart';
+import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/bottom_modal_sheet_for_patient.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/map_functions/point_annotation_options.dart';
+import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
+import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/show_alert_dialog.dart';
 
 class MapBody extends StatefulWidget {
   const MapBody({super.key});
@@ -20,8 +23,13 @@ class _MapBodyState extends State<MapBody> {
   // controller for the map
   mp.MapboxMap? mapboxMapController;
 
+  mp.PointAnnotationManager? pointAnnotationManager;
+
   // to listen to the user's location changes
   StreamSubscription? userPositionStream;
+
+  // Keep track of existing annotations by Firestore document ID
+  Map<String, mp.PointAnnotation> userAnnotations = {};
 
   // temporary
   gl.Position? myPosition;
@@ -57,6 +65,12 @@ class _MapBodyState extends State<MapBody> {
     setState(() {
       mapboxMapController = controller;
     });
+
+    pointAnnotationManager = await mapboxMapController?.annotations
+        .createPointAnnotationManager();
+
+    //temporary ra ni (deletable)
+    // controller.annotations.createPointAnnotationManager();
 
     // logic for displaying user position/location on the map
     mapboxMapController?.location.updateSettings(
@@ -108,6 +122,142 @@ class _MapBodyState extends State<MapBody> {
       // code to be added here to make this code appear again if the Location is still turned off.
       showMyDialogBox(context, isLocationServiceEnabled);
     }
+
+    // Start listening to Firebase users
+    listenToPatients();
+  }
+
+  // Add this to your state variables
+  Map<String, Map<String, dynamic>> annotationData = {};
+
+  // Listen to Firestore collection "users" in real-time
+  void listenToPatients() async {
+    // History is just a placeholder,    "RealTime" is the collection here.
+    FirebaseFirestore.instance.collection("History").snapshots().listen((
+      snapshot,
+    ) async {
+      try {
+        // to get user name, I must first retrieve all the records in PersonalInfo
+        List<PersonalInfo> personsList =
+            await MyFirebaseServices.getAllPersonalInfoRecords();
+
+        showMyAnimatedSnackBar(
+          context: context,
+          dataToDisplay: personsList.length.toString(),
+        );
+        int n = 0; // (deletable) for debugging purposes only
+
+        for (var doc in snapshot.docs) {
+          var data = doc.data();
+          n++;
+          // Extract coordinates   // naka list man gud ni maong ingani [""][0]   naka List ni sya pag save sa firestore kay Position object man gud ang gisend, naconvert sya into array pag abot sa firestore
+          double lng = data["currentLocation"][0] ?? "NULL lng";
+          double lat = data["currentLocation"][1] ?? "NULL lat";
+          // to get user name
+          String name = MyFirebaseServices.getSpecificUserName(
+            personsList: personsList,
+            userIDToLookFor: data["patientID"],
+          );
+
+          // to get personal info based on patient's ID
+          PersonalInfo personalInfo =
+              await MyFirebaseServices.getSpecificPersonalInfo(
+                userID: data["patientID"],
+              );
+
+          // Store the data associated with this document
+          annotationData[doc.id] = {
+            'name': name,
+            'patientID': data["patientID"],
+            'number': n, //for debugging purposes only, might delete later on
+            'lng': lng,
+            'lat': lat,
+            'currentlyIn': data["currentlyIn"],
+            'isInSafeZone': data["isInSafeZone"],
+            'timeStamp': data["timeStamp"],
+            'deviceBatteryPercentage': data["deviceBatteryPercentage"],
+            //
+            'age': personalInfo.age,
+            'sex': personalInfo.sex,
+            'contactInfo': personalInfo.contactNumber,
+            'address': personalInfo.address,
+            'notableBehavior': personalInfo.notableBehavior,
+          };
+
+          // (deletable) pang debug ra ni
+          if (name == "Coach Anzai") {
+            showMyAnimatedSnackBar(
+              context: context,
+              dataToDisplay: "$n). $name: ${doc.data().toString()}",
+            );
+          }
+
+          // If the user already has an annotation, update its position
+          if (userAnnotations.containsKey(doc.id)) {
+            // remove old annotation
+            pointAnnotationManager?.delete(userAnnotations[doc.id]!);
+            // create new annotation at the updated location
+            var newAnnotation = await pointAnnotationManager?.create(
+              myPointAnnotationOptions(
+                name: name,
+                myPosition: mp.Position(lng, lat),
+              ),
+            );
+
+            userAnnotations[doc.id] = newAnnotation!;
+          } else {
+            // create new annation
+            var newAnnotation = await pointAnnotationManager?.create(
+              myPointAnnotationOptions(
+                name: name,
+                myPosition: mp.Position(lng, lat),
+              ),
+            );
+
+            userAnnotations[doc.id] = newAnnotation!;
+          }
+
+          // // setting tap events to the marker
+          // pointAnnotationManager?.tapEvents(
+          //   onTap: (mp.PointAnnotation tappedAnnotation) {
+          //     // bottomModalSheet(context);
+          //     print("NAMEEEEEEEEEEEEEEEEEEEEEEEE: $name");
+          //     showMyBottomNavigationSheet(context: context, name: "$name: $n");
+          //   },
+          // );
+
+          // set up tap events ONCE, outside the loop
+          pointAnnotationManager?.tapEvents(
+            onTap: (mp.PointAnnotation tappedAnnotation) {
+              // find which document this annotation belongs to
+              String? docId = userAnnotations.entries
+                  .firstWhere(
+                    (entry) => entry.value == tappedAnnotation,
+                    orElse: () => MapEntry('', tappedAnnotation),
+                  )
+                  .key;
+
+              if (docId.isNotEmpty && annotationData.containsKey(docId)) {
+                var data = annotationData[docId]!;
+                showMyBottomNavigationSheet(
+                  context: context,
+                  name: "${data['name']} : ${data['number']}",
+                  sex: data['sex'] ?? "NO DATA ACQUIRED",
+                  age: data['age'] ?? "NO DATA ACQUIRED",
+                  contactInfo: data['contactInfo'] ?? "NO DATA ACQUIRED",
+                  address: data['address'] ?? "NO DATA ACQUIRED",
+                  notableBehavior:
+                      data['notableBehavior'] ?? "NO DATA ACQUIRED",
+                );
+              }
+            },
+          );
+        }
+      } catch (e) {
+        // showMyAnimatedSnackBar(context: context, dataToDisplay: e.toString());
+        print("ERROR ON LISTENTOPATIENTS METHOD: ${e.toString()}");
+      }
+    });
   }
 
   //------------------------------------------------------------------------------
@@ -181,14 +331,6 @@ class _MapBodyState extends State<MapBody> {
               ),
             );
 
-            /* 
-              logic for adding annotations (marker),
-              diri sya ibutang para marender sya if naa nay narender nga
-              map og user postion
-            */
-            final pointAnnotationManager = await mapboxMapController
-                ?.annotations
-                .createPointAnnotationManager();
             // load image as the marker
             final Uint8List imageData = await imageToIconLoader(
               // "assets/icons/isagi.jpg",
@@ -243,12 +385,18 @@ class _MapBodyState extends State<MapBody> {
             pointAnnotationManager?.create(pointAnnotationOptions);
             // pointAnnotationManager?.createMulti(List<mp.PointAnnotation>);
 
-            // setting tap events to the marker
-            pointAnnotationManager?.tapEvents(
-              onTap: (mp.PointAnnotation tappedAnnotation) {
-                bottomModalSheet(context);
-              },
-            );
+            // // this was move to listenToPatients method
+            // // setting tap events to the marker
+            // pointAnnotationManager?.tapEvents(
+            //   onTap: (mp.PointAnnotation tappedAnnotation) {
+            //     // bottomModalSheet(context);
+
+            //     showMyBottomNavigationSheet(
+            //       context: context,
+            //       name: "Hori Zontal",
+            //     );
+            //   },
+            // );
           }
         });
   }

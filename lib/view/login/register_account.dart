@@ -14,7 +14,7 @@ void bottomModalSheetOfSignUp({
     builder: (context) {
       return Container(
         width: MyDimensionAdapter.getWidth(context),
-        height: MyDimensionAdapter.getHeight(context) * 0.80,
+        height: MyDimensionAdapter.getHeight(context) * 0.90,
         decoration: BoxDecoration(
           // color: Colors.purple[100],
           borderRadius: borderRadius(),
