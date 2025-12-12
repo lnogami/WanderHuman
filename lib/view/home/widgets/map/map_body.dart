@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart' as gl;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mp;
-import 'package:wanderhuman_app/helper/firebase_services.dart';
+import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/bottom_modal_sheet_for_patient.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/point_annotation_options.dart';
@@ -139,7 +139,7 @@ class _MapBodyState extends State<MapBody> {
       try {
         // to get user name, I must first retrieve all the records in PersonalInfo
         List<PersonalInfo> personsList =
-            await MyFirebaseServices.getAllPersonalInfoRecords();
+            await MyPersonalInfoRepository.getAllPersonalInfoRecords();
 
         showMyAnimatedSnackBar(
           context: context,
@@ -154,14 +154,14 @@ class _MapBodyState extends State<MapBody> {
           double lng = data["currentLocation"][0] ?? "NULL lng";
           double lat = data["currentLocation"][1] ?? "NULL lat";
           // to get user name
-          String name = MyFirebaseServices.getSpecificUserName(
+          String name = MyPersonalInfoRepository.getSpecificUserName(
             personsList: personsList,
             userIDToLookFor: data["patientID"],
           );
 
           // to get personal info based on patient's ID
           PersonalInfo personalInfo =
-              await MyFirebaseServices.getSpecificPersonalInfo(
+              await MyPersonalInfoRepository.getSpecificPersonalInfo(
                 userID: data["patientID"],
               );
 

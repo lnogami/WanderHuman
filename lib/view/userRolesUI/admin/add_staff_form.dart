@@ -1,13 +1,11 @@
-import 'dart:convert';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/view/components/button.dart';
 import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
-import 'package:wanderhuman_app/helper/firebase_services.dart';
 import 'package:wanderhuman_app/view/add_patient_form/widget/customed_text_form_field.dart';
 import 'package:wanderhuman_app/view/components/image_displayer.dart';
 import 'package:wanderhuman_app/view/components/image_picker.dart';
@@ -231,8 +229,46 @@ class _AddStaffFormState extends State<AddStaffForm> {
 
           MyCustButton(
             buttonText: "Pick an Image as User Profile",
-            onTap: () {
-              MyImageProcessor.myImagePicker();
+            onTap: () async {
+              // String userID = await FirebaseAuth.instance.currentUser!.uid;
+              // String userIDInDatabase =
+              //     await MyFirebaseServices.getSpecificPersonalInfo(
+              //       userID: userID,
+              //     ).then((personalInfo) => personalInfo.userID);
+              // MyImageProcessor.myImagePicker(userID: userIDInDatabase).then((
+              //   value,
+              // ) {
+              //   setState(() {
+              //     pictureValue = value;
+              //   });
+              // });
+              MyImageProcessor.myImagePicker().then((value) {
+                setState(() {
+                  pictureValue = value;
+                });
+                print("PICTURE VALUE IN FORM: $pictureValue");
+
+                // MyPersonalInfoRepository.getSpecificPersonalInfo(
+                //   userID: FirebaseAuth.instance.currentUser!.uid,
+                // ).then((personalInfo) async {
+                //   String? docID =
+                //       await MyPersonalInfoRepository.getDocIdByUserId(
+                //         personalInfo.userID,
+                //       );
+                //   print("THE DOCUMENT ID OF ${personalInfo.userID} is: $docID");
+                //   print(
+                //     "PERSONAL INFO FETCHED IN FORM AFTER PICKING IMAGE: ${personalInfo.userID}",
+                //   );
+                //   MyPersonalInfoRepository.uploadProfilePicture(
+                //     docID: docID!,
+                //     base64Image: value,
+                //   );
+                // });
+                MyPersonalInfoRepository.uploadProfilePicture(
+                  userID: FirebaseAuth.instance.currentUser!.uid,
+                  base64Image: value,
+                );
+              });
             },
           ),
           // MyCustomizedTextFormField(
@@ -273,7 +309,7 @@ class _AddStaffFormState extends State<AddStaffForm> {
             onTap: () {
               if (_formKey.currentState!.validate()) {
                 // TODO: to update form, change to addStaff function
-                MyFirebaseServices.addPatient(
+                MyPersonalInfoRepository.addPatient(
                   PersonalInfo(
                     userID: FirebaseAuth.instance.currentUser!.uid,
                     userType: "patient",

@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:wanderhuman_app/firebase_options.dart';
 import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
-import 'package:wanderhuman_app/view-model/home_appbar_proider.dart';
+import 'package:wanderhuman_app/view-model/home_appbar_provider.dart';
 import 'package:wanderhuman_app/view/home/home.dart';
 import 'package:wanderhuman_app/view/login/login.dart';
 

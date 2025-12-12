@@ -1,19 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:wanderhuman_app/helper/firebase_services.dart';
-import 'package:wanderhuman_app/view/components/appbar/userPriviligeOptions.dart/admin.dart';
+import 'package:wanderhuman_app/helper/personal_info_repository.dart';
+import 'package:wanderhuman_app/view/home/widgets/appbar/userPriviligeOptions.dart/admin.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
-import 'package:wanderhuman_app/utilities/properties/universal_sizes.dart';
-import 'package:wanderhuman_app/view/add_patient_form/add_patient_form.dart';
-import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
-import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/option_container.dart';
-import 'package:wanderhuman_app/view/home/widgets/map/patient_simulator/patient_simulator_container.dart';
 
 class MyUserRolePrevilige extends StatelessWidget {
   const MyUserRolePrevilige({super.key});
 
   @override
   Widget build(BuildContext context) {
-    switch (MyFirebaseServices.getUserType()) {
+    switch (MyPersonalInfoRepository.getUserType()) {
       case "admin":
         return AdminPrivilege();
 

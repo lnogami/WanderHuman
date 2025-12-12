@@ -4,7 +4,11 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 
 // TODO: To adapt database later
+/// This picks the image and encode Encodes it.
+/// To pick image use the following method [MyImageProcessor.myImagePicker()]
+/// Accessable String data via [MyImageProcessor.base64Image]
 class MyImageProcessor {
+  /// A String that holds the Base64 representation of the picked image.
   static String base64Image = "";
 
   /// a Widget
@@ -28,6 +32,14 @@ class MyImageProcessor {
 
       print("Compressed Base64 String: $base64StringImage");
       base64Image = base64StringImage;
+
+      // TODO: be back here tomorrow
+      // /// upload to database can be done here or outside this method
+      // MyFirebaseServices.updateProfilePicture(
+      //   userID: userID,
+      //   base64Image: base64Image,
+      // );
+
       return base64Image;
     }
 

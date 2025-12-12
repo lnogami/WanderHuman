@@ -1,11 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/view/components/button.dart';
 import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
-import 'package:wanderhuman_app/helper/firebase_services.dart';
 import 'package:wanderhuman_app/view/add_patient_form/widget/customed_text_form_field.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 
@@ -284,7 +284,7 @@ class _AddPatientFormState extends State<AddPatientForm> {
             onTap: () {
               if (_formKey.currentState!.validate()) {
                 // this method accepts Patients object so maong naay Patients diri
-                MyFirebaseServices.addPatient(
+                MyPersonalInfoRepository.addPatient(
                   PersonalInfo(
                     userID: FirebaseAuth.instance.currentUser!.uid,
                     userType: "patient",

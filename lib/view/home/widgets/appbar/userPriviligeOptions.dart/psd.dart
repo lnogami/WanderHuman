@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:wanderhuman_app/helper/firebase_services.dart';
+import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/utilities/properties/universal_sizes.dart';
 import 'package:wanderhuman_app/view/add_patient_form/add_patient_form.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/option_container.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/patient_simulator/patient_simulator_container.dart';
 
-class MedicalPrivilege extends StatelessWidget {
-  const MedicalPrivilege({super.key});
+class PSDPrivilege extends StatelessWidget {
+  const PSDPrivilege({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +15,7 @@ class MedicalPrivilege extends StatelessWidget {
       child: Column(
         children: [
           // admin exclusive options
-          (MyFirebaseServices.getUserType() == "admin")
+          (MyPersonalInfoRepository.getUserType() == "admin")
               ? Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
@@ -64,7 +64,7 @@ class MedicalPrivilege extends StatelessWidget {
                 Icons.person_outline_rounded,
                 "Acount",
                 onTap: () {
-                  MyFirebaseServices.getAllPersonalInfoRecords()
+                  MyPersonalInfoRepository.getAllPersonalInfoRecords()
                       .then((value) {
                         showMyAnimatedSnackBar(
                           context: context,

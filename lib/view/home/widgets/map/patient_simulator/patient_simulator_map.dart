@@ -290,7 +290,7 @@ class _PatientSimulatorState extends State<PatientSimulator> {
             // setting tap events to the marker
             pointAnnotationManager?.tapEvents(
               onTap: (mp.PointAnnotation tappedAnnotation) {
-                bottomModalSheet(context);
+                // bottomModalSheet(context);
               },
             );
 

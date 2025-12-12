@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/view/components/button.dart';
-import 'package:wanderhuman_app/helper/firebase_services.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
@@ -230,8 +230,8 @@ class _RegisterAccountFormState extends State<RegisterAccountForm> {
     });
 
     List<PersonalInfo> personsList =
-        await MyFirebaseServices.getAllPersonalInfoRecords();
-    MyFirebaseServices.getSpecificUserNameOfTheLoggedInAccount(
+        await MyPersonalInfoRepository.getAllPersonalInfoRecords();
+    MyPersonalInfoRepository.getSpecificUserNameOfTheLoggedInAccount(
       personsList: personsList,
       userIDToLookFor: FirebaseAuth.instance.currentUser!.uid,
     );

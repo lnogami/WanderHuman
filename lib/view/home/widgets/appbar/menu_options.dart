@@ -1,9 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:wanderhuman_app/view/components/appbar/userRolePrevilige.dart';
+import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
-import 'package:wanderhuman_app/helper/firebase_services.dart';
 import 'package:wanderhuman_app/utilities/properties/universal_sizes.dart';
+import 'package:wanderhuman_app/view/home/widgets/appbar/userRolePrevilige.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/option_container.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 
@@ -20,13 +20,15 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
   Widget build(BuildContext context) {
     return AnimatedContainer(
       duration: Duration(
-        milliseconds: (MyFirebaseServices.getUserType() == "admin") ? 200 : 180,
+        milliseconds: (MyPersonalInfoRepository.getUserType() == "admin")
+            ? 200
+            : 180,
       ),
       // color: Colors.amber,
       width: MyDimensionAdapter.getWidth(context) - 60,
       height: (widget.isVisible)
           // nested conditional operator haha
-          ? (MyFirebaseServices.getUserType() == "admin")
+          ? (MyPersonalInfoRepository.getUserType() == "admin")
                 // ? 220
                 // : 150
                 ? 150
@@ -157,13 +159,13 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
       children: [
         Text(
           // for grammatical purposes
-          (MyFirebaseServices.getUserType() == "admin")
+          (MyPersonalInfoRepository.getUserType() == "admin")
               ? "You are an "
               : "You are a ",
           style: TextStyle(fontSize: 11, color: Colors.blueGrey),
         ),
         Text(
-          MyFirebaseServices.getUserType().toUpperCase(),
+          MyPersonalInfoRepository.getUserType().toUpperCase(),
           style: TextStyle(
             fontSize: 11,
             // fontStyle: FontStyle.italic,

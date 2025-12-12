@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
-import 'package:wanderhuman_app/view/components/appbar/home_appbar.dart';
+import 'package:wanderhuman_app/view/home/widgets/appbar/home_appbar.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_body.dart';
 
 class HomePage extends StatefulWidget {

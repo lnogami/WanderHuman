@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
-import 'package:wanderhuman_app/helper/firebase_services.dart';
+import 'package:wanderhuman_app/helper/history_reposity.dart';
 import 'package:wanderhuman_app/model/history.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 
@@ -17,7 +17,7 @@ Future<bool> savePatientLocation({
 }) async {
   // retrieves all patient history in firebase
   List<PatientHistory> allPatientsHistory =
-      await MyFirebaseServices.getAllPatientsLatestHistory();
+      await MyHistoryReposity.getAllPatientsLatestHistory();
   // retrieves the latest record of a specific patient based on patientID
   PatientHistory patientHistory = allPatientsHistory.firstWhere(
     (element) => element.patientID == patientID,
@@ -44,7 +44,7 @@ Future<bool> savePatientLocation({
       patientLastLocation.lat != currentPositon.lat;
 
   if (certainSecondsHasPassed || locationChanged) {
-    MyFirebaseServices.savePatientLocation(
+    MyHistoryReposity.savePatientLocation(
       PatientHistory(
         patientID:
             "${FirebaseAuth.instance.currentUser!.uid}_as_PATIENT", // statically base on the current logged in user
