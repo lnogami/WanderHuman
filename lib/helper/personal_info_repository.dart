@@ -144,7 +144,7 @@ class MyPersonalInfoRepository {
     return "No User Found!";
   }
 
-  /// To get the role of the current user (Caregiver or Admin).
+  /// To get the role of the current user (Among Caregiver Roles).
   static String getUserType() {
     return _userType;
   }
@@ -238,6 +238,21 @@ class MyPersonalInfoRepository {
     } else {
       print("No document found with userID: $targetUserId");
       return null;
+    }
+  }
+
+  /// To update the personal info of a user base on their userID.
+  /// A userID is the same as document ID in Personal Info collection.
+  static Future<void> updatePersonalInfo(PersonalInfo updatedInfo) async {
+    try {
+      await _personalInfoCollectionReference.doc(updatedInfo.userID).update({
+        "userType": updatedInfo.userType,
+        // "profilePicture": updatedInfo.picture,
+        "profilePictureURL": updatedInfo.picture,
+      });
+    } catch (e) {
+      print("❌❌❌ Error updating personal info: $e");
+      throw Exception();
     }
   }
 }

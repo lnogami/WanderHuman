@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wanderhuman_app/view/components/my_page_navigator.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/option_container.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/patient_simulator/patient_simulator_container.dart';
 import 'package:wanderhuman_app/view/userRolesUI/admin/manage_staff.dart';
@@ -44,9 +45,10 @@ class AdminPrivilege extends StatelessWidget {
                   //   dataToDisplay: "Manage Staff Clicked",
                   // );
 
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => ManageStaff()),
-                  );
+                  // Navigator.of(context).push(
+                  //   MaterialPageRoute(builder: (context) => ManageStaff()),
+                  // );
+                  MyNavigator.goTo(context, ManageStaff());
                 },
               ),
               SizedBox(width: 5),

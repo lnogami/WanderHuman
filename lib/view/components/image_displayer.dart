@@ -1,9 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:wanderhuman_app/helper/personal_info_repository.dart';
-import 'package:wanderhuman_app/model/personal_info.dart';
 
 /// This automatcally process the Image from the database and display it.
 // ignore: must_be_immutable

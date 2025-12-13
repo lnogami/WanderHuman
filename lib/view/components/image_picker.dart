@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:image_picker/image_picker.dart';
 
@@ -45,5 +46,11 @@ class MyImageProcessor {
 
     print("No image selected.");
     return "";
+  }
+
+  /// Only use if needed,
+  /// There is a built in decoder in HomeAppBarProvider's [refreshProfilePicture({String? userID})] when refreshing the profile picture.
+  static Uint8List decodeStringToUint8List(String base64String) {
+    return base64Decode(base64String);
   }
 }

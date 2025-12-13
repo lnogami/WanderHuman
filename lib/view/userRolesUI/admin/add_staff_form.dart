@@ -1,15 +1,11 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/view/components/button.dart';
 import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
-import 'package:wanderhuman_app/model/personal_info.dart';
-import 'package:wanderhuman_app/view/add_patient_form/widget/customed_text_form_field.dart';
+import 'package:wanderhuman_app/view/components/dropdown_button.dart';
 import 'package:wanderhuman_app/view/components/image_displayer.dart';
 import 'package:wanderhuman_app/view/components/image_picker.dart';
-import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 
 class AddStaffForm extends StatefulWidget {
   const AddStaffForm({super.key});
@@ -21,7 +17,7 @@ class AddStaffForm extends StatefulWidget {
 enum Sex { male, female, other }
 
 class _AddStaffFormState extends State<AddStaffForm> {
-  final _formKey = GlobalKey<FormState>();
+  // final _formKey = GlobalKey<FormState>();
   Sex groupCurrentValue = Sex.other;
 
   // FORM Value
@@ -35,16 +31,20 @@ class _AddStaffFormState extends State<AddStaffForm> {
   String pictureValue = "";
   String createdAtValue = "";
 
+  Uint8List? imageInBytes;
+
+  List<String> items = ["No Role", "Admin", "Social Service", "Home Life"];
+
   @override
   void initState() {
     super.initState();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    // SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   }
 
   @override
   void dispose() {
     super.dispose();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    // SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   }
 
   @override
@@ -64,227 +64,127 @@ class _AddStaffFormState extends State<AddStaffForm> {
     );
   }
 
-  Form formSpace(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          headerBar(context),
-          MyCustomizedTextFormField(
-            bottomMargin: 0,
-            label: "Name",
-            hintText: "Enter Full Name",
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return "Input valid name";
-              }
-              setState(() {
-                nameValue = value;
-              });
-              return null;
-            },
-          ),
-          //might change later to drop down menu
-          MyCustomizedTextFormField(
-            label: "Role/Position",
-            hintText: "Social Service, Home Life, etc.",
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return "Input valid name";
-              }
-              setState(() {
-                userRole = value;
-              });
-              return null;
-            },
-          ),
-          SizedBox(
-            // color: Colors.amber.shade100,
-            height: MyDimensionAdapter.getHeight(context) * 0.15,
-            child: Row(
-              children: [
-                Expanded(
-                  child: MyCustomizedTextFormField(
-                    bottomMargin: 0,
-                    label: "Age",
-                    hintText: "ex.56",
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Input valid age";
-                      }
-                      setState(() {
-                        ageValue = value;
-                      });
-                      return null;
-                    },
-                  ),
-                ),
-                // Expanded(
-                //   child:
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Sex/Gender",
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: (sexValue == "")
-                            ? const Color.fromARGB(255, 173, 57, 51)
-                            : Colors.blue,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    SizedBox(
-                      width: MyDimensionAdapter.getWidth(context) * 0.45,
-                      height: 35,
-                      child: RadioListTile<Sex>.adaptive(
-                        // dense: true,
-                        title: Text(
-                          "Male",
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: (sexValue == "") ? Colors.grey : Colors.blue,
-                          ),
-                        ),
-                        fillColor: WidgetStateProperty.resolveWith(
-                          (states) => states.contains(WidgetState.selected)
-                              ? Colors.blue
-                              : const Color.fromARGB(255, 125, 184, 236),
-                        ),
-                        value: Sex.male,
-                        groupValue: groupCurrentValue,
-                        onChanged: (value) {
-                          setState(() {
-                            groupCurrentValue = value!;
-                            sexValue = value.name.toString();
-                          });
-                        },
-                      ),
-                    ),
-                    SizedBox(
-                      width: MyDimensionAdapter.getWidth(context) * 0.45,
-                      child: RadioListTile.adaptive(
-                        // dense: true,
-                        fillColor: WidgetStateProperty.resolveWith(
-                          (states) => states.contains(WidgetState.selected)
-                              ? Colors.blue
-                              : const Color.fromARGB(255, 125, 184, 236),
-                        ),
+  Column formSpace(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        headerBar(context),
 
-                        activeColor: Colors.blue,
-                        title: Text(
-                          "Female",
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: (sexValue == "") ? Colors.grey : Colors.blue,
-                          ),
-                        ),
-                        value: Sex.female,
-                        groupValue: groupCurrentValue,
-                        onChanged: (value) {
-                          setState(() {
-                            groupCurrentValue = value!;
-                            sexValue = value.name.toString();
-                          });
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                // ),
-              ],
+        MyDropdownMenuButton(
+          items: items,
+          hintText: "Select a User",
+          icon: Icon(Icons.person_outline_rounded, size: 32),
+        ),
+        SizedBox(height: 10),
+        MyDropdownMenuButton(
+          items: items,
+          hintText: "Role/Position:",
+          icon: Icon(Icons.verified_user_outlined, size: 32),
+        ),
+        SizedBox(height: 25),
+
+        // image part of the form
+        (imageInBytes == null)
+            ? CircleAvatar(
+                minRadius: 40,
+                backgroundColor: Colors.grey.shade100,
+                child: Icon(Icons.person_rounded, color: Colors.grey, size: 60),
+              )
+            : MyImageDisplayer(
+                profileImageSize:
+                    // if naka protrait mode, mag base sa width, otherwise if naka landscape, mag basesa height
+                    (MyDimensionAdapter.getWidth(context) <
+                        MyDimensionAdapter.getHeight(context))
+                    ? MyDimensionAdapter.getWidth(context) * 0.3
+                    : MyDimensionAdapter.getWidth(context) * 0.2,
+                base64ImageString: imageInBytes,
+              ),
+
+        SizedBox(height: 10),
+
+        MyCustButton(
+          buttonText: "Select Picture",
+          buttonTextColor: Colors.white,
+          buttonTextFontWeight: FontWeight.w500,
+          buttonTextFontSize: 16,
+          onTap: () async {
+            MyImageProcessor.myImagePicker().then((value) async {
+              //TODO: ibalhinay ni sa save button para dili sya automatic save og picture if mamili lang og picture.
+              // await MyPersonalInfoRepository.uploadProfilePicture(
+              //   userID: FirebaseAuth.instance.currentUser!.uid,
+              //   base64Image: value,
+              // );
+
+              setState(() {
+                pictureValue = value;
+                imageInBytes = MyImageProcessor.decodeStringToUint8List(value);
+              });
+              print("PICTURE VALUE IN FORM: $pictureValue");
+            });
+          },
+        ),
+
+        SizedBox(height: 20),
+
+        // information part of the form
+        informationRow(context, labelText: "Sex", valueText: sexValue),
+        informationRow(
+          context,
+          labelText: "Cotact",
+          valueText: contactNumberValue,
+        ),
+        informationRow(context, labelText: "Age", valueText: ageValue),
+        informationRow(
+          context,
+          labelText: "Address",
+          valueText: "skjabfab ajfkjbf",
+        ),
+        informationRow(
+          context,
+          labelText: "Registered On",
+          valueText: "hbdbwdbwhdbwjbh",
+        ),
+
+        SizedBox(height: 20),
+        buttonArea(context),
+      ],
+    );
+  }
+
+  Container informationRow(
+    BuildContext context, {
+    String labelText = "Label",
+    String valueText = "Value",
+  }) {
+    return Container(
+      // color: Colors.amber,
+      width: MyDimensionAdapter.getWidth(context) * 0.90,
+      // height: MyDimensionAdapter.getHeight(context) * 0.07,
+      padding: EdgeInsets.only(left: 10, right: 5),
+      margin: EdgeInsets.only(top: 5, bottom: 5),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Container(
+            // color: Colors.blueGrey,
+            width: MyDimensionAdapter.getWidth(context) * 0.25,
+            child: Text(
+              labelText,
+              softWrap: true,
+              maxLines: 2,
+              // overflow: TextOverflow.ellipsis,
             ),
           ),
-
-          MyCustomizedTextFormField(
-            label: "Contact Number",
-            hintText: "ex. 09123456789",
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return "Input a valid number";
-              }
-              setState(() {
-                contactNumberValue = value;
-              });
-              return null;
-            },
+          Container(
+            // color: Colors.blueGrey,
+            width: MyDimensionAdapter.getWidth(context) * 0.60,
+            child: Text(
+              valueText,
+              softWrap: true,
+              maxLines: 2,
+              // overflow: TextOverflow.ellipsis,
+            ),
           ),
-          MyCustomizedTextFormField(
-            label: "Address",
-            hintText: "enter Street, Municipal/City, Province",
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return "Input valid address";
-              }
-              setState(() {
-                addressValue = value;
-              });
-              return null;
-            },
-          ),
-
-          MyImageDisplayer(),
-
-          MyCustButton(
-            buttonText: "Pick an Image as User Profile",
-            onTap: () async {
-              // String userID = await FirebaseAuth.instance.currentUser!.uid;
-              // String userIDInDatabase =
-              //     await MyFirebaseServices.getSpecificPersonalInfo(
-              //       userID: userID,
-              //     ).then((personalInfo) => personalInfo.userID);
-              // MyImageProcessor.myImagePicker(userID: userIDInDatabase).then((
-              //   value,
-              // ) {
-              //   setState(() {
-              //     pictureValue = value;
-              //   });
-              // });
-              MyImageProcessor.myImagePicker().then((value) {
-                setState(() {
-                  pictureValue = value;
-                });
-                print("PICTURE VALUE IN FORM: $pictureValue");
-
-                // MyPersonalInfoRepository.getSpecificPersonalInfo(
-                //   userID: FirebaseAuth.instance.currentUser!.uid,
-                // ).then((personalInfo) async {
-                //   String? docID =
-                //       await MyPersonalInfoRepository.getDocIdByUserId(
-                //         personalInfo.userID,
-                //       );
-                //   print("THE DOCUMENT ID OF ${personalInfo.userID} is: $docID");
-                //   print(
-                //     "PERSONAL INFO FETCHED IN FORM AFTER PICKING IMAGE: ${personalInfo.userID}",
-                //   );
-                //   MyPersonalInfoRepository.uploadProfilePicture(
-                //     docID: docID!,
-                //     base64Image: value,
-                //   );
-                // });
-                MyPersonalInfoRepository.uploadProfilePicture(
-                  userID: FirebaseAuth.instance.currentUser!.uid,
-                  base64Image: value,
-                );
-              });
-            },
-          ),
-          // MyCustomizedTextFormField(
-          //   label: "Created at",
-          //   hintText: "Enter Age",
-          //   validator: (value) {
-          //     if (value == null || value.isEmpty) {
-          //       return "Input something";
-          //     }
-          //     setState(() {
-          //       createdAtValue = DateTime.timestamp().toString();
-          //     });
-          //     return null;
-          //   },
-          // ),
-          buttonArea(context),
         ],
       ),
     );
@@ -307,49 +207,49 @@ class _AddStaffFormState extends State<AddStaffForm> {
             buttonTextSpacing: 1.2,
             buttonWidth: MyDimensionAdapter.getWidth(context) * 0.40,
             onTap: () {
-              if (_formKey.currentState!.validate()) {
-                // TODO: to update form, change to addStaff function
-                MyPersonalInfoRepository.addPatient(
-                  PersonalInfo(
-                    userID: FirebaseAuth.instance.currentUser!.uid,
-                    userType: "patient",
-                    name: nameValue,
-                    age: ageValue,
-                    sex: sexValue,
-                    birthdate: userRole,
-                    contactNumber: contactNumberValue,
-                    address: addressValue,
-                    notableBehavior: notableBehaviorValue,
-                    picture: pictureValue,
-                    createdAt: DateTime.timestamp().toString(),
-                    lastUpdatedAt: DateTime.timestamp().toString(),
-                    registeredBy: FirebaseAuth.instance.currentUser?.uid ?? "",
-                    asignedCaregiver:
-                        FirebaseAuth.instance.currentUser?.uid ?? "",
-                    deviceID: "12345", // later na lang ni
-                    email: "N/A", // later na lang ni
-                  ),
-                );
-                // this is just a sample display of the inputted data (deletable)
-                showMyAnimatedSnackBar(
-                  context: context,
-                  dataToDisplay:
-                      """$nameValue \n 
-                      $ageValue \n 
-                      $sexValue \n 
-                      $userRole \n 
-                      $contactNumberValue \n 
-                      $addressValue \n 
-                      $notableBehaviorValue \n 
-                      $pictureValue \n 
-                      $createdAtValue
-                       
-                      SUCCESSFULLY ADDED!""",
-                  //${MyFirebaseServices.getAllUserID()}
-                );
+              // if (_formKey.currentState!.validate()) {
+              //   // TODO: to update form, change to addStaff function
+              //   MyPersonalInfoRepository.addPatient(
+              //     PersonalInfo(
+              //       userID: FirebaseAuth.instance.currentUser!.uid,
+              //       userType: "patient",
+              //       name: nameValue,
+              //       age: ageValue,
+              //       sex: sexValue,
+              //       birthdate: userRole,
+              //       contactNumber: contactNumberValue,
+              //       address: addressValue,
+              //       notableBehavior: notableBehaviorValue,
+              //       picture: pictureValue,
+              //       createdAt: DateTime.timestamp().toString(),
+              //       lastUpdatedAt: DateTime.timestamp().toString(),
+              //       registeredBy: FirebaseAuth.instance.currentUser?.uid ?? "",
+              //       asignedCaregiver:
+              //           FirebaseAuth.instance.currentUser?.uid ?? "",
+              //       deviceID: "12345", // later na lang ni
+              //       email: "N/A", // later na lang ni
+              //     ),
+              //   );
+              //   // this is just a sample display of the inputted data (deletable)
+              //   showMyAnimatedSnackBar(
+              //     context: context,
+              //     dataToDisplay:
+              //         """$nameValue \n
+              //         $ageValue \n
+              //         $sexValue \n
+              //         $userRole \n
+              //         $contactNumberValue \n
+              //         $addressValue \n
+              //         $notableBehaviorValue \n
+              //         $pictureValue \n
+              //         $createdAtValue
 
-                Navigator.pop(context);
-              }
+              //         SUCCESSFULLY ADDED!""",
+              //     //${MyFirebaseServices.getAllUserID()}
+              //   );
+
+              //   Navigator.pop(context);
+              // }
             },
           ),
         ],
@@ -382,7 +282,7 @@ class _AddStaffFormState extends State<AddStaffForm> {
       ),
       child: Center(
         child: Text(
-          "Add Patient Form",
+          "Add Staff Form",
           style: TextStyle(
             fontSize: 20,
             color: Colors.white,

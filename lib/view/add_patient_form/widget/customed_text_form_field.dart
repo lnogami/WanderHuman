@@ -6,6 +6,7 @@ class MyCustomizedTextFormField extends StatefulWidget {
   final String hintText;
   final double bottomMargin;
   final String errorMessage;
+  final bool isReadOnly;
 
   const MyCustomizedTextFormField({
     super.key,
@@ -14,6 +15,7 @@ class MyCustomizedTextFormField extends StatefulWidget {
     required this.hintText,
     this.bottomMargin = 10,
     this.errorMessage = "Input something",
+    this.isReadOnly = false,
   });
 
   @override
@@ -31,6 +33,7 @@ class _MyCustomizedTextFormFieldState extends State<MyCustomizedTextFormField> {
       margin: EdgeInsets.only(bottom: widget.bottomMargin, left: 20, right: 20),
       decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
       child: TextFormField(
+        readOnly: widget.isReadOnly,
         decoration: InputDecoration(
           fillColor: Colors.white54,
           filled: true,
