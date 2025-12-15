@@ -12,4 +12,8 @@ class MyDimensionAdapter {
   static double getHeight(BuildContext context) {
     return MediaQuery.of(context).size.height;
   }
+
+  static bool isLandscapeMode(BuildContext context) {
+    return (MediaQuery.of(context).orientation == Orientation.landscape);
+  }
 }

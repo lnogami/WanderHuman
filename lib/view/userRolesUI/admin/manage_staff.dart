@@ -14,7 +14,7 @@ class ManageStaff extends StatelessWidget {
           child: MyCustButton(
             buttonText: "Add Staff",
             onTap: () {
-              // Navigator.of(context).pop();
+              Navigator.of(context).pop();
               Navigator.of(context).pop();
               // Navigator.push(
               //   context,

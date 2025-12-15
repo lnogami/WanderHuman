@@ -11,4 +11,7 @@ class MyColorPalette {
 
   /// InkWell's splash color
   static const Color splashColor = Color.fromARGB(180, 55, 164, 253);
+
+  /// Forms's Background Color
+  static const Color formColor = Color.fromARGB(255, 240, 246, 255);
 }
