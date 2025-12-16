@@ -9,7 +9,7 @@ class MyUserRolePrevilige extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     switch (MyPersonalInfoRepository.getUserType()) {
-      case "admin":
+      case "admin" || "Admin":
         return AdminPrivilege();
 
       case "":

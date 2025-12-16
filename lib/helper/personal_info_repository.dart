@@ -243,16 +243,18 @@ class MyPersonalInfoRepository {
 
   /// To update the personal info of a user base on their userID.
   /// A userID is the same as document ID in Personal Info collection.
-  static Future<void> updatePersonalInfo(PersonalInfo updatedInfo) async {
+  static Future<bool> updatePersonalInfo(PersonalInfo updatedInfo) async {
     try {
       await _personalInfoCollectionReference.doc(updatedInfo.userID).update({
         "userType": updatedInfo.userType,
         // "profilePicture": updatedInfo.picture,
         "profilePictureURL": updatedInfo.picture,
       });
+      return true;
     } catch (e) {
       print("❌❌❌ Error updating personal info: $e");
-      throw Exception();
+      // throw Exception();
+      return false;
     }
   }
 }

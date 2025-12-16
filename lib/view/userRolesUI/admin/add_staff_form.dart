@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
+import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
 import 'package:wanderhuman_app/view/components/button.dart';
 import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
@@ -65,6 +66,8 @@ class _AddStaffFormState extends State<AddStaffForm> {
   void initState() {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    selectedNameValue = staffNames[0];
+
     // gets all the name of the staff
     getStaffName().then((value) {
       setState(() {
@@ -109,9 +112,9 @@ class _AddStaffFormState extends State<AddStaffForm> {
           initialValue: staffNames[0],
           hintText: "Select a User",
           icon: Icon(
-            (selectedNameValue != staffNames[0])
-                ? Icons.person_rounded
-                : Icons.person_outline_rounded,
+            (selectedNameValue == staffNames[0])
+                ? Icons.person_outline_rounded
+                : Icons.person_rounded,
             size: 32,
           ),
           onChanged: (selectedUser) async {
@@ -123,6 +126,7 @@ class _AddStaffFormState extends State<AddStaffForm> {
 
               // to reset role once the user selection has changed
               selectedRoleValue = roles[0];
+              imageInBytes = null;
 
               isStaffSelected = (staffNames[0] == selectedUser) ? false : true;
             });
@@ -148,11 +152,15 @@ class _AddStaffFormState extends State<AddStaffForm> {
                     child: (imageInBytes == null)
                         ? CircleAvatar(
                             minRadius: 40,
-                            backgroundColor: Colors.grey.shade300,
+                            backgroundColor: MyColorPalette.formColor,
                             child: Icon(
-                              Icons.person_rounded,
+                              Icons.person_pin_rounded,
                               color: Colors.grey,
-                              size: 60,
+                              size: // if naka protrait mode, mag base sa width, otherwise if naka landscape, mag basesa height
+                                  (MyDimensionAdapter.getWidth(context) <
+                                      MyDimensionAdapter.getHeight(context))
+                                  ? MyDimensionAdapter.getWidth(context) * 0.3
+                                  : MyDimensionAdapter.getWidth(context) * 0.2,
                             ),
                           )
                         : MyImageDisplayer(
@@ -181,7 +189,10 @@ class _AddStaffFormState extends State<AddStaffForm> {
                     },
                   ),
                   SizedBox(height: 5),
-                  Text("Tap Select an Image", style: TextStyle(fontSize: 12)),
+                  Text(
+                    "Tap to Select an Image",
+                    style: TextStyle(fontSize: 12),
+                  ),
                   SizedBox(height: 20),
 
                   MyDropdownMenuButton(
@@ -312,11 +323,65 @@ class _AddStaffFormState extends State<AddStaffForm> {
             buttonTextSpacing: 1.2,
             buttonWidth: MyDimensionAdapter.getWidth(context) * 0.40,
             onTap: () {
-              showMyAnimatedSnackBar(
+              myAlertDialogue(
                 context: context,
-                dataToDisplay:
-                    "${staffPersonalInfo?.name},\n${staffPersonalInfo?.picture},\n${selectedRoleValue},\n${staffPersonalInfo?.sex},\n${staffPersonalInfo?.contactNumber},\n${staffPersonalInfo?.age},\n${staffPersonalInfo?.address},\n${staffPersonalInfo?.createdAt},\nRegisted by: ${FirebaseAuth.instance.currentUser!.uid},\n",
+                alertTitle: "Are you sure?",
+                // alertContent:
+                //     "${staffPersonalInfo?.name},\n
+                alertContent:
+                    // "${staffPersonalInfo!.name} will be assigned as\n$selectedRoleValue",
+                    // "${staffPersonalInfo?.name},\n${staffPersonalInfo?.picture},\n${selectedRoleValue},\n${staffPersonalInfo?.sex},\n${staffPersonalInfo?.contactNumber},\n${staffPersonalInfo?.age},\n${staffPersonalInfo?.address},\n${staffPersonalInfo?.createdAt},\nRegisted by: ${FirebaseAuth.instance.currentUser!.uid},\n",
+                    "${staffPersonalInfo?.name},\n${selectedRoleValue},\n${staffPersonalInfo?.sex},\n${staffPersonalInfo?.contactNumber},\n${staffPersonalInfo?.age},\n${staffPersonalInfo?.address},\n${staffPersonalInfo?.createdAt},\nRegisted by: ${FirebaseAuth.instance.currentUser!.uid},\n",
+                onApprovalPressed: () async {
+                  print("IS PRESSEDDDDDDDDDDDDDDDDDDDDDDDDDDD");
+                  bool isItTrue = true;
+
+                  isItTrue = await MyPersonalInfoRepository.updatePersonalInfo(
+                    PersonalInfo(
+                      userID: staffPersonalInfo!.userID,
+                      userType: selectedRoleValue!,
+                      name: staffPersonalInfo!.name,
+                      age: staffPersonalInfo!.age,
+                      sex: staffPersonalInfo!.sex,
+                      birthdate: staffPersonalInfo!.birthdate,
+                      contactNumber: staffPersonalInfo!.contactNumber,
+                      address: staffPersonalInfo!.address,
+                      notableBehavior: staffPersonalInfo!.notableBehavior,
+                      picture: pictureValue,
+                      createdAt: staffPersonalInfo!.createdAt,
+                      lastUpdatedAt: staffPersonalInfo!
+                          .lastUpdatedAt, // to be change base on the current date
+                      registeredBy: FirebaseAuth.instance.currentUser!.uid,
+                      asignedCaregiver: staffPersonalInfo!.asignedCaregiver,
+                      deviceID: staffPersonalInfo!.deviceID,
+                      email: staffPersonalInfo!.email,
+                    ),
+                  );
+
+                  print("DID THE UPDATE WORKKKKKKKKKKKKKKKKKKKK? : $isItTrue");
+
+                  print("IS PRESSEDDDDDDDDDDDDDDDDDDDDDDDDDDD 2222222222222");
+                  showMyAnimatedSnackBar(
+                    context: context,
+                    borderColor: Colors.blue.shade300,
+                    bgColor: Colors.blue.shade100,
+                    dataToDisplay: "Completed!",
+                  );
+                  Navigator.pop(context);
+                  // Navigator.pop(context);
+                  // Navigator.pop(context);
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(builder: (context) => HomePage()),
+                  // );
+                },
               );
+
+              // showMyAnimatedSnackBar(
+              //   context: context,
+              //   dataToDisplay:
+              //       "${staffPersonalInfo?.name},\n${staffPersonalInfo?.picture},\n${selectedRoleValue},\n${staffPersonalInfo?.sex},\n${staffPersonalInfo?.contactNumber},\n${staffPersonalInfo?.age},\n${staffPersonalInfo?.address},\n${staffPersonalInfo?.createdAt},\nRegisted by: ${FirebaseAuth.instance.currentUser!.uid},\n",
+              // );
 
               // if (_formKey.currentState!.validate()) {
               //   // TODO: to update form, change to addStaff function
