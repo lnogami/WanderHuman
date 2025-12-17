@@ -12,6 +12,9 @@ class MyImageDisplayer extends StatefulWidget {
   /// If userID is not  provided, the current logged in user's ID will be used.
   final String? userID;
 
+  /// NOTE: If the base64 is in String format, use
+  /// ### MyImageProcessor.decodeStringToUint8List(base64String)
+  /// then pass this base64ImageString as an argument to base64String parameter.
   Uint8List? base64ImageString;
 
   MyImageDisplayer({
@@ -59,7 +62,7 @@ class MyImageDisplayerState extends State<MyImageDisplayer> {
           errorBuilder: (context, error, stackTrace) {
             return Icon(
               Icons.person_rounded,
-              size: widget.profileImageSize,
+              size: widget.profileImageSize / 2,
               color: Colors.grey,
             );
           },

@@ -243,6 +243,7 @@ class MyPersonalInfoRepository {
 
   /// To update the personal info of a user base on their userID.
   /// A userID is the same as document ID in Personal Info collection.
+  /// #### NOTE: this has a [bool] return type for debugging purposes only. It will still work even if the return type is not used.
   static Future<bool> updatePersonalInfo(PersonalInfo updatedInfo) async {
     try {
       await _personalInfoCollectionReference.doc(updatedInfo.userID).update({
