@@ -6,24 +6,25 @@ import 'package:wanderhuman_app/view/components/appbar.dart';
 import 'package:wanderhuman_app/view/components/cards.dart';
 import 'package:wanderhuman_app/view/components/my_page_navigator.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
-import 'package:wanderhuman_app/view/userRolesUI/admin/add_staff_form.dart';
-import 'package:wanderhuman_app/view/userRolesUI/admin/view_staff_form.dart';
+import 'package:wanderhuman_app/view/userRolesUI/social_services/add_patient.dart';
+import 'package:wanderhuman_app/view/userRolesUI/social_services/view_patient_form.dart';
 
-class ManageStaff extends StatelessWidget {
-  const ManageStaff({super.key});
-  // final List<String> staffNames = const ["Hori", "Verti", "Diago", "Dimensio"];
+/// Summary record of all patients
+class PatientRecords extends StatelessWidget {
+  const PatientRecords({super.key});
+  // final List<String> patientNames = const ["Hori", "Verti", "Diago", "Dimensio"];
 
-  Future<List<PersonalInfo>> getStaff() async {
-    List<PersonalInfo> staffs = [];
+  Future<List<PersonalInfo>> getPatient() async {
+    List<PersonalInfo> patients = [];
     List<PersonalInfo> fetchedRecords =
         await MyPersonalInfoRepository.getAllPersonalInfoRecords();
     for (var person in fetchedRecords) {
-      if (person.userType != "Patient") {
-        staffs.add(person);
+      if (person.userType == "Patient") {
+        patients.add(person);
       }
     }
 
-    return staffs;
+    return patients;
   }
 
   @override
@@ -34,7 +35,7 @@ class ManageStaff extends StatelessWidget {
         alignment: Alignment.topCenter,
         children: [
           FutureBuilder(
-            future: getStaff(),
+            future: getPatient(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.done) {
                 return Container(
@@ -53,16 +54,15 @@ class ManageStaff extends StatelessWidget {
                       return MyCardInfoDisplayer(
                         profilePicture: snapshot.data![index].picture,
                         name: snapshot.data![index].name,
-                        role: snapshot.data![index].userType,
+                        role: "${snapshot.data![index].age} years old",
                         contactNumber: snapshot.data![index].contactNumber,
                         emailAdd: snapshot.data![index].email,
                         onTap: () {
                           Navigator.pop(context);
-                          Navigator.pop(context);
                           MyNavigator.goTo(
                             context,
-                            ViewStaffForm(
-                              staffPersonalInfo: snapshot.data![index],
+                            ViewPatientForm(
+                              patientPersonalInfo: snapshot.data![index],
                             ),
                           );
                         },
@@ -79,7 +79,7 @@ class ManageStaff extends StatelessWidget {
           Positioned(
             top: kToolbarHeight * 0.7,
             child: MyCustAppBar(
-              title: "Manage Staff",
+              title: "Manage Patient",
               backButton: () {
                 showMyAnimatedSnackBar(
                   context: context,
@@ -96,7 +96,9 @@ class ManageStaff extends StatelessWidget {
                     MyNavigator.goTo(
                       // ignore: use_build_context_synchronously
                       context,
-                      AddStaffForm(bufferedStaffNames: await getStaff()),
+                      AddPatientForm(
+                        // bufferedpatientNames: await getPatient()
+                      ),
                     );
                   },
                   icon: Icon(

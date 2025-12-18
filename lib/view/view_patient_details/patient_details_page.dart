@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 
+/// This widget is visible in the HomePage (in the Map page)
 class PatientDetailsPage extends StatefulWidget {
   final String name;
   const PatientDetailsPage({super.key, required this.name});

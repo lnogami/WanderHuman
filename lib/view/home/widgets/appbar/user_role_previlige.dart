@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/view/home/widgets/appbar/userPriviligeOptions.dart/admin.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
+import 'package:wanderhuman_app/view/home/widgets/appbar/userPriviligeOptions.dart/social_services.dart';
 
 class MyUserRolePrevilige extends StatelessWidget {
-  const MyUserRolePrevilige({super.key});
+  final String userType;
+
+  const MyUserRolePrevilige({super.key, required this.userType});
 
   @override
   Widget build(BuildContext context) {
-    switch (MyPersonalInfoRepository.getUserType()) {
-      case "admin" || "Admin":
+    switch (userType.toUpperCase()) {
+      case "ADMIN":
         return AdminPrivilege();
 
-      case "":
-        return AdminPrivilege();
+      case "SOCIAL SERVICE":
+        return SocialServicesPrivilege();
 
       default:
         {

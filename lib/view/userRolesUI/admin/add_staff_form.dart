@@ -537,6 +537,26 @@ class _AddStaffFormState extends State<AddStaffForm> {
     "Home Life",
     "PSD",
   ];
+  // for getting the role index
+  int getRoleIndex(String role) {
+    switch (role) {
+      case "Admin":
+        return 1;
+      case "Social Service":
+        return 2;
+      case "Medical Service":
+        return 3;
+      case "Psychological Service":
+        return 4;
+      case "Home Life":
+        return 5;
+      case "PSD":
+        return 6;
+      default:
+        return 0;
+    }
+  }
+
   String? selectedRoleValue;
 
   @override
@@ -602,6 +622,7 @@ class _AddStaffFormState extends State<AddStaffForm> {
                         ? "Turn on to enable editing other details of the staff."
                         : "Press again to turn off editing other details of the staff.",
                     child: IconButton(
+                      highlightColor: Colors.white24,
                       onPressed: () {
                         setState(() {
                           otherInfoIsReadOnly = !otherInfoIsReadOnly;
@@ -725,7 +746,8 @@ class _AddStaffFormState extends State<AddStaffForm> {
 
                   MyDropdownMenuButton(
                     items: roles,
-                    initialValue: roles[0],
+                    initialValue:
+                        roles[getRoleIndex(staffPersonalInfo!.userType)],
                     hintText: "Role/Position:",
                     icon: Icon(
                       (selectedRoleValue != roles[0])

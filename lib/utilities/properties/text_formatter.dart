@@ -11,6 +11,7 @@ class MyTextFormatter {
   }) {
     return Text(
       text,
+      overflow: TextOverflow.ellipsis,
       style: TextStyle(
         fontSize: fontsize,
         fontStyle: fontStyle,
@@ -29,6 +30,7 @@ class MyTextFormatter {
   }) {
     return Text(
       text,
+      overflow: TextOverflow.ellipsis,
       style: TextStyle(
         fontSize: fontsize,
         fontStyle: fontStyle,
@@ -48,6 +50,7 @@ class MyTextFormatter {
   }) {
     return Text(
       text,
+      overflow: TextOverflow.ellipsis,
       style: TextStyle(
         fontSize: fontsize,
         fontStyle: fontStyle,
@@ -66,6 +69,7 @@ class MyTextFormatter {
   }) {
     return Text(
       text,
+      overflow: TextOverflow.ellipsis,
       style: TextStyle(
         fontSize: fontsize ?? (kDefaultFontSize),
         fontStyle: fontStyle,

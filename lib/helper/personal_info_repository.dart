@@ -145,6 +145,7 @@ class MyPersonalInfoRepository {
   }
 
   /// To get the role of the current user (Among Caregiver Roles).
+  /// #### NOTE: Tip! Must first run the MyPersonalInfoRepository.getSpecificUserNameOfTheLoggedInAccount method at least once in the first screen encounter (before calling this method) as it will be cached.
   static String getUserType() {
     return _userType;
   }

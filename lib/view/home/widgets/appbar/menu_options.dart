@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/universal_sizes.dart';
-import 'package:wanderhuman_app/view/home/widgets/appbar/userRolePrevilige.dart';
+import 'package:wanderhuman_app/view/home/widgets/appbar/user_role_previlige.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/option_container.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 
@@ -16,6 +16,45 @@ class MyMenuOptions extends StatefulWidget {
 }
 
 class _MyMenuOptionsState extends State<MyMenuOptions> {
+  // the space between User Role and the role previlige options in the menu.
+  double? _horizontalSpace;
+
+  double getHorizontalSpace() {
+    switch (_userType.toUpperCase()) {
+      case "ADMIN":
+        return 15; // as of Dec,18,25, not yet tested
+      case "SOCIAL SERVICE":
+        return 10; // already tested
+      case "MEDICAL SERVICE":
+        return 15;
+      case "PSYCHOLOGICAL SERVICE":
+        return 15;
+      case "HOME LIFE":
+        return 15;
+      case "PSD":
+        return 15;
+      default:
+        return 0;
+    }
+  }
+
+  String _userType = "";
+  Future<void> getUserType() async {
+    _userType = await MyPersonalInfoRepository.getSpecificPersonalInfo(
+      userID: FirebaseAuth.instance.currentUser!.uid,
+    ).then((personalInfo) => personalInfo.userType);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    setState(() {
+      getUserType(); // to initialize userType
+      _horizontalSpace = getHorizontalSpace();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
@@ -52,14 +91,17 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
             // displays user type
             toDisplayUserType(),
 
-            // might be back later (still deciding)
-            Container(
+            // this is only for spacing purposes only, might be adjustable base on how many user previlige options there are for each user Roles.
+            SizedBox(
               // height: (MyFirebaseServices.getUserType() == "admin") ? 15 : 2,
-              height: 15,
+              height: (_horizontalSpace == 0) ? 10 : _horizontalSpace,
             ),
 
             // Determine user role privilege options to display
-            MyUserRolePrevilige(),
+            MyUserRolePrevilige(
+              // this getUserType was already containing a value from the HomePage
+              userType: _userType,
+            ),
 
             SizedBox(height: MySizes.buttonsHorizontalGap),
 
@@ -159,7 +201,7 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
       children: [
         Text(
           // for grammatical purposes
-          (MyPersonalInfoRepository.getUserType() == "admin")
+          (MyPersonalInfoRepository.getUserType().toUpperCase() == "ADMIN")
               ? "You are an "
               : "You are a ",
           style: TextStyle(fontSize: 11, color: Colors.blueGrey),

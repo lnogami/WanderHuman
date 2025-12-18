@@ -85,11 +85,11 @@ class MedicalPrivilege extends StatelessWidget {
                 Icons.add_outlined,
                 "Add Patient",
                 onTap: () {
-                  AddPatientForm();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => AddPatientForm()),
-                  );
+                  // AddPatientForm();
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(builder: (context) => AddPatientForm()),
+                  // );
                 },
               ),
               SizedBox(height: 10),
