@@ -34,7 +34,7 @@ class MyPersonalInfoRepository {
       "contactNumber": patient.contactNumber,
       "address": patient.address,
       "notableBehavior": patient.notableBehavior,
-      "picture": patient.picture,
+      "profilePicture": patient.picture,
       "createdAt": patient.createdAt.toString(),
       "lastUpdatedAt": patient.lastUpdatedAt.toString(),
       "registeredBy": patient.registeredBy,
@@ -209,7 +209,7 @@ class MyPersonalInfoRepository {
       String? docID = await getDocIdByUserId(userID);
 
       await _personalInfoCollectionReference.doc(docID).update({
-        "profilePictureURL": base64Image,
+        "profilePicture": base64Image,
       });
       print("✅✅✅ Successfully uploaded profile picture for userID: $docID");
     } catch (e) {
@@ -250,7 +250,7 @@ class MyPersonalInfoRepository {
       await _personalInfoCollectionReference.doc(updatedInfo.userID).update({
         "userType": updatedInfo.userType,
         // "profilePicture": updatedInfo.picture,
-        "profilePictureURL": updatedInfo.picture,
+        "profilePicture": updatedInfo.picture,
       });
       return true;
     } catch (e) {

@@ -10,6 +10,8 @@ class MyCustAppBar extends StatelessWidget {
   final Color? backButtonColor;
   final List<Widget>? actionButtons;
   final String title;
+  final FontWeight fontWeight;
+  final double fontSize;
 
   const MyCustAppBar({
     super.key,
@@ -19,6 +21,8 @@ class MyCustAppBar extends StatelessWidget {
     this.backButtonColor,
     this.actionButtons,
     this.textColor = MyColorPalette.titleTextColor,
+    this.fontSize = (kDefaultFontSize + 7),
+    this.fontWeight = FontWeight.w700,
   });
 
   @override
@@ -49,7 +53,8 @@ class MyCustAppBar extends StatelessWidget {
           MyTextFormatter.h1(
             text: title,
             color: textColor,
-            fontWeight: FontWeight.w700,
+            fontWeight: fontWeight,
+            fontsize: fontSize,
           ),
           Positioned(right: 5, child: Row(children: actionButtons ?? [])),
         ],

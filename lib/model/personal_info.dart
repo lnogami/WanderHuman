@@ -53,7 +53,7 @@ class PersonalInfo {
       address: data['address'] ?? "",
       notableBehavior: data['notableBehavior'] ?? "",
       // picture: data['picture'] ?? "", // old line
-      picture: data['profilePictureURL'] ?? "", // new line
+      picture: data['profilePicture'] ?? "", // new line
       createdAt: data['createdAt'].toString(),
       lastUpdatedAt: data['lastUpdatedAt'].toString(),
       registeredBy: data['registeredBy'] ?? "",

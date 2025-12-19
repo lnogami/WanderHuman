@@ -15,10 +15,8 @@ import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/components/dropdown_button.dart';
 import 'package:wanderhuman_app/view/components/image_displayer.dart';
 import 'package:wanderhuman_app/view/components/image_picker.dart';
-import 'package:wanderhuman_app/view/components/my_page_navigator.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/login/widgets/textfield.dart';
-import 'package:wanderhuman_app/view/userRolesUI/admin/manage_staff.dart';
 
 class ViewStaffForm extends StatefulWidget {
   final PersonalInfo staffPersonalInfo;
@@ -135,7 +133,7 @@ class _AddViewStaffFormState extends State<ViewStaffForm> {
           textColor: Colors.white,
           backButton: () {
             Navigator.pop(context);
-            MyNavigator.goTo(context, const ManageStaff());
+            // MyNavigator.goTo(context, const ManageStaff());
           },
           backButtonColor: const Color.fromARGB(235, 255, 255, 255),
           actionButtons: [
@@ -174,6 +172,7 @@ class _AddViewStaffFormState extends State<ViewStaffForm> {
               labelText: "Full Name",
               textController: nameController,
               isReadOnly: otherInfoIsReadOnly,
+              prefixIcon: Icons.person_outline_rounded,
             ),
             // image part of the form
             GestureDetector(
@@ -252,16 +251,19 @@ class _AddViewStaffFormState extends State<ViewStaffForm> {
               labelText: "Contact Number",
               textController: contactNumController,
               isReadOnly: otherInfoIsReadOnly,
+              prefixIcon: Icons.call_outlined,
             ),
             informationRow(
               labelText: "Address",
               textController: addressController,
               isReadOnly: otherInfoIsReadOnly,
+              prefixIcon: Icons.maps_home_work_outlined,
             ),
             informationRow(
               labelText: "Email Address",
               textController: emailAddController,
               isReadOnly: otherInfoIsReadOnly,
+              prefixIcon: Icons.email_outlined,
             ),
             informationRow(
               labelText: "Registed On",
@@ -271,7 +273,7 @@ class _AddViewStaffFormState extends State<ViewStaffForm> {
                 ),
               isReadOnly: true,
               prefixIcon: (otherInfoIsReadOnly)
-                  ? Icons.info_outline_rounded
+                  ? Icons.library_books_outlined
                   : Icons.info,
             ),
 
@@ -391,6 +393,10 @@ class _AddViewStaffFormState extends State<ViewStaffForm> {
                   );
                   // ignore: use_build_context_synchronously
                   Navigator.pop(context);
+                  Future.delayed(Duration(milliseconds: 1200), () {
+                    // ignore: use_build_context_synchronously
+                    Navigator.pop(context);
+                  });
                 },
               );
             },

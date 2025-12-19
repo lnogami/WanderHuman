@@ -489,10 +489,8 @@ import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/components/dropdown_button.dart';
 import 'package:wanderhuman_app/view/components/image_displayer.dart';
 import 'package:wanderhuman_app/view/components/image_picker.dart';
-import 'package:wanderhuman_app/view/components/my_page_navigator.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/login/widgets/textfield.dart';
-import 'package:wanderhuman_app/view/userRolesUI/admin/manage_staff.dart';
 
 class AddStaffForm extends StatefulWidget {
   final List<PersonalInfo>? bufferedStaffNames;
@@ -611,7 +609,6 @@ class _AddStaffFormState extends State<AddStaffForm> {
           textColor: Colors.white,
           backButton: () {
             Navigator.pop(context);
-            MyNavigator.goTo(context, const ManageStaff());
           },
           backButtonColor: const Color.fromARGB(235, 255, 255, 255),
           actionButtons: [

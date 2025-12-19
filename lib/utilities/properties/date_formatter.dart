@@ -21,7 +21,7 @@ class MyDateFormatter {
     required dynamic dateTimeInString,
     int? formatOptions,
   }) {
-    DateTime dateTime = dateTimeParser(dateTimeInString)!;
+    DateTime dateTime = _dateTimeParser(dateTimeInString)!;
 
     switch (formatOptions) {
       case 1:
@@ -40,7 +40,7 @@ class MyDateFormatter {
   }
 
   /// Converts a String datetime into a DateTime object
-  static DateTime? dateTimeParser(dynamic dateTimeToParse) {
+  static DateTime? _dateTimeParser(dynamic dateTimeToParse) {
     if (dateTimeToParse == null) return DateTime.now();
 
     // if it is a real Timestamp, convert it directly to DateTime
@@ -95,5 +95,14 @@ class MyDateFormatter {
   // static DateTime timestampDateTimeParser(Timestamp dateTimeToParse) {
   //   Timestamp timestamp = dateTimeToParse;
   //   return timestamp.toDate();
+  // }
+
+  // /// Returns a string like "2004 or 2005"     //does not work yet
+  // static String estimateBirthYear(int age) {
+  //   int currentYear = DateTime.now().year;
+  //   int lateYear = currentYear - age; // If birthday passed
+  //   int earlyYear = currentYear - age - 1; // If birthday coming up
+
+  //   return "$earlyYear or $lateYear";
   // }
 }

@@ -5,7 +5,6 @@ import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/components/appbar.dart';
 import 'package:wanderhuman_app/view/components/cards.dart';
 import 'package:wanderhuman_app/view/components/my_page_navigator.dart';
-import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/userRolesUI/admin/add_staff_form.dart';
 import 'package:wanderhuman_app/view/userRolesUI/admin/view_staff_form.dart';
 
@@ -57,8 +56,6 @@ class ManageStaff extends StatelessWidget {
                         contactNumber: snapshot.data![index].contactNumber,
                         emailAdd: snapshot.data![index].email,
                         onTap: () {
-                          Navigator.pop(context);
-                          Navigator.pop(context);
                           MyNavigator.goTo(
                             context,
                             ViewStaffForm(
@@ -81,18 +78,12 @@ class ManageStaff extends StatelessWidget {
             child: MyCustAppBar(
               title: "Manage Staff",
               backButton: () {
-                showMyAnimatedSnackBar(
-                  context: context,
-                  dataToDisplay: "Back buttonn is pressed",
-                );
                 Navigator.pop(context);
               },
               actionButtons: [
                 IconButton(
                   highlightColor: Colors.blue.shade100,
                   onPressed: () async {
-                    // Navigator.pop(context);
-                    Navigator.pop(context);
                     MyNavigator.goTo(
                       // ignore: use_build_context_synchronously
                       context,

@@ -62,7 +62,7 @@ class MyImageDisplayerState extends State<MyImageDisplayer> {
           errorBuilder: (context, error, stackTrace) {
             return Icon(
               Icons.person_rounded,
-              size: widget.profileImageSize / 2,
+              size: widget.profileImageSize,
               color: Colors.grey,
             );
           },

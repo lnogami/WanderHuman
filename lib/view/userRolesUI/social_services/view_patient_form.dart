@@ -163,9 +163,7 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
           ],
         ),
 
-        SizedBox(height: 20),
-
-        SizedBox(height: 25),
+        SizedBox(height: 30),
 
         Column(
           children: [
@@ -173,6 +171,7 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
               labelText: "Full Name",
               textController: nameController,
               isReadOnly: otherInfoIsReadOnly,
+              prefixIcon: Icons.person_outline_rounded,
             ),
             // image part of the form
             GestureDetector(
@@ -251,16 +250,19 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
               labelText: "Contact Number",
               textController: contactNumController,
               isReadOnly: otherInfoIsReadOnly,
+              prefixIcon: Icons.contact_emergency_outlined,
             ),
             informationRow(
               labelText: "Address",
               textController: addressController,
               isReadOnly: otherInfoIsReadOnly,
+              prefixIcon: Icons.maps_home_work_outlined,
             ),
             informationRow(
               labelText: "Email Address",
               textController: emailAddController,
               isReadOnly: otherInfoIsReadOnly,
+              prefixIcon: Icons.contact_mail_outlined,
             ),
             informationRow(
               labelText: "Registed On",
@@ -270,7 +272,7 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
                 ),
               isReadOnly: true,
               prefixIcon: (otherInfoIsReadOnly)
-                  ? Icons.info_outline_rounded
+                  ? Icons.library_books_outlined
                   : Icons.info,
             ),
 

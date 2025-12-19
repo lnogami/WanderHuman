@@ -63,7 +63,7 @@ class MyTextFormatter {
   static Text p({
     required String text,
     Color? color,
-    double? fontsize,
+    double fontsize = kDefaultFontSize,
     FontStyle fontStyle = FontStyle.normal,
     // FontWeight fontWeight = FontWeight.w600,
   }) {
@@ -71,7 +71,7 @@ class MyTextFormatter {
       text,
       overflow: TextOverflow.ellipsis,
       style: TextStyle(
-        fontSize: fontsize ?? (kDefaultFontSize),
+        fontSize: fontsize,
         fontStyle: fontStyle,
         // fontWeight: FontWeight.w600,
         color: color ?? Colors.black87,
