@@ -33,6 +33,7 @@ class MyPersonalInfoRepository {
       "birthdate": patient.birthdate,
       "contactNumber": patient.contactNumber,
       "address": patient.address,
+      "email": patient.email,
       "notableBehavior": patient.notableBehavior,
       "profilePicture": patient.picture,
       "createdAt": patient.createdAt.toString(),
@@ -40,7 +41,6 @@ class MyPersonalInfoRepository {
       "registeredBy": patient.registeredBy,
       "asignedCaregiver": patient.asignedCaregiver,
       "deviceID": patient.deviceID,
-      // "email": patient.email,
     });
   }
 
@@ -250,7 +250,22 @@ class MyPersonalInfoRepository {
       await _personalInfoCollectionReference.doc(updatedInfo.userID).update({
         "userType": updatedInfo.userType,
         // "profilePicture": updatedInfo.picture,
+        //  "userID": docRef.id,
+        // "userType": patient.userType,
+        "name": updatedInfo.name,
+        "age": updatedInfo.age,
+        // "sex": patient.sex,
+        "birthdate": updatedInfo.birthdate,
+        "contactNumber": updatedInfo.contactNumber,
+        "address": updatedInfo.address,
+        "email": updatedInfo.email,
+        "notableBehavior": updatedInfo.notableBehavior,
         "profilePicture": updatedInfo.picture,
+        // "createdAt": updatedInfo.createdAt.toString(),
+        "lastUpdatedAt": updatedInfo.lastUpdatedAt.toString(),
+        "registeredBy": updatedInfo.registeredBy,
+        "asignedCaregiver": updatedInfo.asignedCaregiver,
+        "deviceID": updatedInfo.deviceID,
       });
       return true;
     } catch (e) {

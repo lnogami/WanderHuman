@@ -92,7 +92,6 @@ class PatientRecords extends StatelessWidget {
                   highlightColor: Colors.blue.shade100,
                   onPressed: () async {
                     // Navigator.pop(context);
-                    Navigator.pop(context);
                     MyNavigator.goTo(
                       // ignore: use_build_context_synchronously
                       context,

@@ -112,10 +112,13 @@ class _AddPatientFormState extends State<AddPatientForm> {
             onTap: () async {
               MyImageProcessor.myImagePicker().then((value) async {
                 setState(() {
-                  pictureValue = value;
-                  imageInBytes = MyImageProcessor.decodeStringToUint8List(
-                    value,
-                  );
+                  // this ensures that if no image was picked, the current image will remain
+                  if (value != "") {
+                    pictureValue = value;
+                    imageInBytes = MyImageProcessor.decodeStringToUint8List(
+                      value,
+                    );
+                  }
                 });
                 print("PICTURE VALUE IN FORM: $pictureValue");
               });

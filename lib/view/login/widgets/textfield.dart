@@ -24,6 +24,10 @@ class MyCustTextfield extends StatefulWidget {
   final IconData? suffixIcon;
   final Color suffixIconColor;
   final bool isReadOnly;
+  final double leftMargin;
+  final double topMargin;
+  final double rightMargin;
+  final double bottomMargin;
 
   /// This will manage the data the textfield will accept
   final TextEditingController textController;
@@ -49,6 +53,10 @@ class MyCustTextfield extends StatefulWidget {
     this.color = Colors.transparent,
     this.suffixIcon,
     this.isReadOnly = false,
+    this.leftMargin = 0,
+    this.topMargin = 0,
+    this.rightMargin = 0,
+    this.bottomMargin = 0,
   });
 
   @override
@@ -60,13 +68,20 @@ class _MyCustTextfieldState extends State<MyCustTextfield> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return Container(
+      // color: Colors.amber,
       width: (widget.isUsingStaticDimension)
           ? MyDimensionAdapter.getWidth(context) * 0.80
           : MyDimensionAdapter.getWidth(context) * widget.widthPercentage,
       height: (widget.isUsingStaticDimension)
           ? 50
           : MyDimensionAdapter.getHeight(context) * widget.heightPercentage,
+      margin: EdgeInsets.only(
+        left: widget.leftMargin,
+        top: widget.topMargin,
+        right: widget.rightMargin,
+        bottom: widget.bottomMargin,
+      ),
       // color: Colors.purple.shade200,
       child: TextField(
         controller: widget.textController,

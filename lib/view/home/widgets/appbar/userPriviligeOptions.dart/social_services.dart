@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/view/components/my_page_navigator.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/option_container.dart';
 import 'package:wanderhuman_app/view/userRolesUI/social_services/add_patient.dart';
-import 'package:wanderhuman_app/view/userRolesUI/social_services/patient_records.dart';
+import 'package:wanderhuman_app/view/userRolesUI/social_services/manage_patient.dart';
 
 class SocialServicesPrivilege extends StatelessWidget {
   const SocialServicesPrivilege({super.key});
