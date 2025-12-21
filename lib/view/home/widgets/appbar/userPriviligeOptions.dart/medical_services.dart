@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/utilities/properties/universal_sizes.dart';
+import 'package:wanderhuman_app/view/components/my_page_navigator.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/option_container.dart';
-import 'package:wanderhuman_app/view/home/widgets/map/patient_simulator/patient_simulator_container.dart';
+import 'package:wanderhuman_app/view/userRolesUI/medical_services/medication.dart';
+import 'package:wanderhuman_app/view/userRolesUI/medical_services/medication_history.dart';
 
 class MedicalPrivilege extends StatelessWidget {
   const MedicalPrivilege({super.key});
@@ -14,7 +16,7 @@ class MedicalPrivilege extends StatelessWidget {
       child: Column(
         children: [
           // admin exclusive options
-          (MyPersonalInfoRepository.getUserType() == "admin")
+          (MyPersonalInfoRepository.getUserType() == "Medical Service")
               ? Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
@@ -22,14 +24,13 @@ class MedicalPrivilege extends StatelessWidget {
                     optionsContainer(
                       context,
                       Icons.person_pin_circle_outlined,
-                      bgColor: Colors.green[300]!,
-                      "Simulate",
+                      "Med History",
                       onTap: () {
                         //
                         // Navigator.pop(context);
                         Navigator.of(context).pushReplacement(
                           MaterialPageRoute(
-                            builder: (context) => PatientSimulatorContainer(),
+                            builder: (context) => MedicalHistory(),
                           ),
                         );
                       },
@@ -38,12 +39,9 @@ class MedicalPrivilege extends StatelessWidget {
                     optionsContainer(
                       context,
                       Icons.add_outlined,
-                      "Placeholder",
+                      "Medication",
                       onTap: () {
-                        showMyAnimatedSnackBar(
-                          context: context,
-                          dataToDisplay: "Admin Privilege",
-                        );
+                        MyNavigator.goTo(context, Medication());
                       },
                     ),
                     SizedBox(height: 10),

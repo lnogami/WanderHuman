@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
@@ -34,6 +35,8 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
   TextEditingController emailAddController = TextEditingController();
   TextEditingController notableBehaviorController = TextEditingController();
   TextEditingController assignedCaregiverController = TextEditingController();
+
+  ScrollController scrollController = ScrollController();
 
   String pictureValue = "";
 
@@ -228,35 +231,6 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
             notableBehaviorTextArea(context),
             SizedBox(height: 10),
 
-            // Container(
-            //   // 1. REMOVE the fixed height here
-            //   // height: (widget.isUsingStaticDimension) ? 50 ... <--- DELETE THIS
-            //   width: MyDimensionAdapter.getWidth(context) * 0.80,
-            //   decoration: BoxDecoration(
-            //     border: BoxBorder.all(
-            //       width: 1,
-            //       color: MyColorPalette.borderColor,
-            //     ),
-            //     borderRadius: BorderRadius.all(Radius.circular(7)),
-            //   ),
-            //   child: TextField(
-            //     controller: notableBehaviorController,
-            //     decoration: InputDecoration(
-            //       // ... your other properties ...
-            //       label: Text("Notable Behavior"),
-            //       // 2. USE THIS to control height.
-            //       // specific vertical padding makes the field taller or shorter.
-            //       contentPadding: const EdgeInsets.symmetric(
-            //         vertical: 15,
-            //         horizontal: 10,
-            //       ),
-
-            //       // If you need exact alignment for prefixes, combine with this:
-            //       isDense: true,
-            //     ),
-            //   ),
-            // ),
-
             // information part of the form
             informationRow(
               labelText: "Sex",
@@ -339,15 +313,75 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
             SizedBox(height: 20),
             (otherInfoIsReadOnly) ? SizedBox() : buttonArea(context),
 
-            Container(
-              margin: EdgeInsets.only(top: 20),
-              width: MyDimensionAdapter.getWidth(context),
-              height: 1000,
-              color: Colors.amber,
-            ),
+            // Frequently Go-To Area
+            frequentyGoToArea(context),
           ],
         ),
       ],
+    );
+  }
+
+  Container frequentyGoToArea(BuildContext context) {
+    return Container(
+      width: MyDimensionAdapter.getWidth(context),
+      height: 500,
+      margin: EdgeInsets.only(top: 20),
+      padding: EdgeInsets.symmetric(horizontal: 40),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Container(
+            width: MyDimensionAdapter.getWidth(context),
+            height: 1,
+            color: Colors.blue.shade100,
+          ),
+          SizedBox(height: 20),
+          MyTextFormatter.h1(
+            text: "Frequently Go-To",
+            fontWeight: FontWeight.w600,
+            fontsize: kDefaultFontSize + 9,
+          ),
+          SizedBox(height: 20),
+          Container(
+            width: MyDimensionAdapter.getWidth(context),
+            height: MyDimensionAdapter.getHeight(context) * 0.45,
+            color: Colors.green,
+            child: Scrollbar(
+              interactive: true,
+              thumbVisibility: true,
+              trackVisibility: true,
+              controller: scrollController,
+              child: ListView.builder(
+                controller: scrollController,
+                dragStartBehavior: DragStartBehavior.down,
+                shrinkWrap: true,
+                physics: ScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                itemCount: 15,
+                itemBuilder: (context, index) {
+                  return Container(
+                    width: MyDimensionAdapter.getWidth(context),
+                    height: MyDimensionAdapter.getHeight(context) * 0.065,
+                    color: (index % 2 == 0)
+                        ? Colors.amber.shade100
+                        : Colors.purple.shade100,
+                    child: Row(
+                      // spacing: 20,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        SizedBox(width: 20),
+                        Text("Hello"),
+                        Spacer(),
+                        Text("${index + 1} / Day"),
+                        SizedBox(width: 20),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
