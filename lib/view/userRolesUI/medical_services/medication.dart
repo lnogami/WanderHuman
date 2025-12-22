@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,9 +12,8 @@ import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/view/components/customed_text_form_field.dart';
-import 'package:wanderhuman_app/view/components/date_picker.dart';
-import 'package:wanderhuman_app/view/components/image_displayer.dart';
-import 'package:wanderhuman_app/view/components/image_picker.dart';
+import 'package:wanderhuman_app/view/components/dropdown_button.dart';
+import 'package:wanderhuman_app/view/components/my_page_navigator.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 
 class Medication extends StatefulWidget {
@@ -26,10 +27,26 @@ class Medication extends StatefulWidget {
 
 class _MedicationState extends State<Medication> {
   final _formKey = GlobalKey<FormState>();
-  // Sex groupCurrentValue = Sex.other;
 
-  Uint8List? imageInBytes;
+  String dateTime = DateTime.now().toString();
+  List<String> patientsNames = ["Please Select Patient"];
+  String selectedNameValue = "Please Select Patient";
 
+  Future<List<PersonalInfo>> getPatient() async {
+    List<PersonalInfo> patients = [];
+    List<PersonalInfo> fetchedRecords =
+        await MyPersonalInfoRepository.getAllPersonalInfoRecords();
+    for (var person in fetchedRecords) {
+      if (person.userType == "Patient") {
+        patients.add(person);
+        patientsNames.add(person.name);
+      }
+    }
+
+    return patients;
+  }
+
+  /// TODO: I'll be back here later, this might be removed or updated
   // FORM Value
   String nameValue = "";
   String ageValue = "";
@@ -46,12 +63,17 @@ class _MedicationState extends State<Medication> {
   void initState() {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    getPatient();
   }
 
   @override
   void dispose() {
     super.dispose();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    _formKey.currentState?.reset();
+    _formKey.currentState?.dispose();
+    patientsNames.clear();
+    selectedNameValue = "";
   }
 
   @override
@@ -84,233 +106,34 @@ class _MedicationState extends State<Medication> {
             fontWeight: FontWeight.w600,
             backButton: () {
               Navigator.pop(context);
+              Navigator.pop(context);
+              MyNavigator.goTo(context, Medication());
             },
             backButtonColor: Colors.white70,
           ),
           SizedBox(height: 25),
-          // image part of the form
-          GestureDetector(
-            child: (imageInBytes == null)
-                ? CircleAvatar(
-                    radius: 55,
-                    backgroundColor: Colors.grey.shade200,
-                    child: Icon(
-                      Icons.person_pin_rounded,
-                      color: Colors.grey.shade400,
-                      size: 80,
-                    ),
-                  )
-                : MyImageDisplayer(
-                    profileImageSize:
-                        // if naka protrait mode, mag base sa width, otherwise if naka landscape, mag basesa height
-                        (MyDimensionAdapter.getWidth(context) <
-                            MyDimensionAdapter.getHeight(context))
-                        ? MyDimensionAdapter.getWidth(context) * 0.3
-                        : MyDimensionAdapter.getWidth(context) * 0.2,
-                    base64ImageString: imageInBytes,
-                  ),
-            onTap: () async {
-              MyImageProcessor.myImagePicker().then((value) async {
-                setState(() {
-                  // this ensures that if no image was picked, the current image will remain
-                  if (value != "") {
-                    pictureValue = value;
-                    imageInBytes = MyImageProcessor.decodeStringToUint8List(
-                      value,
-                    );
-                  }
-                });
-                print("PICTURE VALUE IN FORM: $pictureValue");
-              });
-            },
-          ),
-          SizedBox(height: 5),
-          Text("Tap to Select an Image", style: TextStyle(fontSize: 12)),
-          SizedBox(height: 20),
-          MyCustomizedTextFormField(
-            bottomMargin: 0,
-            label: "Name",
-            hintText: "Enter Full Name",
-            allowedTextInputsOptions: 2,
-            keyboardType: TextInputType.name,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return "Input valid name";
-              }
-              setState(() {
-                nameValue = value;
-              });
-              return null;
-            },
-          ),
-          SizedBox(
-            // color: Colors.amber.shade100,
-            height: MyDimensionAdapter.getHeight(context) * 0.12,
-            child: Row(
-              children: [
-                Expanded(
-                  child: MyCustomizedTextFormField(
-                    // focusNode: (sexValue != "" && ageValue == "")
-                    //     ? (FocusNode(canRequestFocus: false)
-                    //         ..unfocus()
-                    //         ..skipTraversal)
-                    //     : null,
-                    keyboardType: TextInputType.number,
-                    autoValidateMode: AutovalidateMode.onUserInteraction,
-                    allowedTextInputsOptions: 3,
-                    bottomMargin: 0,
-                    label: "Age",
-                    hintText: "ex.56",
-                    onChange: (value) {
-                      setState(() {
-                        ageValue = value;
-                      });
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Input valid age";
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                sexDeterminer(context),
-                // Expanded(
-                //   child:
-                // Column(
-                //   mainAxisAlignment: MainAxisAlignment.end,
-                //   crossAxisAlignment: CrossAxisAlignment.center,
-                //   children: [
-                //     Text(
-                //       "Sex/Gender",
-                //       style: TextStyle(
-                //         fontSize: 15,
-                //         color: (sexValue == "")
-                //             ? const Color.fromARGB(255, 173, 57, 51)
-                //             : Colors.blue,
-                //         fontWeight: FontWeight.w500,
-                //       ),
-                //     ),
-                //     SizedBox(
-                //       width: MyDimensionAdapter.getWidth(context) * 0.45,
-                //       height: 35,
-                //       child: RadioListTile.adaptive(
-                //         // dense: true,
-                //         title: Text(
-                //           "Male",
-                //           style: TextStyle(
-                //             fontSize: 15,
-                //             color: (sexValue == "") ? Colors.grey : Colors.blue,
-                //           ),
-                //         ),
-                //         fillColor: WidgetStateProperty.resolveWith(
-                //           (states) => states.contains(WidgetState.selected)
-                //               ? Colors.blue
-                //               : const Color.fromARGB(255, 125, 184, 236),
-                //         ),
-                //         value: Sex.male,
-                //         groupValue: groupCurrentValue,
-                //         onChanged: (value) {
-                //           setState(() {
-                //             groupCurrentValue = value!;
-                //             sexValue = value.name.toString();
-                //           });
-                //         },
-                //       ),
-                //     ),
-                //     SizedBox(
-                //       width: MyDimensionAdapter.getWidth(context) * 0.45,
-                //       child: RadioListTile.adaptive(
-                //         // dense: true,
-                //         fillColor: WidgetStateProperty.resolveWith(
-                //           (states) => states.contains(WidgetState.selected)
-                //               ? Colors.blue
-                //               : const Color.fromARGB(255, 125, 184, 236),
-                //         ),
 
-                //         activeColor: Colors.blue,
-                //         title: Text(
-                //           "Female",
-                //           style: TextStyle(
-                //             fontSize: 15,
-                //             color: (sexValue == "") ? Colors.grey : Colors.blue,
-                //           ),
-                //         ),
-                //         value: Sex.female,
-                //         groupValue: groupCurrentValue,
-                //         onChanged: (value) {
-                //           setState(() {
-                //             groupCurrentValue = value!;
-                //             sexValue = value.name.toString();
-                //           });
-                //         },
-                //       ),
-                //     ),
-                //   ],
-                // ),
-                //// ),
-              ],
-            ),
-          ),
-          // MyCustomizedTextFormField(
-          //   label: "Birth date",
-          //   hintText: "Month/Day/Year",
-          //   validator: (value) {
-          //     if (value == null || value.isEmpty) {
-          //       return "Input valid name";
-          //     }
-          //     setState(() {
-          //       birthdateValue = value;
-          //     });
-          //     return null;
-          //   },
-          // ),
-          Padding(
-            padding: const EdgeInsets.only(top: 2.5, bottom: 25),
-            child: MyCustButton(
-              borderRadius: 8,
-              widthPercentage: 0.88,
-              color: const Color.fromARGB(255, 233, 241, 254),
-              borderColor: Colors.blue.shade200,
-              borderWidth: 1,
-              buttonShadowColor: const Color.fromARGB(255, 200, 221, 255),
-              buttonTextFontSize: kDefaultFontSize + 1.5,
-              buttonTextSpacing: 1,
-              buttonText: (birthdateValue == "")
-                  ? "Birthdate"
-                  : "Birthdate: ${MyDateFormatter.formatDate(dateTimeInString: birthdateValue)}",
-              // : birthdateValue,
-              onTap: () {
-                // the age parameter is just for determining the approximate birth year, so the the UX of using this date picker will improve.
-                myDatePicker(context, age: ageValue).then((date) {
-                  if (date == null) {
-                    return "";
-                  }
-                  setState(() {
-                    birthdateValue = date.toString();
-                  });
-                });
-                // setState(() {
-                //   birthdateValue = ageValue;
-                // });
-              },
-            ),
-          ),
-          MyCustomizedTextFormField(
-            label: "Guardian Contact Number",
-            hintText: "ex. 09123456789",
-            allowedTextInputsOptions: 3,
-            keyboardType: TextInputType.number,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return "Input a valid number";
+          FutureBuilder(
+            future: getPatient(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              } else {
+                return MyDropdownMenuButton(
+                  items: patientsNames,
+                  initialValue: patientsNames[0],
+                  hintText: "Select a Patient",
+                  onChanged: (patient) {
+                    setState(() {
+                      selectedNameValue = patient!;
+                    });
+                  },
+                );
               }
-              setState(() {
-                contactNumberValue = value;
-              });
-              return null;
             },
           ),
+
+          dateTimeTimer(),
           MyCustomizedTextFormField(
             label: "Address",
             hintText: "enter Street, Municipal/City, Province",
@@ -358,73 +181,91 @@ class _MedicationState extends State<Medication> {
     );
   }
 
-  Container sexDeterminer(BuildContext context) {
-    double buttonWidth = MyDimensionAdapter.getWidth(context) * 0.28;
-    double buttonHeight = MyDimensionAdapter.getHeight(context) * 0.0635;
+  Container dateTimeTimer() {
+    int seconds = 5;
+    Timer.periodic(Duration(seconds: seconds), (timer) {
+      if (MyDateFormatter.formatDate(
+            dateTimeInString: dateTime,
+            formatOptions: 6,
+          ) !=
+          MyDateFormatter.formatDate(
+            dateTimeInString: DateTime.now(),
+            formatOptions: 6,
+          )) {
+        setState(() {
+          seconds = 60;
+          dateTime = DateTime.now().toString();
+        });
+        print("Timeeeeeeee: $dateTime");
+      }
+    });
     return Container(
-      // color: Colors.amber,
-      width: MyDimensionAdapter.getWidth(context) * 0.57,
-      // height: MyDimensionAdapter.getHeight(context) * 0.2,
-      margin: EdgeInsets.only(right: 18, top: 2),
+      width: MyDimensionAdapter.getWidth(context) * 0.85,
+      margin: EdgeInsets.only(bottom: 30),
+      padding: EdgeInsets.only(bottom: 7),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50,
+        borderRadius: BorderRadius.all(Radius.circular(7)),
+      ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          MyTextFormatter.p(text: "Sex", fontsize: kDefaultFontSize - 2),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
             children: [
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    sexValue = "male";
-                  });
-                },
-                child: Container(
-                  width: buttonWidth,
-                  height: buttonHeight,
-                  decoration: BoxDecoration(
-                    color: (sexValue == "male")
-                        ? Colors.blue.shade100
-                        : Colors.transparent,
-
-                    border: BoxBorder.all(
-                      color: (sexValue == "male")
-                          ? Colors.blue.shade400
-                          : MyColorPalette.borderColor,
-                    ),
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(10),
-                      bottomLeft: Radius.circular(10),
-                    ),
-                  ),
-                  child: Center(child: Text("MALE")),
-                ),
+              MyTextFormatter.p(
+                text: "Today is ",
+                fontsize: kDefaultFontSize + 1,
               ),
-
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    sexValue = "female";
-                  });
-                },
-                child: Container(
-                  width: buttonWidth,
-                  height: buttonHeight,
-                  decoration: BoxDecoration(
-                    color: (sexValue == "female")
-                        ? Colors.blue.shade100
-                        : Colors.transparent,
-                    border: BoxBorder.all(
-                      color: (sexValue == "female")
-                          ? Colors.blue.shade400
-                          : MyColorPalette.borderColor,
-                    ),
-                    borderRadius: BorderRadius.only(
-                      topRight: Radius.circular(10),
-                      bottomRight: Radius.circular(10),
-                    ),
-                  ),
-                  child: Center(child: Text("FEMALE")),
+              MyTextFormatter.p(
+                text: MyDateFormatter.formatDate(
+                  dateTimeInString: DateTime.now(),
+                  formatOptions: 7,
+                  customedFormat: "EEEE",
                 ),
+                fontsize: kDefaultFontSize + 7,
+                fontWeight: FontWeight.w600,
+                color: Colors.blue.shade500,
+              ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              MyTextFormatter.p(
+                text: MyDateFormatter.formatDate(
+                  dateTimeInString: dateTime,
+                  formatOptions: 7,
+                  customedFormat: "MMM d",
+                ),
+                fontsize: kDefaultFontSize + 5,
+                fontWeight: FontWeight.w600,
+                color: Colors.blue.shade400,
+              ),
+              MyTextFormatter.p(text: ", "),
+              MyTextFormatter.p(
+                text:
+                    "${MyDateFormatter.formatDate(dateTimeInString: dateTime, formatOptions: 7, customedFormat: "y")}  ",
+                fontsize: kDefaultFontSize + 2,
+                // color: Colors.blue.shade400,
+              ),
+              MyTextFormatter.p(
+                text:
+                    "${MyDateFormatter.formatDate(dateTimeInString: dateTime, formatOptions: 7, customedFormat: "hh:mm")} ",
+                fontsize: kDefaultFontSize + 5,
+                fontWeight: FontWeight.w600,
+                color: Colors.blue.shade400,
+              ),
+              MyTextFormatter.p(
+                text:
+                    "${MyDateFormatter.formatDate(dateTimeInString: dateTime, formatOptions: 7, customedFormat: "a")} ",
+                fontsize: kDefaultFontSize + 2,
+                // color: Colors.blue.shade400,
               ),
             ],
           ),

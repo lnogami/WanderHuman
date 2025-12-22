@@ -576,7 +576,11 @@ class _AddStaffFormState extends State<AddStaffForm> {
   @override
   void dispose() {
     super.dispose();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    contactNumController.dispose();
+    ageController.dispose();
+    addressController.dispose();
+    emailAddController.dispose();
   }
 
   @override

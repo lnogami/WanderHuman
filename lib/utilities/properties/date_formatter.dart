@@ -11,31 +11,42 @@ class MyDateFormatter {
   /// Returns the current day number (1-31)
   static DateTime nowsDate = DateTime.now()..day;
 
-  /// Returns dateTime in a specific format:
-  /// [1] Dec 17, 2025
-  /// [2] 12 17, 2025
-  /// [3] 12/17/2025
-  /// [4] 12/17/25
-  /// [6] 12/17/25 12:00 AM
+  ///#### Returns dateTime in a specific format:
+  ///#### [1] Dec 17, 2025 (default)
+  ///#### [2] 12 17, 2025
+  ///#### [3] 12/17/2025
+  ///#### [4] 12/17/25
+  ///#### [5] 12/17/25 12:00 AM
+  ///#### [6] Dec 17, 2025 12:00 AM
+  ///#### [7] Provide your own format options (ex. MMM - (Dec), d - (17), y - (2025), EEE - (Mon), hh - hour, mm - minute, a - AM/PM)
   static String formatDate({
     required dynamic dateTimeInString,
     int? formatOptions,
+    String? customedFormat,
   }) {
     DateTime dateTime = _dateTimeParser(dateTimeInString)!;
 
-    switch (formatOptions) {
-      case 1:
-        return DateFormat('MMM d, y').format(dateTime);
-      case 2:
-        return DateFormat('MM d, y').format(dateTime);
-      case 3:
-        return DateFormat('MM/dd/y').format(dateTime);
-      case 4:
-        return DateFormat('MM/dd/yy').format(dateTime);
-      case 5:
-        return DateFormat('MM/dd/yy hh:mm a').format(dateTime);
-      default:
-        return DateFormat('MMM d, y').format(dateTime);
+    try {
+      switch (formatOptions) {
+        case 1:
+          return DateFormat('MMM d, y').format(dateTime);
+        case 2:
+          return DateFormat('MM d, y').format(dateTime);
+        case 3:
+          return DateFormat('MM/dd/y').format(dateTime);
+        case 4:
+          return DateFormat('MM/dd/yy').format(dateTime);
+        case 5:
+          return DateFormat('MM/dd/yy hh:mm a').format(dateTime);
+        case 6:
+          return DateFormat('MMM d, y hh:mm a').format(dateTime);
+        case 7:
+          return DateFormat(customedFormat).format(dateTime);
+        default:
+          return DateFormat('MMM d, y').format(dateTime);
+      }
+    } catch (e) {
+      return ("Invalid customedFormat");
     }
   }
 

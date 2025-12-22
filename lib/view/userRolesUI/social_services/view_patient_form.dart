@@ -105,7 +105,15 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
   @override
   void dispose() {
     super.dispose();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    nameController.dispose();
+    contactNumController.dispose();
+    ageController.dispose();
+    addressController.dispose();
+    emailAddController.dispose();
+    notableBehaviorController.dispose();
+    assignedCaregiverController.dispose();
+    scrollController.dispose();
   }
 
   @override

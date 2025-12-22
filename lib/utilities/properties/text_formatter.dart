@@ -66,7 +66,7 @@ class MyTextFormatter {
     double fontsize = kDefaultFontSize,
     FontStyle fontStyle = FontStyle.normal,
     int maxLines = 1,
-    // FontWeight fontWeight = FontWeight.w600,
+    FontWeight fontWeight = FontWeight.w400,
   }) {
     return Text(
       text,
@@ -76,7 +76,7 @@ class MyTextFormatter {
       style: TextStyle(
         fontSize: fontsize,
         fontStyle: fontStyle,
-        // fontWeight: FontWeight.w600,
+        fontWeight: fontWeight,
         color: color ?? Colors.black87,
       ),
     );

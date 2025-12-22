@@ -100,7 +100,12 @@ class _AddViewStaffFormState extends State<ViewStaffForm> {
   @override
   void dispose() {
     super.dispose();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    nameController.dispose();
+    contactNumController.dispose();
+    ageController.dispose();
+    addressController.dispose();
+    emailAddController.dispose();
   }
 
   @override

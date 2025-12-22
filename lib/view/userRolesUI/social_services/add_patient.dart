@@ -52,6 +52,7 @@ class _AddPatientFormState extends State<AddPatientForm> {
   void dispose() {
     super.dispose();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    _formKey.currentState?.dispose();
   }
 
   @override
