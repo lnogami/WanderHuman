@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:wanderhuman_app/helper/medical_services_repository.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
+import 'package:wanderhuman_app/model/medication_model.dart';
 import 'package:wanderhuman_app/utilities/properties/date_formatter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
 import 'package:wanderhuman_app/view/components/appbar.dart';
@@ -11,10 +13,10 @@ import 'package:wanderhuman_app/view/components/button.dart';
 import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
-import 'package:wanderhuman_app/view/components/customed_text_form_field.dart';
 import 'package:wanderhuman_app/view/components/dropdown_button.dart';
 import 'package:wanderhuman_app/view/components/my_page_navigator.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
+import 'package:wanderhuman_app/view/login/widgets/textfield.dart';
 
 class Medication extends StatefulWidget {
   const Medication({super.key});
@@ -23,55 +25,63 @@ class Medication extends StatefulWidget {
   State<Medication> createState() => _MedicationState();
 }
 
-// enum Sex { male, female, other }
-
 class _MedicationState extends State<Medication> {
-  final _formKey = GlobalKey<FormState>();
-
-  String dateTime = DateTime.now().toString();
+  // default values
   List<String> patientsNames = ["Please Select Patient"];
-  String selectedNameValue = "Please Select Patient";
+  String selectedNameValue = "";
+  TextEditingController diagnosisController = TextEditingController();
+  TextEditingController treatmentController = TextEditingController();
+  Future<List<PersonalInfo>>? _patientsInfo;
+  PersonalInfo? _selectedPatient;
+  String dateTime = DateTime.now().toString();
 
+  // database connector call
   Future<List<PersonalInfo>> getPatient() async {
     List<PersonalInfo> patients = [];
     List<PersonalInfo> fetchedRecords =
         await MyPersonalInfoRepository.getAllPersonalInfoRecords();
     for (var person in fetchedRecords) {
       if (person.userType == "Patient") {
-        patients.add(person);
-        patientsNames.add(person.name);
+        setState(() {
+          patients.add(person);
+          patientsNames.add(person.name);
+        });
       }
     }
-
     return patients;
   }
 
-  /// TODO: I'll be back here later, this might be removed or updated
-  // FORM Value
-  String nameValue = "";
-  String ageValue = "";
-  String sexValue = "";
-  String birthdateValue = "";
-  String contactNumberValue = "";
-  String addressValue = "";
-  String emailValue = "";
-  String notableBehaviorValue = "";
-  String pictureValue = "";
-  String createdAtValue = "";
+  // Future<List<PersonalInfo>> getPatient() async {
+  //   return MyPersonalInfoRepository.getAllPersonalInfoRecords(
+  //     fieldToLookFor: "userType",
+  //     fieldValue: "Patient",
+  //   );
+  // }
+
+  // database connector call
+  Future<void> getSpecificPatient(String name) async {
+    List<PersonalInfo> fetchedRecords =
+        await MyPersonalInfoRepository.getAllPersonalInfoRecords();
+    for (var person in fetchedRecords) {
+      if (person.name == name) {
+        setState(() {
+          _selectedPatient = person;
+        });
+      }
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-    getPatient();
+    _patientsInfo = getPatient();
   }
 
   @override
   void dispose() {
     super.dispose();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-    _formKey.currentState?.reset();
-    _formKey.currentState?.dispose();
     patientsNames.clear();
     selectedNameValue = "";
   }
@@ -93,91 +103,125 @@ class _MedicationState extends State<Medication> {
     );
   }
 
-  Form formSpace(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          MyCustAppBar(
-            title: "Medication",
-            color: const Color.fromARGB(160, 33, 149, 243),
-            textColor: Colors.white,
-            fontWeight: FontWeight.w600,
-            backButton: () {
-              Navigator.pop(context);
-              Navigator.pop(context);
-              MyNavigator.goTo(context, Medication());
-            },
-            backButtonColor: Colors.white70,
-          ),
-          SizedBox(height: 25),
+  Column formSpace(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        MyCustAppBar(
+          title: "Medication",
+          color: const Color.fromARGB(160, 33, 149, 243),
+          textColor: Colors.white,
+          fontWeight: FontWeight.w600,
+          backButton: () {
+            Navigator.pop(context);
+            Navigator.pop(context);
+            MyNavigator.goTo(context, Medication());
+          },
+          backButtonColor: Colors.white70,
+        ),
+        SizedBox(height: 25),
 
-          FutureBuilder(
-            future: getPatient(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(child: CircularProgressIndicator());
-              } else {
-                return MyDropdownMenuButton(
-                  items: patientsNames,
-                  initialValue: patientsNames[0],
-                  hintText: "Select a Patient",
-                  onChanged: (patient) {
+        // acts as a header for the form
+        dateTimeTimer(),
+
+        // MyDateTimeTimerHeader(),
+        FutureBuilder(
+          future: _patientsInfo,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            } else {
+              return MyDropdownMenuButton(
+                icon: Icon(Icons.person_outline_rounded, size: 32),
+                items: patientsNames,
+                initialValue: patientsNames[0],
+                hintText: "Select a Patient",
+                onChanged: (patient) {
+                  if (selectedNameValue != patientsNames[0]) {
                     setState(() {
-                      selectedNameValue = patient!;
+                      print("PATIENT NAMEEEEE: $patient");
+                      // assigns the _selectedPatient
+                      getSpecificPatient(patient!);
+                      selectedNameValue = patient;
+                      // showMyAnimatedSnackBar(
+                      //   context: context,
+                      //   dataToDisplay: _selectedPatient!.name,
+                      // );
                     });
-                  },
-                );
-              }
-            },
-          ),
+                  }
+                },
+              );
+            }
+          },
+        ),
 
-          dateTimeTimer(),
-          MyCustomizedTextFormField(
-            label: "Address",
-            hintText: "enter Street, Municipal/City, Province",
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return "Input valid address";
-              }
-              setState(() {
-                addressValue = value;
-              });
-              return null;
-            },
+        SizedBox(height: 20),
+
+        MyCustTextfield(
+          labelText: "Diagnosis",
+          prefixIcon: Icons.info_outline_rounded,
+          textController: diagnosisController,
+          borderRadius: 7,
+          borderColor: MyColorPalette.borderColor,
+          activeBorderColor: MyColorPalette.borderColor,
+        ),
+        treatmentArea(context),
+
+        buttonArea(context),
+      ],
+    );
+  }
+
+  Column treatmentArea(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: MyDimensionAdapter.getWidth(context) * 0.8,
+          height: MyDimensionAdapter.getHeight(context) * 0.12,
+          margin: EdgeInsets.only(top: 20),
+          child: TextField(
+            // if expand is true, maxlines or minLines must be null
+            maxLines: null,
+            expands: true,
+            controller: treatmentController,
+            decoration: InputDecoration(
+              alignLabelWithHint: true,
+              filled: true,
+              contentPadding: const EdgeInsets.only(
+                top: 3,
+                right: 3,
+                bottom: 5,
+              ),
+              prefixIcon: Padding(
+                padding: const EdgeInsets.only(left: 10),
+                child: Icon(Icons.zoom_out_rounded),
+              ),
+              label: Text(
+                "Treatment",
+                style: TextStyle(fontSize: kDefaultFontSize + 2),
+              ),
+              prefixIconConstraints: BoxConstraints.tight(Size(50, 32)),
+              prefixIconColor: Colors.grey,
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(7),
+                borderSide: BorderSide(
+                  color: MyColorPalette.borderColor,
+                  width: 1,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(7),
+                borderSide: BorderSide(
+                  color: MyColorPalette.borderColor,
+                  width: 2.5,
+                ),
+              ),
+            ),
           ),
-          MyCustomizedTextFormField(
-            label: "Guardian Email Address",
-            hintText: "guardian@gmail.com",
-            keyboardType: TextInputType.emailAddress,
-            allowedTextInputsOptions: 5,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return "Input valid address";
-              }
-              setState(() {
-                addressValue = value;
-              });
-              return null;
-            },
-          ),
-          MyCustomizedTextFormField(
-            label: "Notable Behavior",
-            hintText: "ex. wakes up early",
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return "Input something";
-              }
-              setState(() {
-                notableBehaviorValue = value;
-              });
-              return null;
-            },
-          ),
-          buttonArea(context),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -192,10 +236,12 @@ class _MedicationState extends State<Medication> {
             dateTimeInString: DateTime.now(),
             formatOptions: 6,
           )) {
-        setState(() {
-          seconds = 60;
-          dateTime = DateTime.now().toString();
-        });
+        if (mounted) {
+          setState(() {
+            seconds = 60;
+            dateTime = DateTime.now().toString();
+          });
+        }
         print("Timeeeeeeee: $dateTime");
       }
     });
@@ -291,52 +337,25 @@ class _MedicationState extends State<Medication> {
             buttonTextSpacing: 1.2,
             buttonWidth: MyDimensionAdapter.getWidth(context) * 0.40,
             onTap: () {
-              if (_formKey.currentState!.validate()) {
-                // this method accepts Patients object so maong naay Patients diri
-                MyPersonalInfoRepository.addPatient(
-                  PersonalInfo(
-                    // userID is not needed anymore here, because userID was
-                    //        assigned to --> "userID": docRef.id  by default in
-                    //        MyPersonalInfoRepository.addPatient
-                    userID: "",
-                    userType: "Patient",
-                    name: nameValue,
-                    age: ageValue,
-                    sex: sexValue,
-                    birthdate: birthdateValue,
-                    contactNumber: contactNumberValue,
-                    address: addressValue,
-                    email: emailValue,
-                    notableBehavior: notableBehaviorValue,
-                    picture: pictureValue,
-                    createdAt: DateTime.timestamp().toString(),
-                    lastUpdatedAt: DateTime.timestamp().toString(),
-                    registeredBy: FirebaseAuth.instance.currentUser?.uid ?? "",
-                    asignedCaregiver:
-                        FirebaseAuth.instance.currentUser?.uid ?? "",
-                    deviceID: "12345", // later na lang ni
-                  ),
-                );
-                // this is just a sample display of the inputted data (deletable)
-                showMyAnimatedSnackBar(
-                  context: context,
-                  dataToDisplay:
-                      """$nameValue \n 
-                      $ageValue \n 
-                      $sexValue \n 
-                      $birthdateValue \n 
-                      $contactNumberValue \n 
-                      $addressValue \n 
-                      $notableBehaviorValue \n 
-                      $pictureValue \n 
-                      $createdAtValue
-                       
-                      SUCCESSFULLY ADDED!""",
-                  //${MyFirebaseServices.getAllUserID()}
-                );
-
-                Navigator.pop(context);
-              }
+              MyMedicalRepository.addRecord(
+                MedicationModel(
+                  // recordID: "",
+                  patientID: _selectedPatient!.userID,
+                  diagnosis: diagnosisController.text,
+                  treatment: treatmentController.text,
+                  medic: FirebaseAuth.instance.currentUser!.uid,
+                  fromDate: "",
+                  untilDate: "",
+                  isNowOkay: false,
+                  createdAt: DateTime.now().toString(),
+                ),
+              );
+              print(
+                "ADDEDDDDDDDDDDDDDD: userID: ${_selectedPatient?.userID},  name: ${_selectedPatient?.name},  diagnosis: ${diagnosisController.text},  treatment: ${treatmentController.text}, medic: ${FirebaseAuth.instance.currentUser!.uid}",
+              );
+              showMyAnimatedSnackBar(context: context, dataToDisplay: "Done..");
+              // Navigator.pop(context);
+              // }
             },
           ),
         ],
@@ -348,7 +367,8 @@ class _MedicationState extends State<Medication> {
   GestureDetector cancelButton(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.pop(context);
+        // Navigator.pop(context);
+        MyNavigator.goTo(context, const Medication());
       },
       child: SizedBox(
         width: MyDimensionAdapter.getWidth(context) * 0.30,
