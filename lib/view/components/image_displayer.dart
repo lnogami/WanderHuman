@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 /// This automatcally process the Image from the database and display it.
-// ignore: must_be_immutable
 class MyImageDisplayer extends StatefulWidget {
   /// Size of the profile image to be displayed.
   /// NOTE: If MyImageDisplayer is placed inside a CircleAvatar, this property will be ignored.
@@ -15,13 +14,17 @@ class MyImageDisplayer extends StatefulWidget {
   /// NOTE: If the base64 is in String format, use
   /// ### MyImageProcessor.decodeStringToUint8List(base64String)
   /// then pass this base64ImageString as an argument to base64String parameter.
-  Uint8List? base64ImageString;
+  final Uint8List? base64ImageString;
 
-  MyImageDisplayer({
+  /// Returns an Oval shaped picture. Otherwise, the original dimension of the picture
+  final bool isOval;
+
+  const MyImageDisplayer({
     super.key,
     this.profileImageSize = 150,
     this.userID,
     this.base64ImageString,
+    this.isOval = true,
   });
 
   @override
@@ -51,8 +54,26 @@ class MyImageDisplayerState extends State<MyImageDisplayer> {
       //         print(
       //           "Snapshot Dataaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa: ${snapshot.data!.length}",
       //         );
-      return ClipOval(
-        child: Image.memory(
+      if (widget.isOval) {
+        return ClipOval(
+          child: Image.memory(
+            // base64Decode(widget.base64ImageString ?? snapshot.data!),
+            widget.base64ImageString!,
+            width: widget.profileImageSize,
+            height: widget.profileImageSize,
+            fit: BoxFit.cover,
+            // Error Builder: Shows an icon if the string is broken
+            errorBuilder: (context, error, stackTrace) {
+              return Icon(
+                Icons.person_rounded,
+                size: widget.profileImageSize,
+                color: Colors.grey,
+              );
+            },
+          ),
+        );
+      } else {
+        return Image.memory(
           // base64Decode(widget.base64ImageString ?? snapshot.data!),
           widget.base64ImageString!,
           width: widget.profileImageSize,
@@ -66,8 +87,8 @@ class MyImageDisplayerState extends State<MyImageDisplayer> {
               color: Colors.grey,
             );
           },
-        ),
-      );
+        );
+      }
       // } else {
       //   return Icon(
       //     Icons.person_rounded,

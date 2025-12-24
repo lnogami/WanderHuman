@@ -26,6 +26,8 @@ class MedicalHistory extends StatelessWidget {
       MyPersonalInfoRepository.getAllPersonalInfoRecords(),
     ]);
 
+    // it will look like this:
+    // List<CombinedMedicalRecord> combinedList = [List<MedicationModel>, List<PersonalInfo>];
     final medicalRecords = results[0] as List<MedicationModel>;
     final allPersonalInfo = results[1] as List<PersonalInfo>;
 
@@ -86,7 +88,6 @@ class MedicalHistory extends StatelessWidget {
                         // Handle cases where patient info might be missing
                         profilePicture: patient?.picture ?? "",
                         name: patient?.name ?? "Unknown Patient",
-
                         diagnosis: record.diagnosis,
                         treatment: record.treatment,
                         medic: record.medic,

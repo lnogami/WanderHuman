@@ -71,7 +71,8 @@ class MyTextFormatter {
     return Text(
       text,
       maxLines: maxLines,
-      overflow: (maxLines > 1) ? TextOverflow.clip : TextOverflow.ellipsis,
+      // overflow: (maxLines > 1) ? TextOverflow.clip : TextOverflow.ellipsis,
+      overflow: TextOverflow.ellipsis,
       softWrap: (maxLines > 1) ? true : false,
       style: TextStyle(
         fontSize: fontsize,
