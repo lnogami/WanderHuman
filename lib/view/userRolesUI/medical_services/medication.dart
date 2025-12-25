@@ -13,13 +13,17 @@ import 'package:wanderhuman_app/view/components/button.dart';
 import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
+import 'package:wanderhuman_app/view/components/date_picker.dart';
 import 'package:wanderhuman_app/view/components/dropdown_button.dart';
 import 'package:wanderhuman_app/view/components/my_page_navigator.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/login/widgets/textfield.dart';
 
 class Medication extends StatefulWidget {
-  const Medication({super.key});
+  /// This is for editing the Medication Form of a certain patient's medication record.
+  final PersonalInfo? bufferedPatientInfo;
+
+  const Medication({super.key, this.bufferedPatientInfo});
 
   @override
   State<Medication> createState() => _MedicationState();
@@ -33,7 +37,12 @@ class _MedicationState extends State<Medication> {
   TextEditingController treatmentController = TextEditingController();
   Future<List<PersonalInfo>>? _patientsInfo;
   PersonalInfo? _selectedPatient;
+  String fromDate = "";
+  String untilDate = "";
   String dateTime = DateTime.now().toString();
+
+  // for User Experience enhancer
+  IconData icon = Icons.person_outline_rounded;
 
   // database connector call
   Future<List<PersonalInfo>> getPatient() async {
@@ -114,7 +123,7 @@ class _MedicationState extends State<Medication> {
           fontWeight: FontWeight.w600,
           backButton: () {
             Navigator.pop(context);
-            Navigator.pop(context);
+            // Navigator.pop(context);
             MyNavigator.goTo(context, Medication());
           },
           backButtonColor: Colors.white70,
@@ -125,35 +134,61 @@ class _MedicationState extends State<Medication> {
         dateTimeTimer(),
 
         // MyDateTimeTimerHeader(),
-        FutureBuilder(
-          future: _patientsInfo,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
-            } else {
-              return MyDropdownMenuButton(
-                icon: Icon(Icons.person_outline_rounded, size: 32),
-                items: patientsNames,
-                initialValue: patientsNames[0],
-                hintText: "Select a Patient",
-                onChanged: (patient) {
-                  if (selectedNameValue != patientsNames[0]) {
-                    setState(() {
-                      print("PATIENT NAMEEEEE: $patient");
-                      // assigns the _selectedPatient
-                      getSpecificPatient(patient!);
-                      selectedNameValue = patient;
-                      // showMyAnimatedSnackBar(
-                      //   context: context,
-                      //   dataToDisplay: _selectedPatient!.name,
-                      // );
-                    });
+        (widget.bufferedPatientInfo == null)
+            /// if bufferecPatientInfo is not null, it means this Medication widget is accesed from MedicationHistory widget.
+            ? FutureBuilder(
+                future: _patientsInfo,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  } else {
+                    return MyDropdownMenuButton(
+                      icon: Icon(icon, size: 32),
+                      items: patientsNames,
+                      initialValue: patientsNames[0],
+                      hintText: "Select a Patient",
+                      onChanged: (patient) {
+                        if (patient != patientsNames[0]) {
+                          setState(() {
+                            icon = Icons.person_rounded;
+                            print("PATIENT NAMEEEEE: $patient");
+                            // assigns the _selectedPatient
+                            getSpecificPatient(patient!);
+                            selectedNameValue = patient;
+                            // showMyAnimatedSnackBar(
+                            //   context: context,
+                            //   dataToDisplay: _selectedPatient!.name,
+                            // );
+                            print("SELECTED NAME VALUE: $selectedNameValue");
+                          });
+                        } else {
+                          setState(() {
+                            icon = Icons.person_outline_outlined;
+                            selectedNameValue = patientsNames[0];
+                            // _selectedPatient = null;
+                            print("SELECTED NAME VALUE: $selectedNameValue");
+                          });
+                        }
+                      },
+                    );
                   }
                 },
-              );
-            }
-          },
-        ),
+              )
+            : MyCustTextfield(
+                labelText: "Patient",
+                prefixIcon: Icons.person_outline_rounded,
+                textController: TextEditingController()
+                  ..text = widget.bufferedPatientInfo!.name,
+                isReadOnly: true,
+                borderRadius: 7,
+                borderColor: MyColorPalette.borderColor,
+                borderWidth: 1.5,
+                activeBorderColor: MyColorPalette.borderColor,
+              ),
+
+        SizedBox(height: 20),
+
+        dateTimeArea(context),
 
         SizedBox(height: 20),
 
@@ -167,7 +202,130 @@ class _MedicationState extends State<Medication> {
         ),
         treatmentArea(context),
 
+        SizedBox(height: 30),
         buttonArea(context),
+      ],
+    );
+  }
+
+  DateTime? fromDateTimeFormat;
+  DateTime? untilDateTimeFormat;
+  Row dateTimeArea(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // From Date Button
+        MyCustButton(
+          buttonText: (fromDate == "") ? "From Date" : fromDate,
+          onTap: () async {
+            // store a temporary original DateTime
+            final tempFrom = await myDatePicker(
+              context,
+              initialYear: DateTime.now().year,
+            );
+
+            // then put it in fromDateTimeFormat
+            setState(() {
+              fromDateTimeFormat = tempFrom;
+            });
+
+            // then use it to format a Human Comprehensible date format
+            String from = MyDateFormatter.formatDate(
+              dateTimeInString: fromDateTimeFormat,
+            );
+            print("BEFORE DATE: $fromDateTimeFormat");
+
+            // finally, store the String formatted value to the field variable
+            // untilDateTimeFormat must not be before fromDateTimeFormat
+
+            if (untilDateTimeFormat == null) {
+              setState(() {
+                fromDate = from;
+              });
+            } else if (!(fromDateTimeFormat!.isAfter(untilDateTimeFormat!))) {
+              print("TRUEEEEEEEEEEEEEEEEEEEEEEEEE");
+              setState(() {
+                fromDate = from;
+              });
+            } else {
+              showMyAnimatedSnackBar(
+                // ignore: use_build_context_synchronously
+                context: context,
+                dataToDisplay:
+                    "NOTICE: From Date must be before Until Date as it is the start of the medication durationn.",
+              );
+              setState(() {
+                fromDate = "From When";
+              });
+            }
+          },
+          widthPercentage: 0.38,
+          borderColor: MyColorPalette.borderColor,
+          borderRadius: 7,
+          color: MyColorPalette.formColor,
+          buttonTextFontSize: kDefaultFontSize + 1,
+          buttonTextSpacing: 1,
+          buttonShadowColor: Colors.blue.shade200,
+        ),
+
+        SizedBox(width: 10),
+
+        // Until Date Button
+        MyCustButton(
+          buttonText: (untilDate == "") ? "Until When" : untilDate,
+          onTap: () async {
+            // store a temporary original DateTime
+            final tempUntil = await myDatePicker(
+              context,
+              initialYear: DateTime.now().year,
+            );
+
+            // then put it in fromDateTimeFormat
+            setState(() {
+              untilDateTimeFormat = tempUntil;
+            });
+
+            // then use it to format a Human Comprehensible date format
+            String until = MyDateFormatter.formatDate(
+              dateTimeInString: untilDateTimeFormat,
+            );
+
+            print("UNTIL DATE: $untilDateTimeFormat");
+
+            // finally, store the String formatted value to the field variable
+            // untilDateTimeFormat must not be before fromDateTimeFormat
+
+            if (fromDateTimeFormat == null) {
+              showMyAnimatedSnackBar(
+                // ignore: use_build_context_synchronously
+                context: context,
+                dataToDisplay: "NOTICE: Fill out the From Date first.",
+              );
+            } else if (!(untilDateTimeFormat!.isBefore(fromDateTimeFormat!))) {
+              print("TRUEEEEEEEEEEEEEEEEEEEEEEEEE");
+              setState(() {
+                untilDate = until;
+              });
+            } else {
+              showMyAnimatedSnackBar(
+                // ignore: use_build_context_synchronously
+                context: context,
+                dataToDisplay:
+                    "NOTICE: Until Date must not be before From Date as it is the end duration of medication.",
+              );
+              setState(() {
+                untilDate = "Until When";
+              });
+            }
+          },
+          widthPercentage: 0.38,
+          borderColor: MyColorPalette.borderColor,
+          borderRadius: 7,
+          color: MyColorPalette.formColor,
+          buttonTextFontSize: kDefaultFontSize + 1,
+          buttonTextSpacing: 1,
+          buttonShadowColor: Colors.blue.shade200,
+        ),
       ],
     );
   }
@@ -180,7 +338,7 @@ class _MedicationState extends State<Medication> {
         Container(
           width: MyDimensionAdapter.getWidth(context) * 0.8,
           height: MyDimensionAdapter.getHeight(context) * 0.12,
-          margin: EdgeInsets.only(top: 20),
+          margin: EdgeInsets.only(top: 10),
           child: TextField(
             // if expand is true, maxlines or minLines must be null
             maxLines: null,
@@ -329,35 +487,73 @@ class _MedicationState extends State<Medication> {
           cancelButton(context),
           SizedBox(width: 10),
 
-          // SAVE BUTTON
-          MyCustButton(
-            buttonText: "Save",
-            buttonTextColor: Colors.white,
-            buttonTextFontSize: 18,
-            buttonTextSpacing: 1.2,
-            buttonWidth: MyDimensionAdapter.getWidth(context) * 0.40,
-            onTap: () {
-              MyMedicalRepository.addRecord(
-                MedicationModel(
-                  // recordID: "",
-                  patientID: _selectedPatient!.userID,
-                  diagnosis: diagnosisController.text,
-                  treatment: treatmentController.text,
-                  medic: FirebaseAuth.instance.currentUser!.uid,
-                  fromDate: "",
-                  untilDate: "",
-                  isNowOkay: false,
-                  createdAt: DateTime.now().toString(),
+          //    SAVE BUTTON   (if no patient is provided)
+          //    UPDATE BUTTON (if patient is explicitly provided, which also means, this widget is accessed from MedicaitonHistory widget)
+          // if bufferecPatientInfo is not null, it means this Medication widget is accesed from MedicationHistory widget.
+          (widget.bufferedPatientInfo == null)
+              ? MyCustButton(
+                  buttonText: "Save",
+                  buttonTextColor: Colors.white,
+                  buttonTextFontSize: 18,
+                  buttonTextSpacing: 1.2,
+                  buttonWidth: MyDimensionAdapter.getWidth(context) * 0.40,
+                  onTap: () {
+                    MyMedicalRepository.addRecord(
+                      MedicationModel(
+                        // recordID: "",
+                        patientID: _selectedPatient!.userID,
+                        diagnosis: diagnosisController.text,
+                        treatment: treatmentController.text,
+                        medic: FirebaseAuth.instance.currentUser!.uid,
+                        fromDate: fromDate,
+                        untilDate: untilDate,
+                        isNowOkay: false,
+                        createdAt: DateTime.now().toString(),
+                      ),
+                    );
+                    print(
+                      "ADDEDDDDDDDDDDDDDD: userID: ${_selectedPatient?.userID},  name: ${_selectedPatient?.name},  diagnosis: ${diagnosisController.text},  treatment: ${treatmentController.text}, medic: ${FirebaseAuth.instance.currentUser!.uid}",
+                    );
+                    showMyAnimatedSnackBar(
+                      context: context,
+                      dataToDisplay: "Done..",
+                    );
+                    // Navigator.pop(context);
+                    // }
+                  },
+                )
+              : MyCustButton(
+                  buttonText: "Update",
+                  buttonTextColor: Colors.white,
+                  buttonTextFontSize: 18,
+                  buttonTextSpacing: 1.2,
+                  buttonWidth: MyDimensionAdapter.getWidth(context) * 0.40,
+                  onTap: () {
+                    /// TODO: update into updateRecord
+                    // MyMedicalRepository.addRecord(
+                    //   MedicationModel(
+                    //     // recordID: "",
+                    //     patientID: _selectedPatient!.userID,
+                    //     diagnosis: diagnosisController.text,
+                    //     treatment: treatmentController.text,
+                    //     medic: FirebaseAuth.instance.currentUser!.uid,
+                    //     fromDate: "",
+                    //     untilDate: "",
+                    //     isNowOkay: false,
+                    //     createdAt: DateTime.now().toString(),
+                    //   ),
+                    // );
+                    print(
+                      "ADDEDDDDDDDDDDDDDD: userID: ${_selectedPatient?.userID},  name: ${_selectedPatient?.name},  diagnosis: ${diagnosisController.text},  treatment: ${treatmentController.text}, medic: ${FirebaseAuth.instance.currentUser!.uid}",
+                    );
+                    showMyAnimatedSnackBar(
+                      context: context,
+                      dataToDisplay: "Done..",
+                    );
+                    // Navigator.pop(context);
+                    // }
+                  },
                 ),
-              );
-              print(
-                "ADDEDDDDDDDDDDDDDD: userID: ${_selectedPatient?.userID},  name: ${_selectedPatient?.name},  diagnosis: ${diagnosisController.text},  treatment: ${treatmentController.text}, medic: ${FirebaseAuth.instance.currentUser!.uid}",
-              );
-              showMyAnimatedSnackBar(context: context, dataToDisplay: "Done..");
-              // Navigator.pop(context);
-              // }
-            },
-          ),
         ],
       ),
     );
@@ -367,7 +563,8 @@ class _MedicationState extends State<Medication> {
   GestureDetector cancelButton(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // Navigator.pop(context);
+        Navigator.pop(context);
+        Navigator.pop(context);
         MyNavigator.goTo(context, const Medication());
       },
       child: SizedBox(

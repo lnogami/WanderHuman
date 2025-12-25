@@ -7,7 +7,7 @@ import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/components/appbar.dart';
 import 'package:wanderhuman_app/view/components/cards2.dart';
 import 'package:wanderhuman_app/view/components/my_page_navigator.dart';
-import 'package:wanderhuman_app/view/userRolesUI/social_services/view_patient_form.dart';
+import 'package:wanderhuman_app/view/userRolesUI/medical_services/medication.dart';
 
 class CombinedMedicalRecord {
   final MedicationModel medicalRecord;
@@ -66,7 +66,6 @@ class MedicalHistory extends StatelessWidget {
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return const Center(child: Text("No records found"));
                 }
-
                 return Container(
                   width: MyDimensionAdapter.getWidth(context),
                   height: MyDimensionAdapter.getHeight(context),
@@ -91,12 +90,14 @@ class MedicalHistory extends StatelessWidget {
                         diagnosis: record.diagnosis,
                         treatment: record.treatment,
                         medic: record.medic,
+                        fromDate: record.fromDate,
+                        untilDate: record.untilDate,
                         onTap: () {
                           // You can pass the combined data or just the patient info
                           if (patient != null) {
                             MyNavigator.goTo(
                               context,
-                              ViewPatientForm(patientPersonalInfo: patient),
+                              Medication(bufferedPatientInfo: patient),
                             );
                           }
                         },

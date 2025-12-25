@@ -34,7 +34,6 @@ class MyTextFormatter {
       style: TextStyle(
         fontSize: fontsize,
         fontStyle: fontStyle,
-        // fontWeight: FontWeight.w600,
         color: color,
         fontWeight: fontWeight,
       ),

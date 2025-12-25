@@ -18,6 +18,8 @@ class MyCardInfoDisplayer2 extends StatefulWidget {
   // acts as the description/additional info of the card
   final String treatment;
   final String medic;
+  final String fromDate;
+  final String untilDate;
 
   const MyCardInfoDisplayer2({
     super.key,
@@ -27,6 +29,8 @@ class MyCardInfoDisplayer2 extends StatefulWidget {
     required this.treatment,
     this.medic = "This should supposed to be the medic",
     this.profilePicture,
+    required this.fromDate,
+    required this.untilDate,
     // this.personsList,
   });
 
@@ -132,10 +136,20 @@ class _MyCardInfoDisplayer2 extends State<MyCardInfoDisplayer2> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              MyTextFormatter.h3(
-                text: widget.name,
-                // fontsize: kDefaultFontSize + 2,
-                fontWeight: FontWeight.w600,
+              Row(
+                children: [
+                  SizedBox(
+                    width: MyDimensionAdapter.getWidth(context) * 0.385,
+                    // color: Colors.amber,
+                    child: MyTextFormatter.h3(
+                      text: widget.name,
+                      fontsize: kDefaultFontSize + 1.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Spacer(),
+                  FittedBox(child: dateArea()),
+                ],
               ),
               Container(
                 width: MyDimensionAdapter.getWidth(context),
@@ -180,6 +194,7 @@ class _MyCardInfoDisplayer2 extends State<MyCardInfoDisplayer2> {
                       text: widget.treatment,
                       maxLines: 2,
                     ),
+                    // child: dateArea(),
                   ),
                 ],
               ),
@@ -191,11 +206,6 @@ class _MyCardInfoDisplayer2 extends State<MyCardInfoDisplayer2> {
                 color: MyColorPalette.lightBlue,
               ),
 
-              // FittedBox(
-              //   child: MyTextFormatter.p(
-              //     text: medicInfo?.name ?? "No Medic Found",
-              //   ),
-              // ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -218,6 +228,35 @@ class _MyCardInfoDisplayer2 extends State<MyCardInfoDisplayer2> {
           ),
         ),
       ),
+    );
+  }
+
+  Text dateArea() {
+    // remove the ", 2025" part in the String
+    List<String> from = (widget.fromDate != "")
+        ? widget.fromDate.split(" ")
+        : ["0", "10", "2"];
+
+    // remove the ", 2025" part in the String
+    List<String> until = (widget.untilDate != "")
+        ? widget.untilDate.split(" ")
+        : ["0", "1", "2"];
+    return MyTextFormatter.p(
+      // whats happening here?
+      // from[0] means we get the month (like Dec, Jan, Feb, etc.)
+      // from[1] means we get the 2nd element which is a day with a comma (like "20,", "21,", etc")
+      //        .substring(0,1) means we subtract a certain part of the string,
+      //        0 means the index of the included element,
+      //        while the 1 means the index of element to be subtracted.
+      //        In this case, since we are expecting a string value like "12,", "23,", etc.
+      //        we only need to subtract the comma so a (0,2) argument means remove from 0 to 1 element.
+      //        In a "23," String value, "2" is the index 0, "3" is the index 1, and "," is the index 2.
+      //        So in short, these are the arguments (implicit, explicit), implicit means include, explicit means exclude.
+      // until[1] means we get the as from[1]'s value
+      // until[2] means we get the year
+      text: "${from[0]} ${from[1].substring(0, 2)}-${until[1]} ${until[2]}",
+      // text: "Hello World".substring(1, 5),
+      fontsize: kDefaultFontSize - 4,
     );
   }
 }

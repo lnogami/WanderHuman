@@ -61,12 +61,14 @@ class _MyDropdownMenuButtonState extends State<MyDropdownMenuButton> {
                     // this ensures that the first item should means no value
                     fontStyle:
                         // (item == widget.initialValue && item == "No Role")
-                        (item == "No Role")
+                        (item == widget.items[0])
                         ? FontStyle.italic
                         : FontStyle.normal,
                     color:
                         // (item == widget.initialValue && item == "No Role")
-                        (item == "No Role") ? Colors.blueGrey : Colors.black,
+                        (item == widget.items[0])
+                        ? Colors.blueGrey
+                        : Colors.black,
                   ),
                 ),
               ),
