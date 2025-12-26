@@ -38,19 +38,23 @@ class MyMedicalRepository {
     required MedicationModel record,
     required String recordID,
   }) {
-    DocumentReference docRef = _generateRecordID();
+    DocumentReference docRef = _medicalCollectionReference.doc(recordID);
     try {
-      docRef.set({
-        "recordID": docRef.id,
-        // "patientID": record.patientID,
-        "diagnosis": record.diagnosis,
-        "treatment": record.treatment,
-        // "medic": record.medic,
-        "fromDate": record.fromDate,
-        "untilDate": record.untilDate,
-        "isNowOkay": record.isNowOkay,
-        // "createdAt": record.createdAt,
-      });
+      docRef.set(
+        {
+          "recordID": docRef.id,
+          // "patientID": record.patientID,
+          "diagnosis": record.diagnosis,
+          "treatment": record.treatment,
+          // "medic": record.medic,
+          "fromDate": record.fromDate,
+          "untilDate": record.untilDate,
+          "isNowOkay": record.isNowOkay,
+          // "createdAt": record.createdAt,
+        },
+        // SetOptions(merge: true) must be specified in order to avoid overwriting (remove those not spcified in the set argument) the exisiting data.
+        SetOptions(merge: true),
+      );
       return true;
     } catch (e) {
       print("ERROR while Adding Medical Recordddddd: ${e.toString()}");

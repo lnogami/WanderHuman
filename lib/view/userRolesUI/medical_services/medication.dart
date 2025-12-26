@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously, avoid_print
+
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -8,6 +10,7 @@ import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/model/medication_model.dart';
 import 'package:wanderhuman_app/utilities/properties/date_formatter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
+import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
 import 'package:wanderhuman_app/view/components/appbar.dart';
 import 'package:wanderhuman_app/view/components/button.dart';
 import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
@@ -18,12 +21,20 @@ import 'package:wanderhuman_app/view/components/dropdown_button.dart';
 import 'package:wanderhuman_app/view/components/my_page_navigator.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/login/widgets/textfield.dart';
+import 'package:wanderhuman_app/view/userRolesUI/medical_services/medication_history.dart';
 
 class Medication extends StatefulWidget {
   /// This is for editing the Medication Form of a certain patient's medication record.
   final PersonalInfo? bufferedPatientInfo;
+  final MedicationModel? medicationModel;
+  final String? recordID;
 
-  const Medication({super.key, this.bufferedPatientInfo});
+  const Medication({
+    super.key,
+    this.bufferedPatientInfo,
+    this.recordID,
+    this.medicationModel,
+  });
 
   @override
   State<Medication> createState() => _MedicationState();
@@ -40,6 +51,11 @@ class _MedicationState extends State<Medication> {
   String fromDate = "";
   String untilDate = "";
   String dateTime = DateTime.now().toString();
+  bool isNowOkay = false;
+
+  /// only becomes true if a single info in this form is subject to change.
+  /// this is only usable if the Medication widget is accessed through MedicationHistory widget.
+  bool isAltered = false;
 
   // for User Experience enhancer
   IconData icon = Icons.person_outline_rounded;
@@ -80,19 +96,74 @@ class _MedicationState extends State<Medication> {
     }
   }
 
+  // as of Dec 26, 2025,  not yet verified, I need to analyze this later
+  void _checkForChanges() {
+    // If there is no original model (New Record mode), we might not need this logic
+    // or we treat everything as altered.
+    if (widget.medicationModel == null) return;
+
+    bool hasChanges = false;
+
+    // 1. Check Diagnosis
+    if (diagnosisController.text != widget.medicationModel!.diagnosis) {
+      hasChanges = true;
+    }
+    // 2. Check Treatment
+    else if (treatmentController.text != widget.medicationModel!.treatment) {
+      hasChanges = true;
+    }
+    // 3. Check Boolean Toggle
+    else if (isNowOkay != widget.medicationModel!.isNowOkay) {
+      hasChanges = true;
+    }
+    // 4. Check Dates
+    else if (fromDate != widget.medicationModel!.fromDate) {
+      hasChanges = true;
+    } else if (untilDate != widget.medicationModel!.untilDate) {
+      hasChanges = true;
+    }
+
+    // Only call setState if the status actually changed to avoid infinite rebuilds
+    if (isAltered != hasChanges) {
+      setState(() {
+        isAltered = hasChanges;
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     _patientsInfo = getPatient();
+
+    // if bufferedPatientInfo and recordID is not null
+    if (widget.bufferedPatientInfo != null &&
+        widget.recordID != null &&
+        widget.medicationModel != null) {
+      setState(() {
+        fromDate = widget.medicationModel!.fromDate;
+        untilDate = widget.medicationModel!.untilDate;
+        diagnosisController.text = widget.medicationModel!.diagnosis;
+        treatmentController.text = widget.medicationModel!.treatment;
+        isNowOkay = widget.medicationModel!.isNowOkay;
+      });
+
+      diagnosisController.addListener(_checkForChanges);
+      treatmentController.addListener(_checkForChanges);
+    }
   }
 
   @override
   void dispose() {
     super.dispose();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    diagnosisController.dispose();
+    treatmentController.dispose();
     patientsNames.clear();
     selectedNameValue = "";
+
+    // to revert back the system UI mode to normal
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   }
 
   @override
@@ -181,16 +252,16 @@ class _MedicationState extends State<Medication> {
                   ..text = widget.bufferedPatientInfo!.name,
                 isReadOnly: true,
                 borderRadius: 7,
-                borderColor: MyColorPalette.borderColor,
+                borderColor: Colors.blueGrey.shade100,
                 borderWidth: 1.5,
-                activeBorderColor: MyColorPalette.borderColor,
+                activeBorderColor: Colors.blueGrey.shade100,
               ),
 
-        SizedBox(height: 20),
+        SizedBox(height: 15),
 
         dateTimeArea(context),
 
-        SizedBox(height: 20),
+        SizedBox(height: 25),
 
         MyCustTextfield(
           labelText: "Diagnosis",
@@ -201,6 +272,42 @@ class _MedicationState extends State<Medication> {
           activeBorderColor: MyColorPalette.borderColor,
         ),
         treatmentArea(context),
+
+        SizedBox(height: 15),
+        MyTextFormatter.p(
+          text: (widget.bufferedPatientInfo != null)
+              ? "${widget.bufferedPatientInfo?.name}'s Condition"
+              : "Patient's Conditon",
+          fontsize: kDefaultFontSize - 2.5,
+        ),
+        MyCustButton(
+          buttonText: (isNowOkay == true)
+              ? "Already in Good Condition"
+              : "Not Yet Okay",
+          onTap: () async {
+            setState(() {
+              isNowOkay = !isNowOkay;
+              if (isNowOkay != widget.medicationModel!.isNowOkay) {
+                isAltered = true;
+              } else {
+                isAltered = false;
+              }
+            });
+          },
+          widthPercentage: 0.8,
+          borderColor: (isNowOkay == true)
+              ? MyColorPalette.borderColor
+              : Colors.red.shade100,
+          borderRadius: 7,
+          color: (isNowOkay == true)
+              ? MyColorPalette.formColor
+              : Colors.red.shade50,
+          buttonTextFontSize: kDefaultFontSize + 1,
+          buttonTextSpacing: 1,
+          buttonShadowColor: (isNowOkay == true)
+              ? Colors.blue.shade200
+              : Colors.red.shade300,
+        ),
 
         SizedBox(height: 30),
         buttonArea(context),
@@ -215,116 +322,136 @@ class _MedicationState extends State<Medication> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         // From Date Button
-        MyCustButton(
-          buttonText: (fromDate == "") ? "From Date" : fromDate,
-          onTap: () async {
-            // store a temporary original DateTime
-            final tempFrom = await myDatePicker(
-              context,
-              initialYear: DateTime.now().year,
-            );
+        Column(
+          children: [
+            MyTextFormatter.p(
+              text: "From When",
+              fontsize: kDefaultFontSize - 2.5,
+            ),
+            MyCustButton(
+              buttonText: (fromDate == "") ? "From Date" : fromDate,
+              onTap: () async {
+                // store a temporary original DateTime
+                final tempFrom = await myDatePicker(
+                  context,
+                  initialYear: DateTime.now().year,
+                );
 
-            // then put it in fromDateTimeFormat
-            setState(() {
-              fromDateTimeFormat = tempFrom;
-            });
+                // then put it in fromDateTimeFormat
+                setState(() {
+                  fromDateTimeFormat = tempFrom;
+                  isAltered = true;
+                });
 
-            // then use it to format a Human Comprehensible date format
-            String from = MyDateFormatter.formatDate(
-              dateTimeInString: fromDateTimeFormat,
-            );
-            print("BEFORE DATE: $fromDateTimeFormat");
+                // then use it to format a Human Comprehensible date format
+                String from = MyDateFormatter.formatDate(
+                  dateTimeInString: fromDateTimeFormat,
+                );
+                print("BEFORE DATE: $fromDateTimeFormat");
 
-            // finally, store the String formatted value to the field variable
-            // untilDateTimeFormat must not be before fromDateTimeFormat
+                // finally, store the String formatted value to the field variable
+                // untilDateTimeFormat must not be before fromDateTimeFormat
 
-            if (untilDateTimeFormat == null) {
-              setState(() {
-                fromDate = from;
-              });
-            } else if (!(fromDateTimeFormat!.isAfter(untilDateTimeFormat!))) {
-              print("TRUEEEEEEEEEEEEEEEEEEEEEEEEE");
-              setState(() {
-                fromDate = from;
-              });
-            } else {
-              showMyAnimatedSnackBar(
-                // ignore: use_build_context_synchronously
-                context: context,
-                dataToDisplay:
-                    "NOTICE: From Date must be before Until Date as it is the start of the medication durationn.",
-              );
-              setState(() {
-                fromDate = "From When";
-              });
-            }
-          },
-          widthPercentage: 0.38,
-          borderColor: MyColorPalette.borderColor,
-          borderRadius: 7,
-          color: MyColorPalette.formColor,
-          buttonTextFontSize: kDefaultFontSize + 1,
-          buttonTextSpacing: 1,
-          buttonShadowColor: Colors.blue.shade200,
+                if (untilDateTimeFormat == null) {
+                  setState(() {
+                    fromDate = from;
+                    isAltered = true;
+                  });
+                } else if (!(fromDateTimeFormat!.isAfter(
+                  untilDateTimeFormat!,
+                ))) {
+                  // print("TRUEEEEEEEEEEEEEEEEEEEEEEEEE");
+                  setState(() {
+                    fromDate = from;
+                  });
+                } else {
+                  showMyAnimatedSnackBar(
+                    context: context,
+                    dataToDisplay:
+                        "NOTICE: From Date must be before Until Date as it is the start of the medication durationn.",
+                  );
+                  setState(() {
+                    fromDate = "From When";
+                  });
+                }
+              },
+              widthPercentage: 0.38,
+              borderColor: MyColorPalette.borderColor,
+              borderRadius: 7,
+              color: MyColorPalette.formColor,
+              buttonTextFontSize: kDefaultFontSize + 1,
+              buttonTextSpacing: 1,
+              buttonShadowColor: Colors.blue.shade200,
+            ),
+          ],
         ),
 
         SizedBox(width: 10),
 
         // Until Date Button
-        MyCustButton(
-          buttonText: (untilDate == "") ? "Until When" : untilDate,
-          onTap: () async {
-            // store a temporary original DateTime
-            final tempUntil = await myDatePicker(
-              context,
-              initialYear: DateTime.now().year,
-            );
+        Column(
+          children: [
+            MyTextFormatter.p(
+              text: "Until When",
+              fontsize: kDefaultFontSize - 2.5,
+            ),
+            MyCustButton(
+              buttonText: (untilDate == "") ? "Until When" : untilDate,
+              onTap: () async {
+                // store a temporary original DateTime
+                final tempUntil = await myDatePicker(
+                  context,
+                  initialYear: DateTime.now().year,
+                );
 
-            // then put it in fromDateTimeFormat
-            setState(() {
-              untilDateTimeFormat = tempUntil;
-            });
+                // then put it in fromDateTimeFormat
+                setState(() {
+                  untilDateTimeFormat = tempUntil;
+                });
 
-            // then use it to format a Human Comprehensible date format
-            String until = MyDateFormatter.formatDate(
-              dateTimeInString: untilDateTimeFormat,
-            );
+                // then use it to format a Human Comprehensible date format
+                String until = MyDateFormatter.formatDate(
+                  dateTimeInString: untilDateTimeFormat,
+                );
 
-            print("UNTIL DATE: $untilDateTimeFormat");
+                print("UNTIL DATE: $untilDateTimeFormat");
 
-            // finally, store the String formatted value to the field variable
-            // untilDateTimeFormat must not be before fromDateTimeFormat
+                // finally, store the String formatted value to the field variable
+                // untilDateTimeFormat must not be before fromDateTimeFormat
 
-            if (fromDateTimeFormat == null) {
-              showMyAnimatedSnackBar(
-                // ignore: use_build_context_synchronously
-                context: context,
-                dataToDisplay: "NOTICE: Fill out the From Date first.",
-              );
-            } else if (!(untilDateTimeFormat!.isBefore(fromDateTimeFormat!))) {
-              print("TRUEEEEEEEEEEEEEEEEEEEEEEEEE");
-              setState(() {
-                untilDate = until;
-              });
-            } else {
-              showMyAnimatedSnackBar(
-                // ignore: use_build_context_synchronously
-                context: context,
-                dataToDisplay:
-                    "NOTICE: Until Date must not be before From Date as it is the end duration of medication.",
-              );
-              setState(() {
-                untilDate = "Until When";
-              });
-            }
-          },
-          widthPercentage: 0.38,
-          borderColor: MyColorPalette.borderColor,
-          borderRadius: 7,
-          color: MyColorPalette.formColor,
-          buttonTextFontSize: kDefaultFontSize + 1,
-          buttonTextSpacing: 1,
-          buttonShadowColor: Colors.blue.shade200,
+                if (fromDateTimeFormat == null) {
+                  showMyAnimatedSnackBar(
+                    context: context,
+                    dataToDisplay: "NOTICE: Fill out the From Date first.",
+                  );
+                } else if (!(untilDateTimeFormat!.isBefore(
+                  fromDateTimeFormat!,
+                ))) {
+                  print("TRUEEEEEEEEEEEEEEEEEEEEEEEEE");
+                  setState(() {
+                    untilDate = until;
+                    isAltered = true;
+                  });
+                } else {
+                  showMyAnimatedSnackBar(
+                    context: context,
+                    dataToDisplay:
+                        "NOTICE: Until Date must not be before From Date as it is the end duration of medication.",
+                  );
+                  setState(() {
+                    untilDate = "Until When";
+                  });
+                }
+              },
+              widthPercentage: 0.38,
+              borderColor: MyColorPalette.borderColor,
+              borderRadius: 7,
+              color: MyColorPalette.formColor,
+              buttonTextFontSize: kDefaultFontSize + 1,
+              buttonTextSpacing: 1,
+              buttonShadowColor: Colors.blue.shade200,
+            ),
+          ],
         ),
       ],
     );
@@ -485,6 +612,7 @@ class _MedicationState extends State<Medication> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           cancelButton(context),
+
           SizedBox(width: 10),
 
           //    SAVE BUTTON   (if no patient is provided)
@@ -527,29 +655,50 @@ class _MedicationState extends State<Medication> {
                   buttonTextColor: Colors.white,
                   buttonTextFontSize: 18,
                   buttonTextSpacing: 1.2,
+                  color: (isAltered) ? Colors.blue : Colors.grey.shade400,
+                  buttonShadowColor: (isAltered)
+                      ? Colors.blue
+                      : Colors.grey.shade600,
                   buttonWidth: MyDimensionAdapter.getWidth(context) * 0.40,
                   onTap: () {
-                    /// TODO: update into updateRecord
-                    // MyMedicalRepository.addRecord(
-                    //   MedicationModel(
-                    //     // recordID: "",
-                    //     patientID: _selectedPatient!.userID,
-                    //     diagnosis: diagnosisController.text,
-                    //     treatment: treatmentController.text,
-                    //     medic: FirebaseAuth.instance.currentUser!.uid,
-                    //     fromDate: "",
-                    //     untilDate: "",
-                    //     isNowOkay: false,
-                    //     createdAt: DateTime.now().toString(),
-                    //   ),
-                    // );
-                    print(
-                      "ADDEDDDDDDDDDDDDDD: userID: ${_selectedPatient?.userID},  name: ${_selectedPatient?.name},  diagnosis: ${diagnosisController.text},  treatment: ${treatmentController.text}, medic: ${FirebaseAuth.instance.currentUser!.uid}",
-                    );
-                    showMyAnimatedSnackBar(
-                      context: context,
-                      dataToDisplay: "Done..",
-                    );
+                    if (isAltered) {
+                      myAlertDialogue(
+                        context: context,
+                        alertContent: "Are you sure about these changes?",
+                        onApprovalPressed: () {
+                          MyMedicalRepository.updateRecord(
+                            // NA means not applicable (not editable)
+                            record: MedicationModel(
+                              // recordID: "",
+                              patientID:
+                                  widget.bufferedPatientInfo!.userID, // NA
+                              diagnosis: diagnosisController.text,
+                              treatment: treatmentController.text,
+                              medic:
+                                  FirebaseAuth.instance.currentUser!.uid, // NA
+                              fromDate: fromDate,
+                              untilDate: untilDate,
+                              isNowOkay: isNowOkay,
+                              createdAt: DateTime.now().toString(), // NA
+                            ),
+                            recordID: widget.recordID!,
+                          );
+                          Future.delayed(const Duration(milliseconds: 800), () {
+                            Navigator.pop(context);
+                            Navigator.pop(context);
+                            Navigator.pop(context);
+                            MyNavigator.goTo(context, MedicalHistory());
+                          });
+                          print(
+                            "ADDEDDDDDDDDDDDDDD: userID: ${_selectedPatient?.userID},  name: ${_selectedPatient?.name},  diagnosis: ${diagnosisController.text},  treatment: ${treatmentController.text}, medic: ${FirebaseAuth.instance.currentUser!.uid}",
+                          );
+                          showMyAnimatedSnackBar(
+                            context: context,
+                            dataToDisplay: "Done..",
+                          );
+                        },
+                      );
+                    }
                     // Navigator.pop(context);
                     // }
                   },

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:wanderhuman_app/helper/medical_services_repository.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/model/medication_model.dart';
@@ -97,7 +98,11 @@ class MedicalHistory extends StatelessWidget {
                           if (patient != null) {
                             MyNavigator.goTo(
                               context,
-                              Medication(bufferedPatientInfo: patient),
+                              Medication(
+                                bufferedPatientInfo: patient,
+                                recordID: record.recordID,
+                                medicationModel: record,
+                              ),
                             );
                           }
                         },

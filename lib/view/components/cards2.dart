@@ -237,6 +237,18 @@ class _MyCardInfoDisplayer2 extends State<MyCardInfoDisplayer2> {
         ? widget.fromDate.split(" ")
         : ["0", "10", "2"];
 
+    // // if the day of the date is a single number (like 1-9), add a '0' as a padding to make it 01-09.
+    // // if (from[1].length == 2) {
+    // //   print("LEFT PADDINGGGGGGGGG");
+    setState(() {
+      //          this code here is just the same logic as the above if statement.
+      //          the 3 in this (3, "0") means the width of the String value which is the from[1]'s value
+      //          if the length og from[1] is less than the width, pad the "0".
+      //          therefore, if the value of from[1] is a 1-9 number String, it will become "01" - "09"
+      from[1] = from[1].padLeft(3, "0");
+    });
+    // // }
+
     // remove the ", 2025" part in the String
     List<String> until = (widget.untilDate != "")
         ? widget.untilDate.split(" ")
