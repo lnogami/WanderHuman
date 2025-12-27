@@ -144,6 +144,8 @@ class _MedicationState extends State<Medication> {
       setState(() {
         fromDate = widget.medicationModel!.fromDate;
         untilDate = widget.medicationModel!.untilDate;
+        fromDateTimeFormat = DateTime.tryParse(fromDate);
+        untilDateTimeFormat = DateTime.tryParse(untilDate);
         diagnosisController.text = widget.medicationModel!.diagnosis;
         treatmentController.text = widget.medicationModel!.treatment;
         isNowOkay = widget.medicationModel!.isNowOkay;
@@ -195,7 +197,7 @@ class _MedicationState extends State<Medication> {
           backButton: () {
             Navigator.pop(context);
             // Navigator.pop(context);
-            MyNavigator.goTo(context, Medication());
+            // MyNavigator.goTo(context, Medication());
           },
           backButtonColor: Colors.white70,
         ),
@@ -315,8 +317,11 @@ class _MedicationState extends State<Medication> {
     );
   }
 
+  // for storing DateTime values
   DateTime? fromDateTimeFormat;
   DateTime? untilDateTimeFormat;
+  // // for storing String DateTime value
+  // String? from;
   Row dateTimeArea(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -329,50 +334,52 @@ class _MedicationState extends State<Medication> {
               fontsize: kDefaultFontSize - 2.5,
             ),
             MyCustButton(
-              buttonText: (fromDate == "") ? "From Date" : fromDate,
+              buttonText: (fromDate == "")
+                  ? "From Date"
+                  : MyDateFormatter.formatDate(dateTimeInString: fromDate),
               onTap: () async {
                 // store a temporary original DateTime
-                final tempFrom = await myDatePicker(
+                DateTime? pickedFromDate = await myDatePicker(
                   context,
                   initialYear: DateTime.now().year,
                 );
 
-                // then put it in fromDateTimeFormat
-                setState(() {
-                  fromDateTimeFormat = tempFrom;
-                  isAltered = true;
-                });
-
-                // then use it to format a Human Comprehensible date format
-                String from = MyDateFormatter.formatDate(
-                  dateTimeInString: fromDateTimeFormat,
-                );
-                print("BEFORE DATE: $fromDateTimeFormat");
-
-                // finally, store the String formatted value to the field variable
-                // untilDateTimeFormat must not be before fromDateTimeFormat
-
-                if (untilDateTimeFormat == null) {
+                // naay na pick nga date
+                if (pickedFromDate != null) {
                   setState(() {
-                    fromDate = from;
+                    fromDateTimeFormat = pickedFromDate;
                     isAltered = true;
+                    // // then use it to format a Human Comprehensible date format
+                    // from = MyDateFormatter.formatDate(
+                    //   dateTimeInString: fromDateTimeFormat,
+                    // );
+                    print("pickedFromDate is not null: $pickedFromDate");
+                    print("BEFORE DATE: $fromDateTimeFormat");
                   });
-                } else if (!(fromDateTimeFormat!.isAfter(
-                  untilDateTimeFormat!,
-                ))) {
-                  // print("TRUEEEEEEEEEEEEEEEEEEEEEEEEE");
-                  setState(() {
-                    fromDate = from;
-                  });
-                } else {
-                  showMyAnimatedSnackBar(
-                    context: context,
-                    dataToDisplay:
-                        "NOTICE: From Date must be before Until Date as it is the start of the medication durationn.",
-                  );
-                  setState(() {
-                    fromDate = "From When";
-                  });
+
+                  // this is if the Medication is access through Medication (not from MedicationHistory)
+                  if (untilDateTimeFormat == null) {
+                    setState(() {
+                      fromDate = fromDateTimeFormat.toString();
+                      isAltered = true;
+                    });
+                  } else {
+                    if ((fromDateTimeFormat!.isAfter(untilDateTimeFormat!))) {
+                      showMyAnimatedSnackBar(
+                        context: context,
+                        dataToDisplay:
+                            "NOTICE: From Date must be before Until Date as it is the start of the medication durationn.",
+                      );
+                    }
+                    // else if (untilDateTimeFormat != null) {
+                    else {
+                      setState(() {
+                        fromDate = fromDateTimeFormat.toString();
+                        isAltered = true;
+                      });
+                      print("TRUEEEEEEEEEEEEEEEEEEEEEEEEE else if");
+                    }
+                  }
                 }
               },
               widthPercentage: 0.38,
@@ -395,52 +402,105 @@ class _MedicationState extends State<Medication> {
               text: "Until When",
               fontsize: kDefaultFontSize - 2.5,
             ),
+            // MyCustButton(
+            //   buttonText: (untilDate == "")
+            //       ? "Until When"
+            //       : MyDateFormatter.formatDate(dateTimeInString: untilDate),
+            //   onTap: () async {
+            //     // store a temporary original DateTime
+            //     DateTime? tempUntil = await myDatePicker(
+            //       context,
+            //       initialYear: DateTime.now().year,
+            //     );
+
+            //     // then put it in fromDateTimeFormat
+            //     setState(() {
+            //       untilDateTimeFormat = tempUntil;
+            //     });
+
+            //     print("UNTIL DATE: $untilDateTimeFormat");
+
+            //     // finally, store the String formatted value to the field variable
+            //     // untilDateTimeFormat must not be before fromDateTimeFormat
+
+            //     if (fromDateTimeFormat == null) {
+            //       showMyAnimatedSnackBar(
+            //         context: context,
+            //         dataToDisplay: "NOTICE: Fill out the From Date first.",
+            //       );
+            //     } else if (!(untilDateTimeFormat!.isBefore(
+            //       fromDateTimeFormat!,
+            //     ))) {
+            //       print(
+            //         "TRUEEEEEEEEEEEEEEEEEEEEEEEEE, error! untilDate is before fromDate",
+            //       );
+            //       setState(() {
+            //         untilDate = untilDateTimeFormat.toString();
+            //         isAltered = true;
+            //       });
+            //     } else {
+            //       showMyAnimatedSnackBar(
+            //         context: context,
+            //         dataToDisplay:
+            //             "NOTICE: Until Date must not be before From Date as it is the end duration of medication.",
+            //       );
+            //       setState(() {
+            //         untilDate = "Until When";
+            //       });
+            //     }
+            //   },
+            //   widthPercentage: 0.38,
+            //   borderColor: MyColorPalette.borderColor,
+            //   borderRadius: 7,
+            //   color: MyColorPalette.formColor,
+            //   buttonTextFontSize: kDefaultFontSize + 1,
+            //   buttonTextSpacing: 1,
+            //   buttonShadowColor: Colors.blue.shade200,
+            // ),
             MyCustButton(
-              buttonText: (untilDate == "") ? "Until When" : untilDate,
+              buttonText: (untilDate == "")
+                  ? "Until Date"
+                  : MyDateFormatter.formatDate(dateTimeInString: untilDate),
               onTap: () async {
                 // store a temporary original DateTime
-                final tempUntil = await myDatePicker(
+                DateTime? pickedUntilDate = await myDatePicker(
                   context,
                   initialYear: DateTime.now().year,
                 );
 
-                // then put it in fromDateTimeFormat
-                setState(() {
-                  untilDateTimeFormat = tempUntil;
-                });
-
-                // then use it to format a Human Comprehensible date format
-                String until = MyDateFormatter.formatDate(
-                  dateTimeInString: untilDateTimeFormat,
-                );
-
-                print("UNTIL DATE: $untilDateTimeFormat");
-
-                // finally, store the String formatted value to the field variable
-                // untilDateTimeFormat must not be before fromDateTimeFormat
-
-                if (fromDateTimeFormat == null) {
-                  showMyAnimatedSnackBar(
-                    context: context,
-                    dataToDisplay: "NOTICE: Fill out the From Date first.",
-                  );
-                } else if (!(untilDateTimeFormat!.isBefore(
-                  fromDateTimeFormat!,
-                ))) {
-                  print("TRUEEEEEEEEEEEEEEEEEEEEEEEEE");
+                // naay na pick nga date
+                if (pickedUntilDate != null) {
                   setState(() {
-                    untilDate = until;
+                    untilDateTimeFormat = pickedUntilDate;
                     isAltered = true;
+                    // // then use it to format a Human Comprehensible date format
+                    // from = MyDateFormatter.formatDate(
+                    //   dateTimeInString: fromDateTimeFormat,
+                    // );
+                    print(
+                      "untilDateTimeFormat is not null: $untilDateTimeFormat",
+                    );
+                    print("UNTIL DATE: $untilDateTimeFormat");
                   });
-                } else {
-                  showMyAnimatedSnackBar(
-                    context: context,
-                    dataToDisplay:
-                        "NOTICE: Until Date must not be before From Date as it is the end duration of medication.",
-                  );
-                  setState(() {
-                    untilDate = "Until When";
-                  });
+
+                  if ((untilDateTimeFormat!.isBefore(fromDateTimeFormat!))) {
+                    showMyAnimatedSnackBar(
+                      context: context,
+                      dataToDisplay:
+                          "NOTICE: From Date must be after From Date as it is the end of the medication duration.",
+                    );
+                  } else if (fromDateTimeFormat == null) {
+                    showMyAnimatedSnackBar(
+                      context: context,
+                      dataToDisplay: "NOTICE: Fill out the From Date first.",
+                    );
+                  } else {
+                    setState(() {
+                      untilDate = untilDateTimeFormat.toString();
+                      isAltered = true;
+                    });
+                    print("TRUEEEEEEEEEEEEEEEEEEEEEEEEE else");
+                  }
                 }
               },
               widthPercentage: 0.38,
@@ -639,9 +699,15 @@ class _MedicationState extends State<Medication> {
                         createdAt: DateTime.now().toString(),
                       ),
                     );
-                    print(
-                      "ADDEDDDDDDDDDDDDDD: userID: ${_selectedPatient?.userID},  name: ${_selectedPatient?.name},  diagnosis: ${diagnosisController.text},  treatment: ${treatmentController.text}, medic: ${FirebaseAuth.instance.currentUser!.uid}",
-                    );
+                    // removes the dialog box
+                    Navigator.pop(context);
+                    // removes the Medication Page
+                    Navigator.pop(context);
+                    // goes to the MedicationHistory Page after saving an entry
+                    MyNavigator.goTo(context, MedicalHistory());
+                    // print(
+                    //   "ADDEDDDDDDDDDDDDDD: userID: ${_selectedPatient?.userID},  name: ${_selectedPatient?.name},  diagnosis: ${diagnosisController.text},  treatment: ${treatmentController.text}, medic: ${FirebaseAuth.instance.currentUser!.uid}",
+                    // );
                     showMyAnimatedSnackBar(
                       context: context,
                       dataToDisplay: "Done..",
@@ -679,19 +745,24 @@ class _MedicationState extends State<Medication> {
                               fromDate: fromDate,
                               untilDate: untilDate,
                               isNowOkay: isNowOkay,
-                              createdAt: DateTime.now().toString(), // NA
+                              createdAt:
+                                  widget.medicationModel!.createdAt, // NA
                             ),
                             recordID: widget.recordID!,
                           );
                           Future.delayed(const Duration(milliseconds: 800), () {
+                            // removes the dialog box
                             Navigator.pop(context);
+                            // removes the Medication Page
                             Navigator.pop(context);
+                            // removes the MedicationHistory Page
                             Navigator.pop(context);
+                            // reloads the MedicationHistory Page
                             MyNavigator.goTo(context, MedicalHistory());
                           });
-                          print(
-                            "ADDEDDDDDDDDDDDDDD: userID: ${_selectedPatient?.userID},  name: ${_selectedPatient?.name},  diagnosis: ${diagnosisController.text},  treatment: ${treatmentController.text}, medic: ${FirebaseAuth.instance.currentUser!.uid}",
-                          );
+                          // print(
+                          //   "ADDEDDDDDDDDDDDDDD: userID: ${_selectedPatient?.userID},  name: ${_selectedPatient?.name},  diagnosis: ${diagnosisController.text},  treatment: ${treatmentController.text}, medic: ${FirebaseAuth.instance.currentUser!.uid}",
+                          // );
                           showMyAnimatedSnackBar(
                             context: context,
                             dataToDisplay: "Done..",
@@ -713,8 +784,8 @@ class _MedicationState extends State<Medication> {
     return GestureDetector(
       onTap: () {
         Navigator.pop(context);
-        Navigator.pop(context);
-        MyNavigator.goTo(context, const Medication());
+        // Navigator.pop(context);
+        // MyNavigator.goTo(context, const Medication());
       },
       child: SizedBox(
         width: MyDimensionAdapter.getWidth(context) * 0.30,

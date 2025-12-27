@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
+import 'package:wanderhuman_app/utilities/properties/date_formatter.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
 import 'package:wanderhuman_app/view/components/image_displayer.dart';
@@ -232,9 +233,13 @@ class _MyCardInfoDisplayer2 extends State<MyCardInfoDisplayer2> {
   }
 
   Text dateArea() {
+    String toParsedFromDate = MyDateFormatter.formatDate(
+      dateTimeInString: widget.fromDate,
+    );
+
     // remove the ", 2025" part in the String
-    List<String> from = (widget.fromDate != "")
-        ? widget.fromDate.split(" ")
+    List<String> from = (toParsedFromDate != "")
+        ? toParsedFromDate.split(" ")
         : ["0", "10", "2"];
 
     // // if the day of the date is a single number (like 1-9), add a '0' as a padding to make it 01-09.
@@ -249,10 +254,14 @@ class _MyCardInfoDisplayer2 extends State<MyCardInfoDisplayer2> {
     });
     // // }
 
+    String toParsedUntilDate = MyDateFormatter.formatDate(
+      dateTimeInString: widget.untilDate,
+    );
     // remove the ", 2025" part in the String
-    List<String> until = (widget.untilDate != "")
-        ? widget.untilDate.split(" ")
+    List<String> until = (toParsedUntilDate != "")
+        ? toParsedUntilDate.split(" ")
         : ["0", "1", "2"];
+    print("UNTIL DATE VALUE: $until");
     return MyTextFormatter.p(
       // whats happening here?
       // from[0] means we get the month (like Dec, Jan, Feb, etc.)

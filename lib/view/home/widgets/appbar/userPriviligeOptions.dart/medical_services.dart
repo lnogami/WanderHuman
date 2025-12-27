@@ -26,13 +26,7 @@ class MedicalPrivilege extends StatelessWidget {
                       Icons.person_pin_circle_outlined,
                       "Med History",
                       onTap: () {
-                        //
-                        // Navigator.pop(context);
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(
-                            builder: (context) => MedicalHistory(),
-                          ),
-                        );
+                        MyNavigator.goTo(context, MedicalHistory());
                       },
                     ),
                     SizedBox(height: 10),
