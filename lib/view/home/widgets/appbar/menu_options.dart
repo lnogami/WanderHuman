@@ -128,7 +128,7 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
                   },
                   Icons.logout_outlined,
                   "Logout",
-                  bgColor: const Color.fromARGB(130, 255, 108, 108),
+                  bgColor: const Color.fromARGB(80, 255, 108, 108),
                 ),
                 SizedBox(height: 10),
               ],

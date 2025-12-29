@@ -64,7 +64,7 @@ class MyCardInfoDisplayer extends StatelessWidget {
         width: MyDimensionAdapter.getWidth(context) * 0.25,
         height: MyDimensionAdapter.getHeight(context),
         margin: EdgeInsets.only(left: 20),
-        padding: EdgeInsets.only(top: 15, bottom: 15, left: 5, right: 5),
+        padding: EdgeInsets.only(top: 12, bottom: 12, left: 5, right: 7),
         // color: Colors.blue,
         child: CircleAvatar(
           // radius: 10,
@@ -96,14 +96,6 @@ class MyCardInfoDisplayer extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Text(
-              //   "Hori Zontal",
-              //   style: TextStyle(
-              //     fontSize: (kDefaultFontSize + 4),
-              //     fontWeight: FontWeight.w600,
-              //     color: MyColorPalette.titleTextColor,
-              //   ),
-              // ),
               MyTextFormatter.h3(
                 text: name,
                 // fontsize: kDefaultFontSize + 2,

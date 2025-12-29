@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/view/home/widgets/appbar/userPriviligeOptions.dart/admin.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
+import 'package:wanderhuman_app/view/home/widgets/appbar/userPriviligeOptions.dart/home_life.dart';
 import 'package:wanderhuman_app/view/home/widgets/appbar/userPriviligeOptions.dart/medical_services.dart';
 import 'package:wanderhuman_app/view/home/widgets/appbar/userPriviligeOptions.dart/social_services.dart';
 
@@ -20,6 +21,9 @@ class MyUserRolePrevilige extends StatelessWidget {
 
       case "MEDICAL SERVICE":
         return MedicalPrivilege();
+
+      case "HOME LIFE":
+        return HomeLifePrivilege();
 
       default:
         {
