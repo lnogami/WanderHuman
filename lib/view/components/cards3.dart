@@ -5,14 +5,14 @@ import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
 import 'package:wanderhuman_app/view/components/image_displayer.dart';
 import 'package:wanderhuman_app/view/components/image_picker.dart';
 
-/// This widget if for other formation of Card (used for Home Life Role)
+/// This widget if for other formation of Card (used for Home Life age)
 class MyCardInfoDisplayer3 extends StatelessWidget {
   final VoidCallback? onTap;
   final String profilePicture;
   // acts as the title of the card
   final String name;
   // acts as the subtitle of the card
-  final String role;
+  final String age;
   // acts as the description/additional info of the card
   final String contactNumber;
   final String emailAdd;
@@ -22,7 +22,7 @@ class MyCardInfoDisplayer3 extends StatelessWidget {
     super.key,
     this.onTap,
     required this.name,
-    required this.role,
+    required this.age,
     required this.contactNumber,
     this.emailAdd = "No Email",
     required this.profilePicture,
@@ -114,10 +114,7 @@ class MyCardInfoDisplayer3 extends StatelessWidget {
               ),
               Row(
                 children: [
-                  MyTextFormatter.h5(
-                    text: role,
-                    fontsize: kDefaultFontSize - 1,
-                  ),
+                  MyTextFormatter.h5(text: age, fontsize: kDefaultFontSize - 1),
                   Spacer(),
                   CircleAvatar(
                     backgroundColor: taskColorDeterminer(int.tryParse("1")!),
@@ -134,7 +131,7 @@ class MyCardInfoDisplayer3 extends StatelessWidget {
                   SizedBox(width: 2.5),
                   MyTextFormatter.p(
                     text: "Tasks Left",
-                    fontsize: kDefaultFontSize - 2,
+                    fontsize: kDefaultFontSize - 4,
                   ),
                 ],
               ),
@@ -163,7 +160,7 @@ class MyCardInfoDisplayer3 extends StatelessWidget {
                   ),
                   SizedBox(width: 2.5),
                   MyTextFormatter.p(
-                    text: batteryPercentage,
+                    text: "$batteryPercentage%",
                     fontsize: kDefaultFontSize - 2,
                   ),
                 ],

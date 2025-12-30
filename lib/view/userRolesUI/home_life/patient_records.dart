@@ -3,10 +3,8 @@ import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/components/appbar.dart';
-import 'package:wanderhuman_app/view/components/cards.dart';
 import 'package:wanderhuman_app/view/components/cards3.dart';
 import 'package:wanderhuman_app/view/components/my_page_navigator.dart';
-import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/userRolesUI/social_services/add_patient.dart';
 import 'package:wanderhuman_app/view/userRolesUI/social_services/view_patient_form.dart';
 
@@ -55,7 +53,7 @@ class HomeLifePatientRecords extends StatelessWidget {
                       return MyCardInfoDisplayer3(
                         profilePicture: snapshot.data![index].picture,
                         name: snapshot.data![index].name,
-                        role: "${snapshot.data![index].age} years old",
+                        age: "${snapshot.data![index].age} years old",
                         contactNumber: snapshot.data![index].contactNumber,
                         emailAdd: snapshot.data![index].email,
                         onTap: () {
@@ -87,23 +85,23 @@ class HomeLifePatientRecords extends StatelessWidget {
                 MyNavigator.goTo(context, HomeLifePatientRecords());
               },
               actionButtons: [
-                IconButton(
-                  highlightColor: Colors.blue.shade100,
-                  onPressed: () async {
-                    // Navigator.pop(context);
-                    MyNavigator.goTo(
-                      // ignore: use_build_context_synchronously
-                      context,
-                      AddPatientForm(
-                        // bufferedpatientNames: await getPatient()
-                      ),
-                    );
-                  },
-                  icon: Icon(
-                    Icons.person_add_alt_1_rounded,
-                    color: Colors.blue.shade400,
-                  ),
-                ),
+                // IconButton(
+                //   highlightColor: Colors.blue.shade100,
+                //   onPressed: () async {
+                //     // Navigator.pop(context);
+                //     MyNavigator.goTo(
+                //       // ignore: use_build_context_synchronously
+                //       context,
+                //       AddPatientForm(
+                //         // bufferedpatientNames: await getPatient()
+                //       ),
+                //     );
+                //   },
+                //   icon: Icon(
+                //     Icons.person_add_alt_1_rounded,
+                //     color: Colors.blue.shade400,
+                //   ),
+                // ),
               ],
             ),
           ),

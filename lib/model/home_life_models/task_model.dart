@@ -1,7 +1,7 @@
-class Task {
+class HLTaskModel {
   // 1. Properties: The actual data we want to store
   final String?
-  id; // Nullable because a new task doesn't have an ID until Firestore gives it one
+  taskID; // Nullable because a new task doesn't have an ID until Firestore gives it one
   final String taskName;
   final String description;
   final bool isDone;
@@ -9,8 +9,8 @@ class Task {
   caregiverId; // Added for that "Collection Group Query" capability we discussed
 
   // 2. Constructor: How we create the object in our app
-  Task({
-    this.id,
+  HLTaskModel({
+    this.taskID,
     required this.taskName,
     required this.description,
     this.isDone = false, // Default to false (not done) when creating
@@ -33,9 +33,9 @@ class Task {
   // 4. fromFirestore(): The "Unpacker"
   // WHY? When data comes back from Firestore, it's a messy Map.
   // This factory constructor organizes it back into a clean Dart object we can use.
-  factory Task.fromFirestore(Map<String, dynamic> data, String docId) {
-    return Task(
-      id: docId, // We inject the Document ID separately here
+  factory HLTaskModel.fromFirestore(Map<String, dynamic> data, String docId) {
+    return HLTaskModel(
+      taskID: docId, // We inject the Document ID separately here
       taskName:
           data['taskName'] ??
           '', // '??' is a safety check: if null, use empty string
