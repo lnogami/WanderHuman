@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:wanderhuman_app/model/home_life_models/planner.dart';
+import 'package:wanderhuman_app/model/home_life_models/hl_planner_model.dart';
 
 class HomeLifePlannerRepository {
   static final CollectionReference _collectionReference = FirebaseFirestore

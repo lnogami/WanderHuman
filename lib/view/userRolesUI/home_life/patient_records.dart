@@ -4,8 +4,7 @@ import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/components/appbar.dart';
 import 'package:wanderhuman_app/view/components/cards3.dart';
-import 'package:wanderhuman_app/view/components/my_page_navigator.dart';
-import 'package:wanderhuman_app/view/userRolesUI/social_services/add_patient.dart';
+import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/userRolesUI/social_services/view_patient_form.dart';
 
 /// Summary record of all patients
@@ -25,6 +24,13 @@ class HomeLifePatientRecords extends StatelessWidget {
 
     return patients;
   }
+
+  /// TODO: create a logic where if one of the users open this page for the first time,
+  ///       a condition will check if the current doc for the day is already written or not base on the condition if(docID == DateTime.now().toString())
+  ///       If not yet, write the whole process autonomously base on HLPlanner. Then display the data.
+  ///       else, do nothing, just display the data.
+  // Future<List<HLPatientTaskModel>> getPatient() async {
+  // }
 
   @override
   Widget build(BuildContext context) {

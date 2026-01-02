@@ -4,7 +4,7 @@
 // import 'package:wanderhuman_app/model/home_life_models/task_model.dart';
 // import 'package:wanderhuman_app/utilities/properties/date_formatter.dart';
 
-// class HomeLifeRepositry {
+// class HomeLifeRepository {
 
 //   /// Root collection reference
 //   static final CollectionReference _collectionReference = FirebaseFirestore
@@ -148,7 +148,7 @@
 // }
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:wanderhuman_app/model/home_life_models/patien_task_model.dart';
+import 'package:wanderhuman_app/model/home_life_models/patient_task_model.dart';
 import 'package:wanderhuman_app/model/home_life_models/task_model.dart';
 
 // Fixed typo: Repositry -> Repository

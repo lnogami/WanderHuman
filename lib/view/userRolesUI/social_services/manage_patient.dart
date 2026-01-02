@@ -4,7 +4,7 @@ import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/components/appbar.dart';
 import 'package:wanderhuman_app/view/components/cards.dart';
-import 'package:wanderhuman_app/view/components/my_page_navigator.dart';
+import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/userRolesUI/social_services/add_patient.dart';
 import 'package:wanderhuman_app/view/userRolesUI/social_services/view_patient_form.dart';

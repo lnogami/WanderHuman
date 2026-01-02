@@ -1,13 +1,9 @@
-class Patient {
+class HLPatientTaskModel {
   final String? id;
   final String patientName;
   final String assignedCaregiver;
 
-  // Notice we do NOT put 'List<Task> tasks' here.
-  // WHY? Because in your database design, tasks are in a SUBCOLLECTION.
-  // They are not physically inside this document. We fetch them separately.
-
-  Patient({
+  HLPatientTaskModel({
     this.id,
     required this.patientName,
     required this.assignedCaregiver,
@@ -19,8 +15,11 @@ class Patient {
   }
 
   // The Unpacker
-  factory Patient.fromFirestore(Map<String, dynamic> data, String docId) {
-    return Patient(
+  factory HLPatientTaskModel.fromFirestore(
+    Map<String, dynamic> data,
+    String docId,
+  ) {
+    return HLPatientTaskModel(
       id: docId,
       patientName: data['patientName'] ?? 'Unknown Patient',
       assignedCaregiver: data['assignedCaregiver'] ?? '',

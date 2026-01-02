@@ -4,7 +4,7 @@ import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/components/appbar.dart';
 import 'package:wanderhuman_app/view/components/cards.dart';
-import 'package:wanderhuman_app/view/components/my_page_navigator.dart';
+import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/userRolesUI/admin/add_staff_form.dart';
 import 'package:wanderhuman_app/view/userRolesUI/admin/view_staff_form.dart';
 
