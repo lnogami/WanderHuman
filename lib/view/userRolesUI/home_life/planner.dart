@@ -6,6 +6,7 @@ import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/components/appbar.dart';
 import 'package:wanderhuman_app/view/components/button.dart';
 import 'package:wanderhuman_app/view/components/date_picker.dart';
+import 'package:wanderhuman_app/view/components/dropdown_button.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/login/widgets/textfield.dart';
@@ -24,7 +25,7 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
   // String fromDateButtonDisplay = "FROM";
   DateTime? untilDate;
   // String untilDateButtonDisplay = "UNTIL";
-  List<String> participants = [];
+  List<String> participants = ["Patient1", "Patient2"];
 
   @override
   Widget build(BuildContext context) {
@@ -74,6 +75,19 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
 
               // FROM and UNTIL date buttons
               dateButtons(context),
+              SizedBox(height: 10),
+
+              /// TODO: not yet working
+              // Participants Dropdown
+              Container(
+                width: MyDimensionAdapter.getWidth(context) * 0.8,
+                child: MyDropdownMenuButton(
+                  items: participants,
+                  initialValue: participants[0],
+                  hintText: "Please Select Participants",
+                  onChanged: (participant) {},
+                ),
+              ),
 
               // SizedBox(height: 10),
               Spacer(),
