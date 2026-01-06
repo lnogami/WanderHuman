@@ -9,6 +9,7 @@ class MyDropdownMenuButton extends StatefulWidget {
   final String hintText;
   final String initialValue;
   final Function(String?) onChanged;
+  final bool isLeadingIconVisible;
 
   const MyDropdownMenuButton({
     super.key,
@@ -17,6 +18,7 @@ class MyDropdownMenuButton extends StatefulWidget {
     required this.hintText,
     required this.onChanged,
     this.icon = const Icon(Icons.info_outline_rounded, size: 32),
+    this.isLeadingIconVisible = true,
   });
 
   @override
@@ -36,11 +38,12 @@ class _MyDropdownMenuButtonState extends State<MyDropdownMenuButton> {
       child: DropdownButtonFormField<String>(
         initialValue: widget.initialValue,
         menuMaxHeight: MyDimensionAdapter.getHeight(context) * 0.55,
-        padding: EdgeInsets.all(0),
+        // padding: EdgeInsets.all(0),
+        padding: EdgeInsets.only(left: 5, right: 10),
         dropdownColor: Colors.blue[50],
         hint: Text(widget.hintText),
         decoration: InputDecoration(
-          icon: widget.icon,
+          icon: (widget.isLeadingIconVisible) ? widget.icon : null,
           iconColor: Colors.blue.shade200,
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),

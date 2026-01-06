@@ -26,6 +26,7 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
   DateTime? untilDate;
   // String untilDateButtonDisplay = "UNTIL";
   List<String> participants = ["Patient1", "Patient2"];
+  List<String> addedParticipants = ["Participant 00", "Participant 0"];
 
   @override
   Widget build(BuildContext context) {
@@ -75,17 +76,39 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
 
               // FROM and UNTIL date buttons
               dateButtons(context),
-              SizedBox(height: 10),
+              SizedBox(height: 30),
 
               /// TODO: not yet working
               // Participants Dropdown
               Container(
-                width: MyDimensionAdapter.getWidth(context) * 0.8,
+                width: MyDimensionAdapter.getWidth(context) * 0.82,
+                height: MyDimensionAdapter.getHeight(context) * 0.065,
                 child: MyDropdownMenuButton(
+                  // icon: Icon(Icons.person_add_alt_rounded, size: 32),
+                  isLeadingIconVisible: false,
                   items: participants,
                   initialValue: participants[0],
-                  hintText: "Please Select Participants",
+                  hintText: "Select Participants",
                   onChanged: (participant) {},
+                ),
+              ),
+              SizedBox(height: 10),
+
+              Container(
+                width: MyDimensionAdapter.getWidth(context) * 0.80,
+                height: MyDimensionAdapter.getHeight(context) * 0.3,
+                color: Colors.amber,
+                child: ListView.builder(
+                  itemCount: addedParticipants.length,
+                  itemBuilder: (context, index) {
+                    return Card(
+                      child: CheckboxListTile.adaptive(
+                        value: false,
+                        title: Text(addedParticipants[index]),
+                        onChanged: (participant) {},
+                      ),
+                    );
+                  },
                 ),
               ),
 
