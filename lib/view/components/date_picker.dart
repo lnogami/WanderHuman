@@ -21,6 +21,8 @@ import 'package:flutter/material.dart';
 Future<DateTime?> myDatePicker(
   BuildContext context, {
   String? age,
+
+  /// if initialYear is null, the default will be DateTime.now()
   int? initialYear,
   int? firstDate,
   int? lastDate,
@@ -38,8 +40,10 @@ Future<DateTime?> myDatePicker(
   DateTime firstDateObj = DateTime(firstDate ?? 1900);
   DateTime lastDateObj = DateTime(lastDate ?? 2300);
 
-  // 3. Create the initial date (January 1st of the calculated year)
-  DateTime initialDateObj = DateTime(targetYear);
+  // 3. Create the initial date (January 1st of the calculated year), if initialYear is not provided, the default date will be DateTime.now()
+  DateTime initialDateObj = (initialYear != null)
+      ? DateTime(targetYear)
+      : DateTime.now();
 
   // 4. SAFETY CHECK: Ensure the calculated date isn't outside the allowed range
   // (Flutter crashes if initialDate is outside firstDate/lastDate)

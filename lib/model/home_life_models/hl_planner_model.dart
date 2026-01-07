@@ -1,29 +1,35 @@
-class HomeLifePlanner {
+class HomeLifePlannerModel {
   final String taskID;
   final String taskName;
+  final String taskDescription;
   final String participants;
-  final String scheduledDate;
+  final String untilDate;
+  final String fromDate;
   final String createdAt;
   final String createdBy;
 
-  const HomeLifePlanner({
+  const HomeLifePlannerModel({
     required this.taskID,
     required this.taskName,
+    required this.taskDescription,
     required this.participants,
-    required this.scheduledDate,
+    required this.fromDate,
+    required this.untilDate,
     required this.createdAt,
     required this.createdBy,
   });
 
-  factory HomeLifePlanner.fromFirebase({
+  factory HomeLifePlannerModel.fromFirebase({
     required String taskID,
     required Map<String, dynamic> data,
   }) {
-    return HomeLifePlanner(
+    return HomeLifePlannerModel(
       taskID: taskID,
       taskName: data['taskName'] ?? '',
+      taskDescription: data['taskDescription'] ?? '',
       participants: data['participants'] ?? '',
-      scheduledDate: data["scheduledDate"] ?? '',
+      fromDate: data["fromDate"] ?? '',
+      untilDate: data["untilDate"] ?? '',
       createdAt: data["createdAt"] ?? '',
       createdBy: data["createdBy"] ?? '',
     );

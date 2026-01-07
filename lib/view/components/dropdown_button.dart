@@ -6,7 +6,7 @@ class MyDropdownMenuButton extends StatefulWidget {
   /// Because I program this dropdown to display the items[0] to look like NO VALUE YET
   final List<String> items;
   final Icon icon;
-  final String hintText;
+  final String? hintText;
   final String initialValue;
   final Function(String?) onChanged;
   final bool isLeadingIconVisible;
@@ -15,7 +15,7 @@ class MyDropdownMenuButton extends StatefulWidget {
     super.key,
     required this.items,
     required this.initialValue,
-    required this.hintText,
+    this.hintText,
     required this.onChanged,
     this.icon = const Icon(Icons.info_outline_rounded, size: 32),
     this.isLeadingIconVisible = true,
@@ -38,10 +38,9 @@ class _MyDropdownMenuButtonState extends State<MyDropdownMenuButton> {
       child: DropdownButtonFormField<String>(
         initialValue: widget.initialValue,
         menuMaxHeight: MyDimensionAdapter.getHeight(context) * 0.55,
-        // padding: EdgeInsets.all(0),
-        padding: EdgeInsets.only(left: 5, right: 10),
+        padding: EdgeInsets.all(0),
         dropdownColor: Colors.blue[50],
-        hint: Text(widget.hintText),
+        hint: (widget.hintText == null) ? null : Text(widget.hintText!),
         decoration: InputDecoration(
           icon: (widget.isLeadingIconVisible) ? widget.icon : null,
           iconColor: Colors.blue.shade200,

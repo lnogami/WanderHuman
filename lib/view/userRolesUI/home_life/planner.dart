@@ -1,12 +1,18 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:wanderhuman_app/helper/hl_planner_repository.dart';
+import 'package:wanderhuman_app/helper/personal_info_repository.dart';
+import 'package:wanderhuman_app/model/home_life_models/hl_planner_model.dart';
+import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
 import 'package:wanderhuman_app/utilities/properties/date_formatter.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
+import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
+import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
 import 'package:wanderhuman_app/view/components/appbar.dart';
 import 'package:wanderhuman_app/view/components/button.dart';
 import 'package:wanderhuman_app/view/components/date_picker.dart';
-import 'package:wanderhuman_app/view/components/dropdown_button.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/login/widgets/textfield.dart';
@@ -19,14 +25,61 @@ class HomeLifePlanner extends StatefulWidget {
 }
 
 class _HomeLifePlannerState extends State<HomeLifePlanner> {
+  // TEXTFIELDS
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
+
+  // DATES
   DateTime? fromDate;
   // String fromDateButtonDisplay = "FROM";
   DateTime? untilDate;
   // String untilDateButtonDisplay = "UNTIL";
-  List<String> participants = ["Patient1", "Patient2"];
-  List<String> addedParticipants = ["Participant 00", "Participant 0"];
+
+  // PARTICIPANTS
+  List<PersonalInfo> participants = [];
+  // List<Map<String, bool>> isSelectedParticipants = [];
+  List<String> addedParticipants = [];
+  bool isAllParticipantsSelected = true;
+
+  /// Load participants from Database and add to participants list
+  Future<void> loadParticipants() async {
+    List<PersonalInfo> patientList =
+        await MyPersonalInfoRepository.getAllPersonalInfoRecords();
+    for (var patient in patientList) {
+      // only add patients to participants list
+      if (patient.userType.toUpperCase() == "PATIENT") {
+        // add patient to participants list and isSelectedParticipants list
+        participants.add(patient);
+        addedParticipants.add(patient.userID);
+        // // by default, all participants are selected
+        // isSelectedParticipants.add({patient.userID: true});
+      }
+    }
+    print(
+      "LOADED PATIENTS LENGTHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH: ${participants.length}",
+    );
+
+    // sorts the participants List
+    participants.sort((a, b) {
+      return a.name.compareTo(b.name);
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    loadParticipants();
+    print(
+      "LOADED PATIENTS LENGTHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH: ${participants.length}",
+    );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    titleController.dispose();
+    descriptionController.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,127 +87,72 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
 
     return Scaffold(
       body: SafeArea(
-        child: Container(
-          width: MyDimensionAdapter.getWidth(context),
-          // height: MyDimensionAdapter.getHeight(context),
-          color: MyColorPalette.formColor,
-          child: Column(
-            children: [
-              // APPBAR
-              MyCustAppBar(
-                title: "Planner",
-                backButton: () {
-                  Navigator.pop(context);
-                  Navigator.pop(context);
-                  MyNavigator.goTo(context, HomeLifePlanner());
-                },
-                backButtonColor: Colors.blue.shade300,
-              ),
-              SizedBox(height: 40),
-
-              //
-              MyCustTextfield(
-                labelText: "Title",
-                prefixIcon: Icons.title_rounded,
-                textController: titleController,
-                borderRadius: 7,
-                borderColor: MyColorPalette.borderColor,
-                activeBorderColor: MyColorPalette.borderColor,
-              ),
-              SizedBox(height: 10),
-
-              //
-              MyCustTextfield(
-                labelText: "Description",
-                prefixIcon: Icons.description_outlined,
-                textController: descriptionController,
-                borderRadius: 7,
-                borderColor: MyColorPalette.borderColor,
-                activeBorderColor: MyColorPalette.borderColor,
-              ),
-              SizedBox(height: 10.5),
-
-              // FROM and UNTIL date buttons
-              dateButtons(context),
-              SizedBox(height: 30),
-
-              /// TODO: not yet working
-              // Participants Dropdown
-              Container(
-                width: MyDimensionAdapter.getWidth(context) * 0.82,
-                height: MyDimensionAdapter.getHeight(context) * 0.065,
-                child: MyDropdownMenuButton(
-                  // icon: Icon(Icons.person_add_alt_rounded, size: 32),
-                  isLeadingIconVisible: false,
-                  items: participants,
-                  initialValue: participants[0],
-                  hintText: "Select Participants",
-                  onChanged: (participant) {},
+        child: SingleChildScrollView(
+          child: Container(
+            width: MyDimensionAdapter.getWidth(context),
+            // The height is only 0.9 not 1 because some parts of the screen is already occupied by SafeArea
+            height: MyDimensionAdapter.getHeight(context) * 0.9,
+            color: MyColorPalette.formColor,
+            child: Column(
+              children: [
+                // APPBAR
+                MyCustAppBar(
+                  title: "Planner",
+                  backButton: () {
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                    MyNavigator.goTo(context, HomeLifePlanner());
+                  },
+                  backButtonColor: Colors.blue.shade300,
                 ),
-              ),
-              SizedBox(height: 10),
+                SizedBox(height: 40),
 
-              Container(
-                width: MyDimensionAdapter.getWidth(context) * 0.80,
-                height: MyDimensionAdapter.getHeight(context) * 0.3,
-                color: Colors.amber,
-                child: ListView.builder(
-                  itemCount: addedParticipants.length,
-                  itemBuilder: (context, index) {
-                    return Card(
-                      child: CheckboxListTile.adaptive(
-                        value: false,
-                        title: Text(addedParticipants[index]),
-                        onChanged: (participant) {},
-                      ),
-                    );
+                //
+                MyCustTextfield(
+                  labelText: "Title",
+                  prefixIcon: Icons.title_rounded,
+                  textController: titleController,
+                  borderRadius: 7,
+                  borderColor: MyColorPalette.borderColor,
+                  activeBorderColor: MyColorPalette.borderColor,
+                ),
+                SizedBox(height: 10),
+
+                //
+                MyCustTextfield(
+                  labelText: "Description",
+                  prefixIcon: Icons.description_outlined,
+                  textController: descriptionController,
+                  borderRadius: 7,
+                  borderColor: MyColorPalette.borderColor,
+                  activeBorderColor: MyColorPalette.borderColor,
+                ),
+                SizedBox(height: 10.5),
+
+                // FROM and UNTIL date buttons
+                dateButtons(context),
+                SizedBox(height: 20),
+
+                participantsDropDown(context),
+
+                Spacer(),
+
+                saveAndCancelButtons(
+                  onPressSave: () {
+                    print("ADDED PARTICIPANTSssssssssssss: $addedParticipants");
+
+                    saveExecution(context);
+
+                    // This tells the system "Whatever is focused right now, please stop."
+                    FocusManager.instance.primaryFocus?.unfocus();
                   },
                 ),
-              ),
-
-              // SizedBox(height: 10),
-              Spacer(),
-
-              saveAndCancelButtons(
-                onPressSave: () {
-                  showMyAnimatedSnackBar(
-                    context: context,
-                    dataToDisplay: "SAVE button is pressed",
-                  );
-                },
-              ),
-              SizedBox(height: 40),
-            ],
+                SizedBox(height: 40),
+              ],
+            ),
           ),
         ),
       ),
-    );
-  }
-
-  Row saveAndCancelButtons({required VoidCallback onPressSave}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        MyCustButton(
-          buttonText: "CANCEL",
-          widthPercentage: 0.40,
-          color: MyColorPalette.formColor,
-          borderColor: Colors.transparent,
-          enableShadow: false,
-          buttonTextSpacing: 1,
-          onTap: () {
-            Navigator.pop(context);
-          },
-        ),
-        MyCustButton(
-          buttonText: "SAVE",
-          widthPercentage: 0.40,
-          buttonTextFontSize: kDefaultFontSize + 1,
-          buttonTextColor: Colors.white,
-          buttonTextSpacing: 1,
-          onTap: onPressSave,
-        ),
-      ],
     );
   }
 
@@ -175,10 +173,10 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
             widthPercentage: 0.39,
             buttonTextSpacing: 1,
             onTap: () async {
-              DateTime? tempFromDate = await myDatePicker(
-                context,
-                initialYear: DateTime.now().year,
-              );
+              // This tells the system "Whatever is focused right now, please stop."
+              FocusManager.instance.primaryFocus?.unfocus();
+
+              DateTime? tempFromDate = await myDatePicker(context);
 
               // if tempDate is null, do nothing
               if (tempFromDate != null) {
@@ -187,6 +185,13 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
                   setState(() {
                     fromDate = tempFromDate;
                   });
+                }
+                // tempFromDate cannot be before today
+                else if (tempFromDate.isBefore(DateTime.now())) {
+                  showMyAnimatedSnackBar(
+                    context: context,
+                    dataToDisplay: "The FROM date cannot be before today.",
+                  );
                 }
                 // tempFromDate must be before untilDate (if untilDate has value)
                 else if (tempFromDate.isBefore(untilDate!)) {
@@ -219,10 +224,10 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
             widthPercentage: 0.39,
             buttonTextSpacing: 1,
             onTap: () async {
-              DateTime? tempUntilDate = await myDatePicker(
-                context,
-                initialYear: DateTime.now().year,
-              );
+              // This tells the system "Whatever is focused right now, please stop."
+              FocusManager.instance.primaryFocus?.unfocus();
+
+              DateTime? tempUntilDate = await myDatePicker(context);
               // if tempDate is null, do nothing
               if (tempUntilDate != null) {
                 print("tempUntilDate is NOT NULLLLLLLLLLLL");
@@ -231,6 +236,13 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
                   showMyAnimatedSnackBar(
                     context: context,
                     dataToDisplay: "Please, fill out the FROM date first.",
+                  );
+                }
+                // tempUntilDate cannot be before today
+                else if (tempUntilDate.isBefore(DateTime.now())) {
+                  showMyAnimatedSnackBar(
+                    context: context,
+                    dataToDisplay: "The UNTIL date cannot be before today.",
                   );
                 }
                 // tempUntilDate must be after fromDate (if fromDate has value)
@@ -257,5 +269,251 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
         ],
       ),
     );
+  }
+
+  Column participantsDropDown(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      // crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        MyTextFormatter.p(
+          text: "Add Participants:",
+          fontsize: kDefaultFontSize - 1,
+        ),
+
+        Container(
+          width: MyDimensionAdapter.getWidth(context) * 0.8,
+          height: MyDimensionAdapter.getHeight(context) * 0.075,
+          decoration: BoxDecoration(
+            // color: Colors.blue.shade100,
+            borderRadius: BorderRadius.circular(7),
+          ),
+          child: Card(
+            margin: EdgeInsets.all(1),
+            color: (isAllParticipantsSelected)
+                ? const Color.fromARGB(255, 225, 237, 253)
+                : MyColorPalette.formColor,
+            borderOnForeground: true,
+            surfaceTintColor: MyColorPalette.splashColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(7),
+            ),
+            shadowColor: Colors.blue.shade200,
+            elevation: 2.5,
+            child: Theme(
+              data: Theme.of(context).copyWith(
+                splashColor: const Color.fromARGB(
+                  51,
+                  74,
+                  173,
+                  255,
+                ), // The ripple color (Splash)
+                // highlightColor:
+                //     MyColorPalette.formColor, // The background hold color
+              ),
+              child: CheckboxListTile.adaptive(
+                side: BorderSide(color: Colors.blue.shade200, width: 1.5),
+                // overlayColor: WidgetStatePropertyAll(Colors.amber),
+                // secondary: Icon(Icons.person_outline_rounded),
+                controlAffinity: ListTileControlAffinity.leading,
+                activeColor: Colors.blue.shade400,
+                contentPadding: EdgeInsets.only(left: 5, right: 5),
+                title: Text("All Patients"),
+                value: isAllParticipantsSelected,
+                onChanged: (value) {
+                  setState(() {
+                    isAllParticipantsSelected = value!;
+
+                    // remove all added participants if not all participants selected
+                    if (!isAllParticipantsSelected) {
+                      addedParticipants.clear();
+                    }
+                    // else, add all participants to addedParticipants list
+                    else {
+                      addedParticipants.addAll(
+                        participants.map((participant) {
+                          return participant.userID;
+                        }),
+                      );
+                    }
+
+                    // print(
+                    //   "PARTICIPANTS LENGTHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH: ${participants.length}",
+                    // );
+                    // print(
+                    //   "ADDED PARTICIPANTS LENGTHHHHHHHHHHHHHHHHHHHHHHHHHHHHH: ${addedParticipants.length}",
+                    // );
+
+                    // This helper method finds whatever text field is currently active and closes it
+                    FocusScope.of(context).unfocus();
+                  });
+                },
+              ),
+            ),
+          ),
+        ),
+
+        // Added Participants AREA
+        AnimatedContainer(
+          duration: Duration(milliseconds: 600),
+          curve: Curves.fastOutSlowIn,
+          width: MyDimensionAdapter.getWidth(context) * 0.77,
+          // if not all participants selected, show the added participants area
+          height: (!isAllParticipantsSelected)
+              ? MyDimensionAdapter.getHeight(context) * 0.3
+              : 0,
+          padding: EdgeInsets.only(left: 7, right: 7),
+          decoration: BoxDecoration(
+            color: const Color.fromARGB(255, 252, 253, 255),
+            border: Border(
+              left: BorderSide(width: 1, color: Colors.blue.shade200),
+              right: BorderSide(width: 1, color: Colors.blue.shade200),
+              bottom: BorderSide(width: 1, color: Colors.blue.shade200),
+            ),
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(7),
+              bottomRight: Radius.circular(7),
+            ),
+          ),
+
+          child: ListView.builder(
+            itemCount: participants.length,
+            itemBuilder: (context, index) {
+              return Card(
+                // the logic in this margin is simple if the index is first or last item there will be a larger margin
+                margin: (index == 0 || index == participants.length - 1)
+                    ? // if index is 0 means the first element, else it is the last element
+                      (index == 0)
+                          ? EdgeInsets.only(top: 7.5)
+                          : EdgeInsets.only(top: 7, bottom: 8)
+                    : EdgeInsets.only(top: 7),
+                color: const Color.fromARGB(255, 233, 242, 255),
+                borderOnForeground: true,
+                surfaceTintColor: MyColorPalette.splashColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(7),
+                ),
+                shadowColor: Colors.blue.shade100,
+                child: Theme(
+                  data: Theme.of(context).copyWith(
+                    splashColor: const Color.fromARGB(
+                      51,
+                      74,
+                      173,
+                      255,
+                    ), // The ripple color (Splash)
+                    // highlightColor:
+                    //     MyColorPalette.formColor, // The background hold color
+                  ),
+                  child: CheckboxListTile.adaptive(
+                    side: BorderSide(color: Colors.blue.shade200, width: 1.5),
+                    overlayColor: WidgetStatePropertyAll(Colors.amber),
+                    // secondary: Icon(Icons.person_outline_rounded),
+                    controlAffinity: ListTileControlAffinity.leading,
+                    activeColor: Colors.blue.shade200,
+                    contentPadding: EdgeInsets.only(left: 5, right: 5),
+                    value: addedParticipants.contains(
+                      participants[index].userID,
+                    ),
+                    title: Text(participants[index].name),
+                    onChanged: (participant) {
+                      setState(() {
+                        // if already added, remove from addedParticipants list
+                        if (addedParticipants.contains(
+                          participants[index].userID,
+                        )) {
+                          addedParticipants.remove(participants[index].userID);
+                        }
+                        // else, add to addedParticipants list
+                        else {
+                          addedParticipants.add(participants[index].userID);
+                        }
+
+                        // if all participants are added, set isAllParticipantsSelected to true
+                        if (addedParticipants.length == participants.length) {
+                          isAllParticipantsSelected = true;
+                        } else {
+                          isAllParticipantsSelected = false;
+                        }
+                      });
+                    },
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Row saveAndCancelButtons({required VoidCallback onPressSave}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        MyCustButton(
+          buttonText: "CANCEL",
+          widthPercentage: 0.40,
+          color: MyColorPalette.formColor,
+          borderColor: Colors.transparent,
+          enableShadow: false,
+          buttonTextSpacing: 1,
+          onTap: () {
+            Navigator.pop(context);
+          },
+        ),
+        MyCustButton(
+          buttonText: "SAVE",
+          widthPercentage: 0.40,
+          buttonTextFontSize: kDefaultFontSize + 1,
+          buttonTextColor: Colors.white,
+          buttonTextSpacing: 1,
+          onTap: onPressSave,
+        ),
+      ],
+    );
+  }
+
+  /// contains the execution logic when save button is pressed
+  void saveExecution(BuildContext context) {
+    if (titleController.text.isNotEmpty &&
+        descriptionController.text.isNotEmpty &&
+        fromDate != null &&
+        untilDate != null &&
+        addedParticipants.isNotEmpty) {
+      myAlertDialogue(
+        context: context,
+        alertTitle: "Confirm Save",
+        alertContent: "Are you sure you want to save this task?",
+        onApprovalPressed: () {
+          HomeLifePlannerRepository.addTask(
+            HomeLifePlannerModel(
+              // taskID is left empty here, because it will be generated in repository
+              taskID: '',
+              taskName: titleController.text,
+              taskDescription: descriptionController.text,
+              participants: addedParticipants.join(','),
+              fromDate: fromDate.toString(),
+              untilDate: untilDate.toString(),
+              createdAt: DateTime.now().toString(),
+              createdBy: FirebaseAuth.instance.currentUser!.uid,
+            ),
+          );
+          // removes the alert dialogue
+          Navigator.pop(context);
+          // // to return to previous screen
+          // Navigator.pop(context);
+          showMyAnimatedSnackBar(
+            context: context,
+            dataToDisplay: "The task has been saved successfully!",
+          );
+        },
+      );
+    } else {
+      showMyAnimatedSnackBar(
+        context: context,
+        dataToDisplay: "Please, fill out all the required fields.",
+      );
+    }
   }
 }

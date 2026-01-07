@@ -12,27 +12,34 @@ class HomeLifePlannerRepository {
   }
 
   // ADD
-  static void addTask(HomeLifePlanner planner) {
+  static void addTask(HomeLifePlannerModel planner) {
     DocumentReference docRef = _generatedDocID();
 
     docRef.set({
       "taskID": docRef.id,
       "taskName": planner.taskName,
+      "taskDescription": planner.taskDescription,
       "participants": planner.participants,
-      "scheduledDate": planner.scheduledDate,
+      "fromDate": planner.fromDate,
+      "untilDate": planner.untilDate,
       "createdAt": planner.createdAt,
       "createdBy": planner.createdBy,
     });
   }
 
   // EDIT
-  static void editTask({required taskID, required HomeLifePlanner planner}) {
+  static void editTask({
+    required taskID,
+    required HomeLifePlannerModel planner,
+  }) {
     DocumentReference docRef = _collectionReference.doc(taskID);
     docRef.set({
       // "taskID": docRef.id, // NOT EDITABLE
       "taskName": planner.taskName,
       "participants": planner.participants,
-      "scheduledDate": planner.scheduledDate,
+      // "scheduledDate": planner.scheduledDate,
+      "fromDate": planner.fromDate,
+      "untilDate": planner.untilDate,
       // "createdAt": planner.createdAt, // NOT EDITABLE
       "createdBy": planner.createdBy,
     }, SetOptions(merge: true));
@@ -40,7 +47,7 @@ class HomeLifePlannerRepository {
 
   // READ
   /// Can work with or without providing the following argument.
-  Future<List<HomeLifePlanner>> getAllTasks({
+  Future<List<HomeLifePlannerModel>> getAllTasks({
     String? field,
     String? value,
   }) async {
@@ -54,9 +61,9 @@ class HomeLifePlannerRepository {
       querySnapshot = await _collectionReference.get();
     }
 
-    List<HomeLifePlanner> tasks = querySnapshot.docs.map((doc) {
+    List<HomeLifePlannerModel> tasks = querySnapshot.docs.map((doc) {
       Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      return HomeLifePlanner.fromFirebase(taskID: doc.id, data: data);
+      return HomeLifePlannerModel.fromFirebase(taskID: doc.id, data: data);
     }).toList();
 
     return tasks;
