@@ -20,6 +20,8 @@ class HomeLifePlannerRepository {
       "taskName": planner.taskName,
       "taskDescription": planner.taskDescription,
       "participants": planner.participants,
+      "repeatInterval": planner.repeatInterval,
+      "time": planner.time,
       "fromDate": planner.fromDate,
       "untilDate": planner.untilDate,
       "createdAt": planner.createdAt,
@@ -37,6 +39,9 @@ class HomeLifePlannerRepository {
       // "taskID": docRef.id, // NOT EDITABLE
       "taskName": planner.taskName,
       "participants": planner.participants,
+      "taskDescription": planner.taskDescription,
+      "repeatInterval": planner.repeatInterval,
+      "time": planner.time,
       // "scheduledDate": planner.scheduledDate,
       "fromDate": planner.fromDate,
       "untilDate": planner.untilDate,

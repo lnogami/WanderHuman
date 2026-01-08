@@ -3,6 +3,8 @@ class HomeLifePlannerModel {
   final String taskName;
   final String taskDescription;
   final String participants;
+  final String repeatInterval;
+  final String time;
   final String untilDate;
   final String fromDate;
   final String createdAt;
@@ -13,6 +15,8 @@ class HomeLifePlannerModel {
     required this.taskName,
     required this.taskDescription,
     required this.participants,
+    required this.repeatInterval,
+    required this.time,
     required this.fromDate,
     required this.untilDate,
     required this.createdAt,
@@ -28,6 +32,8 @@ class HomeLifePlannerModel {
       taskName: data['taskName'] ?? '',
       taskDescription: data['taskDescription'] ?? '',
       participants: data['participants'] ?? '',
+      repeatInterval: data['repeatInterval'] ?? '',
+      time: data['time'] ?? '',
       fromDate: data["fromDate"] ?? '',
       untilDate: data["untilDate"] ?? '',
       createdAt: data["createdAt"] ?? '',

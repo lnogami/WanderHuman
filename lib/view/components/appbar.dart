@@ -13,6 +13,8 @@ class MyCustAppBar extends StatelessWidget {
   final FontWeight fontWeight;
   final double fontSize;
   final double actionButtonsRightMargin;
+  // newly added, subject to change
+  final Color shadowColor;
 
   const MyCustAppBar({
     super.key,
@@ -25,6 +27,7 @@ class MyCustAppBar extends StatelessWidget {
     this.textColor = MyColorPalette.titleTextColor,
     this.fontSize = (kDefaultFontSize + 7),
     this.fontWeight = FontWeight.w700,
+    this.shadowColor = const Color.fromARGB(10, 33, 149, 243), // newly added
   });
 
   @override
@@ -32,7 +35,16 @@ class MyCustAppBar extends StatelessWidget {
     return Container(
       width: MyDimensionAdapter.getWidth(context),
       height: kToolbarHeight,
-      decoration: BoxDecoration(color: color),
+      decoration: BoxDecoration(
+        color: color,
+        boxShadow: [
+          BoxShadow(
+            color: shadowColor,
+            offset: const Offset(0, 2),
+            blurRadius: 4,
+          ),
+        ],
+      ),
       child: Stack(
         alignment: Alignment.center,
         children: [

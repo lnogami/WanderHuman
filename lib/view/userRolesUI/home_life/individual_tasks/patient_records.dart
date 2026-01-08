@@ -5,7 +5,7 @@ import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/components/appbar.dart';
 import 'package:wanderhuman_app/view/components/cards3.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
-import 'package:wanderhuman_app/view/userRolesUI/social_services/view_patient_form.dart';
+import 'package:wanderhuman_app/view/userRolesUI/home_life/individual_tasks/individual_task.dart';
 
 /// Summary record of all patients
 class HomeLifePatientRecords extends StatelessWidget {
@@ -66,9 +66,10 @@ class HomeLifePatientRecords extends StatelessWidget {
                           Navigator.pop(context);
                           MyNavigator.goTo(
                             context,
-                            ViewPatientForm(
-                              patientPersonalInfo: snapshot.data![index],
-                            ),
+                            // ViewPatientForm(
+                            //   patientPersonalInfo: snapshot.data![index],
+                            // ),
+                            IndividualTasks(patientInfo: snapshot.data![index]),
                           );
                         },
                       );

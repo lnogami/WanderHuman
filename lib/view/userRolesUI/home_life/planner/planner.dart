@@ -14,6 +14,7 @@ import 'package:wanderhuman_app/view/components/appbar.dart';
 import 'package:wanderhuman_app/view/components/button.dart';
 import 'package:wanderhuman_app/view/components/date_picker.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
+import 'package:wanderhuman_app/view/components/tooltip.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/login/widgets/textfield.dart';
 
@@ -29,11 +30,31 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
 
-  // DATES
+  // DATES & TIME
   DateTime? fromDate;
-  // String fromDateButtonDisplay = "FROM";
   DateTime? untilDate;
-  // String untilDateButtonDisplay = "UNTIL";
+  TimeOfDay? time;
+  // choice for repeat every dropdown
+  final List<String> repeatChoices = const [
+    "Mon",
+    "Tue",
+    "Wed",
+    "Thu",
+    "Fri",
+    "Sat",
+    "Sun",
+  ];
+  // the selected repeat intervals
+  List<String> selectedRepeatInterval = [
+    "Mon",
+    "Tue",
+    "Wed",
+    "Thu",
+    "Fri",
+    "Sat",
+    "Sun",
+  ];
+  bool isRepeatedEveryDay = true;
 
   // PARTICIPANTS
   List<PersonalInfo> participants = [];
@@ -86,13 +107,15 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
     return Scaffold(
+      backgroundColor: MyColorPalette.formColor,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Container(
             width: MyDimensionAdapter.getWidth(context),
             // The height is only 0.9 not 1 because some parts of the screen is already occupied by SafeArea
-            height: MyDimensionAdapter.getHeight(context) * 0.9,
-            color: MyColorPalette.formColor,
+            // height: (isAllParticipantsSelected)
+            //     ? MyDimensionAdapter.getHeight(context) * 1.1
+            //     : MyDimensionAdapter.getHeight(context) * 1.3,
             child: Column(
               children: [
                 // APPBAR
@@ -104,6 +127,18 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
                     MyNavigator.goTo(context, HomeLifePlanner());
                   },
                   backButtonColor: Colors.blue.shade300,
+                  actionButtons: [
+                    MyCustTooltip(
+                      message: "Hold the buttons to know what they are for.",
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 15),
+                        child: Icon(
+                          Icons.info_outline_rounded,
+                          color: Colors.grey.shade400,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 SizedBox(height: 40),
 
@@ -127,24 +162,65 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
                   borderColor: MyColorPalette.borderColor,
                   activeBorderColor: MyColorPalette.borderColor,
                 ),
-                SizedBox(height: 10.5),
+                SizedBox(height: 16),
+
+                MyCustTooltip(
+                  message: "What time the task should be executed?",
+                  child: MyCustButton(
+                    buttonText: (time == null)
+                        ? "Select Time"
+                        : time!.format(context),
+                    buttonTextFontSize: kDefaultFontSize + 2,
+                    borderRadius: 7,
+                    color: MyColorPalette.formColor,
+                    borderColor: MyColorPalette.borderColor,
+                    buttonShadowColor: Colors.blue.shade200,
+                    widthPercentage: 0.8,
+                    buttonTextSpacing: 1,
+                    onTap: () async {
+                      TimeOfDay? tempTime = await showTimePicker(
+                        context: context,
+                        initialTime: TimeOfDay.now(),
+                      );
+                      setState(() {
+                        time = tempTime;
+                      });
+
+                      // This tells the system "Whatever is focused right now, please stop."
+                      FocusManager.instance.primaryFocus?.unfocus();
+                      print("TIMEEEEEEEEEE: $time");
+                    },
+                  ),
+                ),
+                SizedBox(height: 10),
+
+                MyCustTooltip(
+                  message: "How often the task should be repeated?",
+                  child: repeatDropDown(context),
+                ),
+                SizedBox(height: 12),
 
                 // FROM and UNTIL date buttons
-                dateButtons(context),
+                MyCustTooltip(
+                  message:
+                      "When the task should start [FROM] and when it approximately end [UNTIL]?",
+                  child: dateButtons(context),
+                ),
                 SizedBox(height: 20),
 
-                participantsDropDown(context),
+                MyCustTooltip(
+                  message: "Who are the participants involved in this task?",
+                  child: participantsDropDown(context),
+                ),
 
-                Spacer(),
+                // the space between the dropdown area and the buttons id proportional to whether all participants are selected or not (participantsArea is expanded).
+                SizedBox(height: (!isAllParticipantsSelected) ? 40 : 60),
 
                 saveAndCancelButtons(
                   onPressSave: () {
                     print("ADDED PARTICIPANTSssssssssssss: $addedParticipants");
 
                     saveExecution(context);
-
-                    // This tells the system "Whatever is focused right now, please stop."
-                    FocusManager.instance.primaryFocus?.unfocus();
                   },
                 ),
                 SizedBox(height: 40),
@@ -153,6 +229,168 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
           ),
         ),
       ),
+    );
+  }
+
+  Column repeatDropDown(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      // crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: MyDimensionAdapter.getWidth(context) * 0.8,
+          height: MyDimensionAdapter.getHeight(context) * 0.07,
+          decoration: BoxDecoration(
+            // color: Colors.blue.shade100,
+            borderRadius: BorderRadius.circular(7),
+          ),
+          child: Card(
+            margin: EdgeInsets.all(1),
+            color: (isRepeatedEveryDay)
+                ? const Color.fromARGB(255, 225, 237, 253)
+                : MyColorPalette.formColor,
+            borderOnForeground: true,
+            surfaceTintColor: MyColorPalette.splashColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(7),
+            ),
+            shadowColor: Colors.blue.shade200,
+            elevation: 2.5,
+            child: Theme(
+              data: Theme.of(
+                context,
+              ).copyWith(splashColor: const Color.fromARGB(51, 74, 173, 255)),
+              child: CheckboxListTile.adaptive(
+                side: BorderSide(color: Colors.blue.shade200, width: 1.5),
+                // overlayColor: WidgetStatePropertyAll(Colors.amber),
+                // secondary: Icon(Icons.person_outline_rounded),
+                controlAffinity: ListTileControlAffinity.leading,
+                activeColor: Colors.blue.shade400,
+                contentPadding: EdgeInsets.only(left: 5, right: 5),
+                title: Text(
+                  (isRepeatedEveryDay)
+                      ? "Every Day"
+                      : (selectedRepeatInterval.isEmpty)
+                      ? "Please Select a Day"
+                      : selectedRepeatInterval.join(", "),
+                ),
+                value: isRepeatedEveryDay,
+                onChanged: (value) {
+                  setState(() {
+                    // if isRepeatedEveryDay (value) is true, clear selectedRepeatInterval list
+                    if (isRepeatedEveryDay) {
+                      selectedRepeatInterval.clear();
+                    } else {
+                      selectedRepeatInterval.addAll(repeatChoices);
+                    }
+                    isRepeatedEveryDay = value!;
+
+                    // This helper method finds whatever text field is currently active and closes it
+                    FocusScope.of(context).unfocus();
+                  });
+                },
+              ),
+            ),
+          ),
+        ),
+
+        // Added Participants AREA
+        AnimatedContainer(
+          duration: Duration(milliseconds: 600),
+          curve: Curves.fastOutSlowIn,
+          width: MyDimensionAdapter.getWidth(context) * 0.77,
+          // if not all participants selected, show the added participants area
+          height: (!isRepeatedEveryDay)
+              ? MyDimensionAdapter.getHeight(context) * 0.3
+              : 0,
+          padding: EdgeInsets.only(left: 7, right: 7),
+          decoration: BoxDecoration(
+            color: const Color.fromARGB(255, 252, 253, 255),
+            border: Border(
+              left: BorderSide(width: 1, color: Colors.blue.shade200),
+              right: BorderSide(width: 1, color: Colors.blue.shade200),
+              bottom: BorderSide(width: 1, color: Colors.blue.shade200),
+            ),
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(7),
+              bottomRight: Radius.circular(7),
+            ),
+          ),
+
+          child: ListView.builder(
+            itemCount: repeatChoices.length,
+            itemBuilder: (context, index) {
+              return Card(
+                // the logic in this margin is simple if the index is first or last item there will be a larger margin
+                margin: (index == 0 || index == repeatChoices.length - 1)
+                    ? // if index is 0 means the first element, else it is the last element
+                      (index == 0)
+                          ? EdgeInsets.only(top: 7.5)
+                          : EdgeInsets.only(top: 7, bottom: 8)
+                    : EdgeInsets.only(top: 7),
+                color: const Color.fromARGB(255, 233, 242, 255),
+                borderOnForeground: true,
+                surfaceTintColor: MyColorPalette.splashColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(7),
+                ),
+                shadowColor: Colors.blue.shade100,
+                child: Theme(
+                  data: Theme.of(context).copyWith(
+                    splashColor: const Color.fromARGB(
+                      51,
+                      74,
+                      173,
+                      255,
+                    ), // The ripple color (Splash)
+                    // highlightColor:
+                    //     MyColorPalette.formColor, // The background hold color
+                  ),
+                  child: CheckboxListTile.adaptive(
+                    // to match the Card's shape
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(7),
+                    ),
+                    side: BorderSide(color: Colors.blue.shade200, width: 1.5),
+                    overlayColor: WidgetStatePropertyAll(Colors.amber),
+                    // secondary: Icon(Icons.person_outline_rounded),
+                    controlAffinity: ListTileControlAffinity.leading,
+                    activeColor: Colors.blue.shade200,
+                    contentPadding: EdgeInsets.only(left: 5, right: 5),
+                    title: Text(repeatChoices[index]),
+                    // if selectedRepeatInterval contains the current choice, value is true
+                    value: selectedRepeatInterval.contains(
+                      repeatChoices[index],
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        // if not yet added, add the day from the list
+                        if (value! == true) {
+                          selectedRepeatInterval.add(repeatChoices[index]);
+                        }
+                        // else, remove the day from selectedRepeatInterval list
+                        else {
+                          selectedRepeatInterval.remove(repeatChoices[index]);
+                        }
+
+                        // if all days are added, set isRepeatedEveryDay to true
+                        if (selectedRepeatInterval.length ==
+                            repeatChoices.length) {
+                          isRepeatedEveryDay = true;
+                        }
+                        //// the else is not necessary because if not all days are selected, this area will be hidden right away
+                        // else {
+                        //   isRepeatedEveryDay = false;
+                        // }
+                      });
+                    },
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -187,7 +425,9 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
                   });
                 }
                 // tempFromDate cannot be before today
-                else if (tempFromDate.isBefore(DateTime.now())) {
+                else if (tempFromDate.isBefore(
+                  DateTime.now().subtract(Duration(days: 1)),
+                )) {
                   showMyAnimatedSnackBar(
                     context: context,
                     dataToDisplay: "The FROM date cannot be before today.",
@@ -406,6 +646,10 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
                     //     MyColorPalette.formColor, // The background hold color
                   ),
                   child: CheckboxListTile.adaptive(
+                    // to match the Card's shape
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(7),
+                    ),
                     side: BorderSide(color: Colors.blue.shade200, width: 1.5),
                     overlayColor: WidgetStatePropertyAll(Colors.amber),
                     // secondary: Icon(Icons.person_outline_rounded),
@@ -476,8 +720,17 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
 
   /// contains the execution logic when save button is pressed
   void saveExecution(BuildContext context) {
+    // sort selectedRepeatInterval based on repeatChoices order
+    setState(() {
+      selectedRepeatInterval.sort((a, b) {
+        return repeatChoices.indexOf(a) - repeatChoices.indexOf(b);
+      });
+    });
+
     if (titleController.text.isNotEmpty &&
         descriptionController.text.isNotEmpty &&
+        time != null &&
+        selectedRepeatInterval.isNotEmpty &&
         fromDate != null &&
         untilDate != null &&
         addedParticipants.isNotEmpty) {
@@ -493,6 +746,8 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
               taskName: titleController.text,
               taskDescription: descriptionController.text,
               participants: addedParticipants.join(','),
+              repeatInterval: selectedRepeatInterval.join(','),
+              time: time.toString(),
               fromDate: fromDate.toString(),
               untilDate: untilDate.toString(),
               createdAt: DateTime.now().toString(),
@@ -501,8 +756,8 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
           );
           // removes the alert dialogue
           Navigator.pop(context);
-          // // to return to previous screen
-          // Navigator.pop(context);
+          // to return to previous screen
+          Navigator.pop(context);
           showMyAnimatedSnackBar(
             context: context,
             dataToDisplay: "The task has been saved successfully!",
