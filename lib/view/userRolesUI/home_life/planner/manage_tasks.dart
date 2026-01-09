@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:wanderhuman_app/helper/hl_planner_repository.dart';
+import 'package:wanderhuman_app/model/home_life_models/hl_planner_model.dart';
 import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/components/appbar.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
+import 'package:wanderhuman_app/view/userRolesUI/home_life/planner/planner.dart';
 import 'package:wanderhuman_app/view/userRolesUI/home_life/planner/task_card.dart';
 
 class HomeLifeManageTask extends StatefulWidget {
@@ -13,6 +16,14 @@ class HomeLifeManageTask extends StatefulWidget {
 }
 
 class _HomeLifeManageTaskState extends State<HomeLifeManageTask> {
+  Future<List<HomeLifePlannerModel>> getTasks() async {
+    List<HomeLifePlannerModel> tasks =
+        await HomeLifePlannerRepository.getAllTasks();
+
+    print("TASKSSSSSSSSSSSSSSSSSS: ${tasks.length}");
+    return tasks;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,7 +46,12 @@ class _HomeLifeManageTaskState extends State<HomeLifeManageTask> {
 
               body(context),
 
-              floatingButton(onTap: () {}),
+              floatingButton(
+                onTap: () {
+                  Navigator.pop(context);
+                  MyNavigator.goTo(context, HomeLifePlanner());
+                },
+              ),
             ],
           ),
         ),
@@ -50,10 +66,29 @@ class _HomeLifeManageTaskState extends State<HomeLifeManageTask> {
         width: MyDimensionAdapter.getWidth(context) * 0.8,
         height: MyDimensionAdapter.getHeight(context) * 0.9,
         // color: Colors.amber.shade100,
-        child: ListView.builder(
-          itemCount: 10,
-          itemBuilder: (context, index) {
-            return TaskCard();
+        child: FutureBuilder(
+          future: getTasks(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator.adaptive());
+            } else if (snapshot.data!.isEmpty) {
+              return Center(child: Text("No Task Found . ."));
+            } else {
+              return ListView.builder(
+                itemCount: snapshot.data!.length,
+                itemBuilder: (context, index) {
+                  return GestureDetector(
+                    onTap: () {
+                      MyNavigator.goTo(
+                        context,
+                        HomeLifePlanner(plannedTask: snapshot.data![index]),
+                      );
+                    },
+                    child: TaskCard(task: snapshot.data![index]),
+                  );
+                },
+              );
+            }
           },
         ),
       ),
@@ -67,14 +102,15 @@ class _HomeLifeManageTaskState extends State<HomeLifeManageTask> {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          width: 50,
-          height: 50,
+          width: 60,
+          height: 60,
           decoration: BoxDecoration(
             color: Colors.blue.shade400,
-            borderRadius: BorderRadius.circular(7),
+            borderRadius: BorderRadius.circular(50),
+            border: Border.all(color: Colors.white60, width: 2),
             boxShadow: [
               BoxShadow(
-                color: const Color.fromARGB(100, 1, 106, 203),
+                color: const Color.fromARGB(80, 1, 100, 200),
                 blurRadius: 4,
                 offset: Offset(0, 2),
                 blurStyle: BlurStyle.normal,
@@ -87,7 +123,7 @@ class _HomeLifeManageTaskState extends State<HomeLifeManageTask> {
               // ),
             ],
           ),
-          child: Icon(Icons.add_outlined, color: Colors.white, size: 32),
+          child: Icon(Icons.add_rounded, color: Colors.white, size: 32),
         ),
       ),
     );

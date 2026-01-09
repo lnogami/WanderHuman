@@ -27,10 +27,13 @@ class MyTextFormatter {
     double fontsize = (kDefaultFontSize + 4),
     FontStyle fontStyle = FontStyle.normal,
     FontWeight fontWeight = FontWeight.w600,
+    int maxLines = 1,
   }) {
     return Text(
       text,
       overflow: TextOverflow.ellipsis,
+      maxLines: maxLines,
+      softWrap: (maxLines > 1) ? true : false,
       style: TextStyle(
         fontSize: fontsize,
         fontStyle: fontStyle,

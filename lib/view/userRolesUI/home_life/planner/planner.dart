@@ -9,6 +9,7 @@ import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
 import 'package:wanderhuman_app/utilities/properties/date_formatter.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
+import 'package:wanderhuman_app/utilities/properties/time_of_day_formater.dart';
 import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
 import 'package:wanderhuman_app/view/components/appbar.dart';
 import 'package:wanderhuman_app/view/components/button.dart';
@@ -17,15 +18,22 @@ import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/components/tooltip.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/login/widgets/textfield.dart';
+import 'package:wanderhuman_app/view/userRolesUI/home_life/planner/manage_tasks.dart';
 
 class HomeLifePlanner extends StatefulWidget {
-  const HomeLifePlanner({super.key});
+  final HomeLifePlannerModel? plannedTask;
+  const HomeLifePlanner({super.key, this.plannedTask});
 
   @override
   State<HomeLifePlanner> createState() => _HomeLifePlannerState();
 }
 
 class _HomeLifePlannerState extends State<HomeLifePlanner> {
+  // CONTROLLS WRITE/EDIT ACCESS OF THE FORM
+  bool isEditable = true;
+  Color notEditableColor = Colors.grey.shade300;
+  // String bufferedStaffName = "";     // not yet implemented
+
   // TEXTFIELDS
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
@@ -62,6 +70,27 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
   List<String> addedParticipants = [];
   bool isAllParticipantsSelected = true;
 
+  /// Only works if plannedTask is provided
+  /// This will initialize the planner variable if planneTask is provided.
+  void initializePlannedTask() {
+    if (widget.plannedTask != null) {
+      // bufferedStaffName = getStaffName(widget.plannedTask!.createdBy).join(","); // not yet implemented
+      isEditable = false;
+      titleController.text = widget.plannedTask!.taskName;
+      descriptionController.text = widget.plannedTask!.taskDescription;
+      fromDate = DateTime.parse(widget.plannedTask!.fromDate); //
+      untilDate = DateTime.parse(widget.plannedTask!.untilDate);
+      time = MyTimeFormatter.stringToTimeOfDay(widget.plannedTask!.time);
+      selectedRepeatInterval = widget.plannedTask!.repeatInterval.split(",");
+      addedParticipants = widget.plannedTask!.participants.split(",");
+
+      // this will make the paricipants dropdown expand
+      if (addedParticipants.length != participants.length) {
+        isAllParticipantsSelected = false;
+      }
+    }
+  }
+
   /// Load participants from Database and add to participants list
   Future<void> loadParticipants() async {
     List<PersonalInfo> patientList =
@@ -84,12 +113,22 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
     participants.sort((a, b) {
       return a.name.compareTo(b.name);
     });
+
+    // notify the framework that participants have been loaded so the UI can rebuild
+    if (mounted) setState(() {});
   }
 
   @override
   void initState() {
     super.initState();
-    loadParticipants();
+    // load participants first, then initialize the planned task so
+    // initialization logic can rely on the participants list
+    loadParticipants().then((_) {
+      initializePlannedTask();
+      // ensure the UI reflects initialized values
+      if (mounted) setState(() {});
+    });
+
     print(
       "LOADED PATIENTS LENGTHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH: ${participants.length}",
     );
@@ -119,27 +158,7 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
             child: Column(
               children: [
                 // APPBAR
-                MyCustAppBar(
-                  title: "Planner",
-                  backButton: () {
-                    Navigator.pop(context);
-                    Navigator.pop(context);
-                    MyNavigator.goTo(context, HomeLifePlanner());
-                  },
-                  backButtonColor: Colors.blue.shade300,
-                  actionButtons: [
-                    MyCustTooltip(
-                      message: "Hold the buttons to know what they are for.",
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: 15),
-                        child: Icon(
-                          Icons.info_outline_rounded,
-                          color: Colors.grey.shade400,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                appbar(context),
                 SizedBox(height: 40),
 
                 //
@@ -148,8 +167,13 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
                   prefixIcon: Icons.title_rounded,
                   textController: titleController,
                   borderRadius: 7,
-                  borderColor: MyColorPalette.borderColor,
-                  activeBorderColor: MyColorPalette.borderColor,
+                  borderColor: (isEditable)
+                      ? MyColorPalette.borderColor
+                      : notEditableColor,
+                  activeBorderColor: (isEditable)
+                      ? MyColorPalette.borderColor
+                      : notEditableColor,
+                  isReadOnly: !isEditable,
                 ),
                 SizedBox(height: 10),
 
@@ -159,45 +183,32 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
                   prefixIcon: Icons.description_outlined,
                   textController: descriptionController,
                   borderRadius: 7,
-                  borderColor: MyColorPalette.borderColor,
-                  activeBorderColor: MyColorPalette.borderColor,
+                  borderColor: (isEditable)
+                      ? MyColorPalette.borderColor
+                      : notEditableColor,
+                  activeBorderColor: (isEditable)
+                      ? MyColorPalette.borderColor
+                      : notEditableColor,
+                  isReadOnly: !isEditable,
                 ),
                 SizedBox(height: 16),
 
                 MyCustTooltip(
                   message: "What time the task should be executed?",
-                  child: MyCustButton(
-                    buttonText: (time == null)
-                        ? "Select Time"
-                        : time!.format(context),
-                    buttonTextFontSize: kDefaultFontSize + 2,
-                    borderRadius: 7,
-                    color: MyColorPalette.formColor,
-                    borderColor: MyColorPalette.borderColor,
-                    buttonShadowColor: Colors.blue.shade200,
-                    widthPercentage: 0.8,
-                    buttonTextSpacing: 1,
-                    onTap: () async {
-                      TimeOfDay? tempTime = await showTimePicker(
-                        context: context,
-                        initialTime: TimeOfDay.now(),
-                      );
-                      setState(() {
-                        time = tempTime;
-                      });
-
-                      // This tells the system "Whatever is focused right now, please stop."
-                      FocusManager.instance.primaryFocus?.unfocus();
-                      print("TIMEEEEEEEEEE: $time");
-                    },
-                  ),
+                  child: timeButton(context),
                 ),
                 SizedBox(height: 10),
 
-                MyCustTooltip(
-                  message: "How often the task should be repeated?",
-                  child: repeatDropDown(context),
-                ),
+                (isEditable)
+                    ? MyCustTooltip(
+                        message: "How often the task should be repeated?",
+                        child: repeatDropDown(context),
+                      )
+                    : notEditableDisplay(
+                        context,
+                        text: selectedRepeatInterval.join(", "),
+                      ),
+
                 SizedBox(height: 12),
 
                 // FROM and UNTIL date buttons
@@ -212,6 +223,15 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
                   message: "Who are the participants involved in this task?",
                   child: participantsDropDown(context),
                 ),
+                // MyCustTooltip(
+                //   message: "Who are the participants involved in this task?",
+                //   child: (isEditable)
+                //       ? participantsDropDown(context)
+                //       : notEditableDisplay(
+                //           context,
+                //           text: addedParticipants.join(", "),
+                //         ),
+                // ),
 
                 // the space between the dropdown area and the buttons id proportional to whether all participants are selected or not (participantsArea is expanded).
                 SizedBox(height: (!isAllParticipantsSelected) ? 40 : 60),
@@ -223,12 +243,100 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
                     saveExecution(context);
                   },
                 ),
+                // (widget.plannedTask != null) ? footer() : SizedBox(),
                 SizedBox(height: 40),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  MyCustAppBar appbar(BuildContext context) {
+    return MyCustAppBar(
+      title: "Planner",
+      backButton: () {
+        Navigator.pop(context);
+        Navigator.pop(context);
+        MyNavigator.goTo(
+          context,
+          HomeLifePlanner(plannedTask: widget.plannedTask),
+        );
+      },
+      backButtonColor: Colors.blue.shade300,
+      actionButtons: [
+        MyCustTooltip(
+          message: "Hold the buttons to know what they are for.",
+          child: Icon(Icons.info_outline_rounded, color: Colors.grey.shade400),
+        ),
+        (widget.plannedTask != null)
+            ? MyCustTooltip(
+                message: "Tap to edit the task",
+                child: IconButton(
+                  onPressed: () {
+                    setState(() {
+                      isEditable = !isEditable;
+                    });
+                  },
+                  icon: Icon(
+                    (isEditable) ? Icons.draw_rounded : Icons.draw_outlined,
+                    color: (isEditable)
+                        ? Colors.blue.shade400
+                        : Colors.grey.shade400,
+                    size: (isEditable) ? 32 : 24,
+                  ),
+                ),
+              )
+            : SizedBox(),
+        // to limit the right padding of the action buttons if there are two of them
+        SizedBox(width: (widget.plannedTask != null) ? 5 : 15),
+      ],
+    );
+  }
+
+  Container notEditableDisplay(
+    BuildContext context, {
+    required String text,
+    double widthPercentage = 0.8,
+  }) {
+    return Container(
+      width: MyDimensionAdapter.getWidth(context) * widthPercentage,
+      height: MyDimensionAdapter.getHeight(context) * 0.065,
+      decoration: BoxDecoration(
+        color: Colors.white60,
+        border: Border.all(color: notEditableColor, width: 1.5),
+        borderRadius: BorderRadius.circular(7),
+      ),
+      child: Center(child: MyTextFormatter.p(text: text)),
+    );
+  }
+
+  MyCustButton timeButton(BuildContext context) {
+    return MyCustButton(
+      buttonText: (time == null) ? "Select Time" : time!.format(context),
+      buttonTextFontSize: kDefaultFontSize + 2,
+      borderRadius: 7,
+      color: MyColorPalette.formColor,
+      borderColor: (isEditable) ? MyColorPalette.borderColor : notEditableColor,
+      buttonShadowColor: (isEditable) ? Colors.blue.shade200 : notEditableColor,
+      widthPercentage: 0.8,
+      buttonTextSpacing: 1,
+      onTap: () async {
+        if (isEditable) {
+          TimeOfDay? tempTime = await showTimePicker(
+            context: context,
+            initialTime: TimeOfDay.now(),
+          );
+          setState(() {
+            time = tempTime;
+          });
+
+          // This tells the system "Whatever is focused right now, please stop."
+          FocusManager.instance.primaryFocus?.unfocus();
+          print("TIMEEEEEEEEEE: $time");
+        }
+      },
     );
   }
 
@@ -400,112 +508,136 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          MyCustButton(
-            buttonText: (fromDate == null)
-                ? "FROM"
-                : MyDateFormatter.formatDate(dateTimeInString: fromDate),
-            borderRadius: 7,
-            color: MyColorPalette.formColor,
-            borderColor: MyColorPalette.borderColor,
-            buttonShadowColor: Colors.blue.shade200,
-            widthPercentage: 0.39,
-            buttonTextSpacing: 1,
-            onTap: () async {
-              // This tells the system "Whatever is focused right now, please stop."
-              FocusManager.instance.primaryFocus?.unfocus();
+          // if plannedTask is not provided it is editable, else not editable
+          (widget.plannedTask == null)
+              ? MyCustButton(
+                  buttonText: (fromDate == null)
+                      ? "FROM"
+                      : MyDateFormatter.formatDate(dateTimeInString: fromDate),
+                  borderRadius: 7,
+                  color: MyColorPalette.formColor,
+                  borderColor: MyColorPalette.borderColor,
+                  buttonShadowColor: Colors.blue.shade200,
+                  widthPercentage: 0.39,
+                  buttonTextSpacing: 1,
+                  onTap: () async {
+                    DateTime? tempFromDate = await myDatePicker(context);
 
-              DateTime? tempFromDate = await myDatePicker(context);
+                    // This tells the system "Whatever is focused right now, please stop."
+                    // This one should be after an await call to work properly.
+                    FocusManager.instance.primaryFocus?.unfocus();
 
-              // if tempDate is null, do nothing
-              if (tempFromDate != null) {
-                // if untilDate is null, still set fromDate value
-                if (untilDate == null) {
-                  setState(() {
-                    fromDate = tempFromDate;
-                  });
-                }
-                // tempFromDate cannot be before today
-                else if (tempFromDate.isBefore(
-                  DateTime.now().subtract(Duration(days: 1)),
-                )) {
-                  showMyAnimatedSnackBar(
-                    context: context,
-                    dataToDisplay: "The FROM date cannot be before today.",
-                  );
-                }
-                // tempFromDate must be before untilDate (if untilDate has value)
-                else if (tempFromDate.isBefore(untilDate!)) {
-                  print("is BEFOREEEEEEEEEEEEEEEEE");
-                  setState(() {
-                    fromDate = tempFromDate;
-                  });
-                }
-                // just a visual dialog saying you can't choose a date that is before FROM date
-                else {
-                  showMyAnimatedSnackBar(
-                    context: context,
-                    dataToDisplay: "FROM date must be before UNTIL date",
-                  );
-                }
-              }
-              // for debugging purposes only (deletable)
-              print("FROM DATE CURRENT VALUE: $fromDate");
-            },
-          ),
+                    // if tempDate is null, do nothing
+                    if (tempFromDate != null) {
+                      // if untilDate is null, still set fromDate value
+                      if (untilDate == null) {
+                        setState(() {
+                          fromDate = tempFromDate;
+                        });
+                      }
+                      // tempFromDate cannot be before today
+                      else if (tempFromDate.isBefore(
+                        DateTime.now().subtract(Duration(days: 1)),
+                      )) {
+                        showMyAnimatedSnackBar(
+                          context: context,
+                          dataToDisplay:
+                              "The FROM date cannot be before today.",
+                        );
+                      }
+                      // tempFromDate must be before untilDate (if untilDate has value)
+                      else if (tempFromDate.isBefore(untilDate!)) {
+                        print("is BEFOREEEEEEEEEEEEEEEEE");
+                        setState(() {
+                          fromDate = tempFromDate;
+                        });
+                      }
+                      // just a visual dialog saying you can't choose a date that is before FROM date
+                      else {
+                        showMyAnimatedSnackBar(
+                          context: context,
+                          dataToDisplay: "FROM date must be before UNTIL date",
+                        );
+                      }
+                    }
+                    // for debugging purposes only (deletable)
+                    print("FROM DATE CURRENT VALUE: $fromDate");
+                  },
+                )
+              : notEditableDisplay(
+                  context,
+                  text: MyDateFormatter.formatDate(
+                    dateTimeInString: fromDate.toString(),
+                  ),
+                  widthPercentage: 0.38,
+                ),
           SizedBox(width: 7),
-          MyCustButton(
-            buttonText: (untilDate == null)
-                ? "UNTIL"
-                : MyDateFormatter.formatDate(dateTimeInString: untilDate),
-            borderRadius: 7,
-            color: MyColorPalette.formColor,
-            borderColor: MyColorPalette.borderColor,
-            buttonShadowColor: Colors.blue.shade200,
-            widthPercentage: 0.39,
-            buttonTextSpacing: 1,
-            onTap: () async {
-              // This tells the system "Whatever is focused right now, please stop."
-              FocusManager.instance.primaryFocus?.unfocus();
 
-              DateTime? tempUntilDate = await myDatePicker(context);
-              // if tempDate is null, do nothing
-              if (tempUntilDate != null) {
-                print("tempUntilDate is NOT NULLLLLLLLLLLL");
-                // if fromDate is null a snackbar will appear to ensure fromDate must be fillout first
-                if (fromDate == null) {
-                  showMyAnimatedSnackBar(
-                    context: context,
-                    dataToDisplay: "Please, fill out the FROM date first.",
-                  );
-                }
-                // tempUntilDate cannot be before today
-                else if (tempUntilDate.isBefore(DateTime.now())) {
-                  showMyAnimatedSnackBar(
-                    context: context,
-                    dataToDisplay: "The UNTIL date cannot be before today.",
-                  );
-                }
-                // tempUntilDate must be after fromDate (if fromDate has value)
-                else if (tempUntilDate.isAfter(fromDate!)) {
-                  print(
-                    "TEMPUNTILDATE isAfter FROM DATEEEEEEEEEEEEEEEEEEEEEEEEEEE",
-                  );
-                  setState(() {
-                    untilDate = tempUntilDate;
-                  });
-                }
-                // just a visual dialog saying you can't choose a date that is before FROM date
-                else {
-                  showMyAnimatedSnackBar(
-                    context: context,
-                    dataToDisplay: "UNTIL date must be after FROM date",
-                  );
-                }
-                // for debugging purposes only (deletable)
-                print("UNTIL DATE CURRENT VALUE: $untilDate");
-              }
-            },
-          ),
+          (isEditable)
+              ? MyCustButton(
+                  buttonText: (untilDate == null)
+                      ? "UNTIL"
+                      : MyDateFormatter.formatDate(dateTimeInString: untilDate),
+                  borderRadius: 7,
+                  color: MyColorPalette.formColor,
+                  borderColor: MyColorPalette.borderColor,
+                  buttonShadowColor: Colors.blue.shade200,
+                  widthPercentage: 0.39,
+                  buttonTextSpacing: 1,
+                  onTap: () async {
+                    DateTime? tempUntilDate = await myDatePicker(context);
+
+                    // This tells the system "Whatever is focused right now, please stop."
+                    // This one should be after an await call to work properly.
+                    FocusManager.instance.primaryFocus?.unfocus();
+
+                    // if tempDate is null, do nothing
+                    if (tempUntilDate != null) {
+                      print("tempUntilDate is NOT NULLLLLLLLLLLL");
+                      // if fromDate is null a snackbar will appear to ensure fromDate must be fillout first
+                      if (fromDate == null) {
+                        showMyAnimatedSnackBar(
+                          context: context,
+                          dataToDisplay:
+                              "Please, fill out the FROM date first.",
+                        );
+                      }
+                      // tempUntilDate cannot be before today
+                      else if (tempUntilDate.isBefore(DateTime.now())) {
+                        showMyAnimatedSnackBar(
+                          context: context,
+                          dataToDisplay:
+                              "The UNTIL date cannot be before today.",
+                        );
+                      }
+                      // tempUntilDate must be after fromDate (if fromDate has value)
+                      else if (tempUntilDate.isAfter(fromDate!)) {
+                        print(
+                          "TEMPUNTILDATE isAfter FROM DATEEEEEEEEEEEEEEEEEEEEEEEEEEE",
+                        );
+                        setState(() {
+                          untilDate = tempUntilDate;
+                        });
+                      }
+                      // just a visual dialog saying you can't choose a date that is before FROM date
+                      else {
+                        showMyAnimatedSnackBar(
+                          context: context,
+                          dataToDisplay: "UNTIL date must be after FROM date",
+                        );
+                      }
+                      // for debugging purposes only (deletable)
+                      print("UNTIL DATE CURRENT VALUE: $untilDate");
+                    }
+                  },
+                )
+              : notEditableDisplay(
+                  context,
+                  text: MyDateFormatter.formatDate(
+                    dateTimeInString: untilDate.toString(),
+                  ),
+                  widthPercentage: 0.38,
+                ),
         ],
       ),
     );
@@ -552,7 +684,12 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
                 //     MyColorPalette.formColor, // The background hold color
               ),
               child: CheckboxListTile.adaptive(
-                side: BorderSide(color: Colors.blue.shade200, width: 1.5),
+                side: BorderSide(
+                  color: (isEditable)
+                      ? Colors.blue.shade200
+                      : Colors.grey.shade400,
+                  width: 1.5,
+                ),
                 // overlayColor: WidgetStatePropertyAll(Colors.amber),
                 // secondary: Icon(Icons.person_outline_rounded),
                 controlAffinity: ListTileControlAffinity.leading,
@@ -561,32 +698,35 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
                 title: Text("All Patients"),
                 value: isAllParticipantsSelected,
                 onChanged: (value) {
-                  setState(() {
-                    isAllParticipantsSelected = value!;
+                  // this prevents execution if it is not editable
+                  if (isEditable) {
+                    setState(() {
+                      isAllParticipantsSelected = value!;
 
-                    // remove all added participants if not all participants selected
-                    if (!isAllParticipantsSelected) {
-                      addedParticipants.clear();
-                    }
-                    // else, add all participants to addedParticipants list
-                    else {
-                      addedParticipants.addAll(
-                        participants.map((participant) {
-                          return participant.userID;
-                        }),
-                      );
-                    }
+                      // remove all added participants if not all participants selected
+                      if (!isAllParticipantsSelected) {
+                        addedParticipants.clear();
+                      }
+                      // else, add all participants to addedParticipants list
+                      else {
+                        addedParticipants.addAll(
+                          participants.map((participant) {
+                            return participant.userID;
+                          }),
+                        );
+                      }
 
-                    // print(
-                    //   "PARTICIPANTS LENGTHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH: ${participants.length}",
-                    // );
-                    // print(
-                    //   "ADDED PARTICIPANTS LENGTHHHHHHHHHHHHHHHHHHHHHHHHHHHHH: ${addedParticipants.length}",
-                    // );
+                      // print(
+                      //   "PARTICIPANTS LENGTHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH: ${participants.length}",
+                      // );
+                      // print(
+                      //   "ADDED PARTICIPANTS LENGTHHHHHHHHHHHHHHHHHHHHHHHHHHHHH: ${addedParticipants.length}",
+                      // );
 
-                    // This helper method finds whatever text field is currently active and closes it
-                    FocusScope.of(context).unfocus();
-                  });
+                      // This helper method finds whatever text field is currently active and closes it
+                      FocusScope.of(context).unfocus();
+                    });
+                  }
                 },
               ),
             ),
@@ -650,7 +790,12 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(7),
                     ),
-                    side: BorderSide(color: Colors.blue.shade200, width: 1.5),
+                    side: BorderSide(
+                      color: (isEditable)
+                          ? Colors.blue.shade200
+                          : Colors.grey.shade400,
+                      width: 1.5,
+                    ),
                     overlayColor: WidgetStatePropertyAll(Colors.amber),
                     // secondary: Icon(Icons.person_outline_rounded),
                     controlAffinity: ListTileControlAffinity.leading,
@@ -661,25 +806,29 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
                     ),
                     title: Text(participants[index].name),
                     onChanged: (participant) {
-                      setState(() {
-                        // if already added, remove from addedParticipants list
-                        if (addedParticipants.contains(
-                          participants[index].userID,
-                        )) {
-                          addedParticipants.remove(participants[index].userID);
-                        }
-                        // else, add to addedParticipants list
-                        else {
-                          addedParticipants.add(participants[index].userID);
-                        }
+                      if (isEditable) {
+                        setState(() {
+                          // if already added, remove from addedParticipants list
+                          if (addedParticipants.contains(
+                            participants[index].userID,
+                          )) {
+                            addedParticipants.remove(
+                              participants[index].userID,
+                            );
+                          }
+                          // else, add to addedParticipants list
+                          else {
+                            addedParticipants.add(participants[index].userID);
+                          }
 
-                        // if all participants are added, set isAllParticipantsSelected to true
-                        if (addedParticipants.length == participants.length) {
-                          isAllParticipantsSelected = true;
-                        } else {
-                          isAllParticipantsSelected = false;
-                        }
-                      });
+                          // if all participants are added, set isAllParticipantsSelected to true
+                          if (addedParticipants.length == participants.length) {
+                            isAllParticipantsSelected = true;
+                          } else {
+                            isAllParticipantsSelected = false;
+                          }
+                        });
+                      }
                     },
                   ),
                 ),
@@ -707,12 +856,14 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
           },
         ),
         MyCustButton(
-          buttonText: "SAVE",
+          buttonText: (widget.plannedTask == null) ? "SAVE" : "UPDATE",
           widthPercentage: 0.40,
           buttonTextFontSize: kDefaultFontSize + 1,
           buttonTextColor: Colors.white,
+          color: (isEditable) ? Colors.blue : Colors.grey.shade400,
+          buttonShadowColor: (isEditable) ? Colors.blue : Colors.grey,
           buttonTextSpacing: 1,
-          onTap: onPressSave,
+          onTap: (isEditable) ? onPressSave : () {},
         ),
       ],
     );
@@ -736,28 +887,51 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
         addedParticipants.isNotEmpty) {
       myAlertDialogue(
         context: context,
-        alertTitle: "Confirm Save",
-        alertContent: "Are you sure you want to save this task?",
+        alertTitle: (widget.plannedTask == null)
+            ? "Confirm Save"
+            : "Confirm Update",
+        alertContent: (widget.plannedTask == null)
+            ? "Are you sure you want to save this task?"
+            : "Are you sure about this update you have made?",
         onApprovalPressed: () {
-          HomeLifePlannerRepository.addTask(
-            HomeLifePlannerModel(
-              // taskID is left empty here, because it will be generated in repository
-              taskID: '',
-              taskName: titleController.text,
-              taskDescription: descriptionController.text,
-              participants: addedParticipants.join(','),
-              repeatInterval: selectedRepeatInterval.join(','),
-              time: time.toString(),
-              fromDate: fromDate.toString(),
-              untilDate: untilDate.toString(),
-              createdAt: DateTime.now().toString(),
-              createdBy: FirebaseAuth.instance.currentUser!.uid,
-            ),
-          );
+          if (widget.plannedTask != null) {
+            HomeLifePlannerRepository.editTask(
+              taskID: widget.plannedTask!.taskID,
+              planner: HomeLifePlannerModel(
+                taskID: widget.plannedTask!.taskID,
+                taskName: titleController.text,
+                taskDescription: descriptionController.text,
+                participants: addedParticipants.join(','),
+                repeatInterval: selectedRepeatInterval.join(','),
+                time: time.toString(),
+                fromDate: fromDate.toString(),
+                untilDate: untilDate.toString(),
+                createdAt: widget.plannedTask!.createdAt,
+                createdBy: widget.plannedTask!.createdBy,
+              ),
+            );
+          } else {
+            HomeLifePlannerRepository.addTask(
+              HomeLifePlannerModel(
+                // taskID is left empty here, because it will be generated in repository
+                taskID: '',
+                taskName: titleController.text,
+                taskDescription: descriptionController.text,
+                participants: addedParticipants.join(','),
+                repeatInterval: selectedRepeatInterval.join(','),
+                time: time.toString(),
+                fromDate: fromDate.toString(),
+                untilDate: untilDate.toString(),
+                createdAt: DateTime.now().toString(),
+                createdBy: FirebaseAuth.instance.currentUser!.uid,
+              ),
+            );
+          }
           // removes the alert dialogue
           Navigator.pop(context);
           // to return to previous screen
           Navigator.pop(context);
+          MyNavigator.goTo(context, HomeLifeManageTask());
           showMyAnimatedSnackBar(
             context: context,
             dataToDisplay: "The task has been saved successfully!",
@@ -771,4 +945,34 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
       );
     }
   }
+
+  // // personal ID hash to personal name converter
+  // List<String> getStaffName(String names) {
+  //   // to store the staff names
+  //   List<String> staffNames = [];
+  //   // split all the id by ,
+  //   names.split(",").forEach((personalID) async {
+  //     PersonalInfo staff =
+  //         await MyPersonalInfoRepository.getSpecificPersonalInfo(
+  //           userID: personalID,
+  //         );
+  //     // then add all the names to staffNames list
+  //     staffNames.add(staff.name);
+  //     print("STAFF NAMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE: ${staff.name}");
+  //   });
+  //   setState(() {});
+  //   return staffNames;
+  // }
+  // Column footer() {
+  //   return Column(
+  //     children: [
+  //       SizedBox(height: 20),
+  //       MyTextFormatter.p(
+  //         text: "Created by: $bufferedStaffName",
+  //         fontsize: kDefaultFontSize - 2,
+  //         color: Colors.grey.shade600,
+  //       ),
+  //     ],
+  //   );
+  // }
 }

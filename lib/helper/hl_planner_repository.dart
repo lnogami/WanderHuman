@@ -52,17 +52,20 @@ class HomeLifePlannerRepository {
 
   // READ
   /// Can work with or without providing the following argument.
-  Future<List<HomeLifePlannerModel>> getAllTasks({
+  static Future<List<HomeLifePlannerModel>> getAllTasks({
     String? field,
     String? value,
   }) async {
     late QuerySnapshot querySnapshot;
 
+    // for querying purposes
     if (field != null && value != null) {
       querySnapshot = await _collectionReference
           .where(field, isEqualTo: value)
           .get();
-    } else {
+    }
+    // for no query, get all records
+    else {
       querySnapshot = await _collectionReference.get();
     }
 
