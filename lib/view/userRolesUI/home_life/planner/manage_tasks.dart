@@ -10,7 +10,7 @@ import 'package:wanderhuman_app/view/components/info_dialogue.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/userRolesUI/home_life/planner/planner.dart';
-import 'package:wanderhuman_app/view/userRolesUI/home_life/planner/task_card.dart';
+import 'package:wanderhuman_app/view/userRolesUI/home_life/planner/planner_task_card.dart';
 
 class HomeLifeManageTask extends StatefulWidget {
   const HomeLifeManageTask({super.key});

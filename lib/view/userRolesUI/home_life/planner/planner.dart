@@ -248,7 +248,7 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
                   },
                 ),
                 (widget.plannedTask != null) ? footer() : SizedBox(),
-                SizedBox(height: 40),
+                SizedBox(height: 20),
               ],
             ),
           ),
@@ -985,7 +985,7 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
   Column footer() {
     return Column(
       children: [
-        SizedBox(height: 20),
+        SizedBox(height: 45),
         MyTextFormatter.p(
           text: "Created by: $bufferedStaffName",
           fontsize: kDefaultFontSize - 2,

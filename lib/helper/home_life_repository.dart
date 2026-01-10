@@ -147,11 +147,19 @@
 //   }
 // }
 
+// ignore_for_file: avoid_print
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:wanderhuman_app/helper/hl_planner_repository.dart';
+import 'package:wanderhuman_app/helper/personal_info_repository.dart';
+import 'package:wanderhuman_app/model/home_life_models/hl_planner_model.dart';
 import 'package:wanderhuman_app/model/home_life_models/patient_task_model.dart';
 import 'package:wanderhuman_app/model/home_life_models/task_model.dart';
+import 'package:wanderhuman_app/model/personal_info.dart';
+import 'package:wanderhuman_app/utilities/properties/date_formatter.dart';
 
-// Fixed typo: Repositry -> Repository
+/// HomeLifeRepository is the executer of the HomeLifePlanner
+/// Therefore, HomeLifePlanner is the single source of truth for every tasks.
 class HomeLifeRepository {
   /// Root collection reference
   static final CollectionReference _rootCollection = FirebaseFirestore.instance
@@ -161,14 +169,96 @@ class HomeLifeRepository {
   // Level 1: The Date (The "Container")
   // =========================================================
 
-  /// Creates the document for the day (e.g., '2025-10-27')
-  /// RENAMED: 'taskID' -> 'dateID' to avoid confusion with actual tasks
+  /// Creates the document for the day (e.g., 'DEC 17,2025' or '2025-10-27')
+  /// ##### This will only create a Document once per day
   static Future<void> createDailyRecord({required String dateID}) async {
-    // We just set a dummy field or a timestamp so the document exists
-    await _rootCollection.doc(dateID).set({
-      "createdAt": FieldValue.serverTimestamp(),
-      "dateID": dateID,
-    });
+    // to format the date (remove the time) so we could have a uniform time
+    String dateOnlyFormat = MyDateFormatter.formatDate(
+      dateTimeInString: dateID,
+    );
+
+    // if the record is not yet added, add it
+    if (!await _isDailyRecordAlreadyRecorded(dateOnlyFormat)) {
+      await _rootCollection.doc(dateOnlyFormat).set({
+        "createdAt": DateTime.now().toString(),
+        "dateID": dateOnlyFormat,
+      }, SetOptions(merge: true));
+      // this print is for debugging purposes only
+      print("CREATE RECORD: DAILY RECORD HAS BEEN ADDED");
+
+      // first, get all the task from the HomeLifePlanner
+      //        HomeLifePlanner is the source of truth forthese tasks
+      List<HomeLifePlannerModel> tasks =
+          await HomeLifePlannerRepository.getAllTasks();
+      // then, iterate all the tasks to make individual records
+      for (var task in tasks) {
+        // in each task, there are multiple participants, so get each participant's ID by spliting them
+        List participantsIDs = task.participants.split(",");
+        // and then, iterate again, base on those participantsIDs
+        for (var participantID in participantsIDs) {
+          // since those are just IDs, now we need to get the actual data of those participant patient
+          //                           so we can use them later on
+          PersonalInfo personalInfo =
+              await MyPersonalInfoRepository.getSpecificPersonalInfo(
+                userID: participantID,
+              );
+          //
+
+          /// TODO: this implementation of customized ID is not yet final, because it might not work as intended later on.
+          // this is for creating a customized taskID, that is Readable in the database (for debugging purposes)
+          String tempTaskID = "L2_${personalInfo.name}_${task.taskName}";
+          // after that, replace all the whitespaces with underscores, so that it will be a single word
+          //             I am not still familiar with RegExp's symbols hehe
+          String formattedTaskID = tempTaskID.replaceAll(RegExp(r'\s+'), '_');
+
+          // finally, for the Layer 2 (HLParticipants)
+          //          Add those participants in the dailyRecord
+          _addParticipant(
+            dateID: dateOnlyFormat,
+            patient: HLPatientTaskModel(
+              patientName: personalInfo.name,
+              assignedCaregiver: task.createdBy,
+            ),
+
+            /// TODO: this implementation of customized ID is not yet final, because it might not work as intended later on.
+            // the taskID for each individual task is named from the combination
+            //            of taskName and participant patient's name (for readability in the database, debugging purposes)
+            taskID: formattedTaskID,
+          );
+          print("ADDED PARTICIPANT: ${personalInfo.name}");
+
+          // and also, finally, for the Layer 3 (HLTasks)
+          //            Add those tasks in the dailyRecord
+          _addTask(
+            dateID: dateOnlyFormat, // for L1 Doc
+            participantID: formattedTaskID, // for L2 Doc
+            task: HLTaskModel(
+              // L3 just means Layer 3, to indicate it is in the Tasks
+              taskID: "L3_$formattedTaskID",
+              taskName: task.taskName,
+              description: task.taskDescription,
+              isDone: false,
+              caregiverId: task.createdBy,
+            ),
+          );
+          print("ADDED TASKKKKK: L3_${formattedTaskID}");
+        }
+      }
+    } else {
+      print("CREATE RECORD: DAILY RECORD ALREADYYYY EXISTS");
+    }
+  }
+
+  /// To check if the daily record is already recorded
+  /// This method is visible in the back-end
+  static Future<bool> _isDailyRecordAlreadyRecorded(String dateID) async {
+    // bool isAlreadyRecorded = false;
+    QuerySnapshot homeLifeRepository = await _rootCollection
+        .where("dateID", isEqualTo: dateID)
+        .get();
+
+    // return isAlreadyRecorded;
+    return homeLifeRepository.docs.isNotEmpty;
   }
 
   // =========================================================
@@ -177,17 +267,20 @@ class HomeLifeRepository {
 
   /// To ADD participants (patients) to the specific Date
   /// CHANGED: Added 'dateID' as a required parameter. No more 'bufferedTaskID'.
-  static Future<void> addParticipant({
+  /// ###### Part of the automation in createDailyRecord() method
+  static Future<void> _addParticipant({
     required String dateID,
     required HLPatientTaskModel patient,
+    // the taskID is a combination of taskName and the patientsName, for readability when debugging in the database hehe
+    required String taskID,
   }) async {
     DocumentReference docRef = _rootCollection
         .doc(dateID)
         .collection("HLParticipants")
-        .doc(patient.id);
+        .doc(taskID);
 
     await docRef.set({
-      "patientID": patient.id,
+      "patientID": taskID,
       "patientName": patient.patientName,
       "assignedCaregiverID": patient.assignedCaregiver,
     });
@@ -198,7 +291,8 @@ class HomeLifeRepository {
   // =========================================================
 
   /// To ADD a task for a specific patient on a specific day
-  static Future<void> addTask({
+  /// ###### Part of the automation in createDailyRecord() method
+  static Future<void> _addTask({
     required String dateID,
     required String participantID,
     required HLTaskModel task,
@@ -212,8 +306,8 @@ class HomeLifeRepository {
         .doc(task.taskID); // If taskID is null, use .doc() to auto-generate
 
     await docRef.set({
-      "taskID":
-          docRef.id, // Ensures the ID inside the data matches the document name
+      "taskID": task
+          .taskID, // Ensures the ID inside the data matches the document name
       "taskName": task.taskName,
       "description": task.description,
       "isDone": task.isDone,
@@ -225,9 +319,56 @@ class HomeLifeRepository {
   // Deletion Logic
   // =========================================================
 
-  // WARNING: This only deletes the 'cover'. The tasks inside still exist technically.
-  static Future<void> removeDailyRecord({required String dateID}) async {
-    await _rootCollection.doc(dateID).delete();
+  // /// WARNING: This only deletes the 'cover'. The tasks inside still exist technically.
+  // static Future<void> removeDailyRecord({required String dateID}) async {
+  //   await _rootCollection.doc(dateID).delete();
+  // }
+
+  /// This will safely delete the dailyRecord doc and its nested data (subcollections and documents) insdie it.
+  static Future<void> deleteDailyRecord(String dateID) async {
+    // 1. Reference the day
+    DocumentReference dayRef = _rootCollection.doc(dateID);
+    // 2. FETCH all participants inside this day
+    var participantsSnapshot = await dayRef.collection('HLParticipants').get();
+    // 3. LOOP through each participant
+    for (var participantDoc in participantsSnapshot.docs) {
+      // A. FETCH all tasks for this participant
+      var tasksSnapshot = await participantDoc.reference
+          .collection('HLTasks')
+          .get();
+      // B. DELETE every task (Batching is faster, but simple loop works for small data)
+      for (var taskDoc in tasksSnapshot.docs) {
+        await taskDoc.reference.delete();
+      }
+      // C. DELETE the participant document itself
+      await participantDoc.reference.delete();
+    }
+    // 4. FINALLY, delete the day (the parent document)
+    await dayRef.delete();
+  }
+
+  /// This is for safely deleting an Individual's Record
+  static Future<void> deleteIndividualRecord({
+    required String dateID,
+    required String taskID,
+  }) async {
+    // 1. Reference the day
+    DocumentReference dayRef = _rootCollection.doc(dateID);
+    // 2. FETCH all participants inside this day
+    var participantsSnapshot = await dayRef
+        .collection('HLParticipants')
+        .doc(taskID)
+        .get();
+    // A. FETCH all tasks for this participant
+    var tasksSnapshot = await participantsSnapshot.reference
+        .collection('HLTasks')
+        .get();
+    // B. DELETE every task (Batching is faster, but simple loop works for small data)
+    for (var taskDoc in tasksSnapshot.docs) {
+      await taskDoc.reference.delete();
+    }
+    // C. DELETE the participant document itself
+    await participantsSnapshot.reference.delete();
   }
 
   static Future<void> removeParticipant({

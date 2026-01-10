@@ -10,11 +10,11 @@ class HLTaskModel {
 
   // 2. Constructor: How we create the object in our app
   HLTaskModel({
-    this.taskID,
+    required this.taskID,
     required this.taskName,
     required this.description,
-    this.isDone = false, // Default to false (not done) when creating
-    this.caregiverId,
+    required this.isDone, // Default to false (not done) when creating
+    required this.caregiverId,
   });
 
   // 3. toMap(): The "Packer"
