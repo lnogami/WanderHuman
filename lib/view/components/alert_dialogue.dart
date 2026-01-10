@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
 
 /// [onPressed] is a callback function (){}
+/// A Dialog that is primary used for decision making (Yes/No)
 void myAlertDialogue({
   required BuildContext context,
   String alertTitle = "Alert",

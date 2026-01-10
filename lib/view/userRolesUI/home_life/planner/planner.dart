@@ -32,7 +32,7 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
   // CONTROLLS WRITE/EDIT ACCESS OF THE FORM
   bool isEditable = true;
   Color notEditableColor = Colors.grey.shade300;
-  // String bufferedStaffName = "";     // not yet implemented
+  String bufferedStaffName = ""; // not yet implemented
 
   // TEXTFIELDS
   final TextEditingController titleController = TextEditingController();
@@ -72,9 +72,8 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
 
   /// Only works if plannedTask is provided
   /// This will initialize the planner variable if planneTask is provided.
-  void initializePlannedTask() {
+  Future<void> initializePlannedTask() async {
     if (widget.plannedTask != null) {
-      // bufferedStaffName = getStaffName(widget.plannedTask!.createdBy).join(","); // not yet implemented
       isEditable = false;
       titleController.text = widget.plannedTask!.taskName;
       descriptionController.text = widget.plannedTask!.taskDescription;
@@ -84,11 +83,16 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
       selectedRepeatInterval = widget.plannedTask!.repeatInterval.split(",");
       addedParticipants = widget.plannedTask!.participants.split(",");
 
+      bufferedStaffName = (await getStaffName(
+        widget.plannedTask!.createdBy,
+      )).join(","); // await the async call
+
       // this will make the paricipants dropdown expand
       if (addedParticipants.length != participants.length) {
         isAllParticipantsSelected = false;
       }
     }
+    setState(() {});
   }
 
   /// Load participants from Database and add to participants list
@@ -243,7 +247,7 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
                     saveExecution(context);
                   },
                 ),
-                // (widget.plannedTask != null) ? footer() : SizedBox(),
+                (widget.plannedTask != null) ? footer() : SizedBox(),
                 SizedBox(height: 40),
               ],
             ),
@@ -275,9 +279,19 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
                 message: "Tap to edit the task",
                 child: IconButton(
                   onPressed: () {
-                    setState(() {
-                      isEditable = !isEditable;
-                    });
+                    // permission previlige, you can't edit this task because you are not the one who created this.
+                    if (FirebaseAuth.instance.currentUser!.uid ==
+                        widget.plannedTask!.createdBy) {
+                      setState(() {
+                        isEditable = !isEditable;
+                      });
+                    } else {
+                      showMyAnimatedSnackBar(
+                        context: context,
+                        dataToDisplay:
+                            "You don't have permission to edit this task. Ask the creator [$bufferedStaffName] to edit it.",
+                      );
+                    }
                   },
                   icon: Icon(
                     (isEditable) ? Icons.draw_rounded : Icons.draw_outlined,
@@ -529,21 +543,22 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
 
                     // if tempDate is null, do nothing
                     if (tempFromDate != null) {
-                      // if untilDate is null, still set fromDate value
-                      if (untilDate == null) {
-                        setState(() {
-                          fromDate = tempFromDate;
-                        });
-                      }
                       // tempFromDate cannot be before today
-                      else if (tempFromDate.isBefore(
+                      if (tempFromDate.isBefore(
                         DateTime.now().subtract(Duration(days: 1)),
                       )) {
                         showMyAnimatedSnackBar(
+                          // ignore: use_build_context_synchronously
                           context: context,
                           dataToDisplay:
                               "The FROM date cannot be before today.",
                         );
+                      }
+                      // if untilDate is null, still set fromDate value
+                      else if (untilDate == null) {
+                        setState(() {
+                          fromDate = tempFromDate;
+                        });
                       }
                       // tempFromDate must be before untilDate (if untilDate has value)
                       else if (tempFromDate.isBefore(untilDate!)) {
@@ -929,8 +944,11 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
           }
           // removes the alert dialogue
           Navigator.pop(context);
-          // to return to previous screen
+          // removes this screen
           Navigator.pop(context);
+          // removes the previous screen to simulate a refreshing page
+          Navigator.pop(context);
+          // to return to previous screen
           MyNavigator.goTo(context, HomeLifeManageTask());
           showMyAnimatedSnackBar(
             context: context,
@@ -946,33 +964,34 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
     }
   }
 
-  // // personal ID hash to personal name converter
-  // List<String> getStaffName(String names) {
-  //   // to store the staff names
-  //   List<String> staffNames = [];
-  //   // split all the id by ,
-  //   names.split(",").forEach((personalID) async {
-  //     PersonalInfo staff =
-  //         await MyPersonalInfoRepository.getSpecificPersonalInfo(
-  //           userID: personalID,
-  //         );
-  //     // then add all the names to staffNames list
-  //     staffNames.add(staff.name);
-  //     print("STAFF NAMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE: ${staff.name}");
-  //   });
-  //   setState(() {});
-  //   return staffNames;
-  // }
-  // Column footer() {
-  //   return Column(
-  //     children: [
-  //       SizedBox(height: 20),
-  //       MyTextFormatter.p(
-  //         text: "Created by: $bufferedStaffName",
-  //         fontsize: kDefaultFontSize - 2,
-  //         color: Colors.grey.shade600,
-  //       ),
-  //     ],
-  //   );
-  // }
+  // personal ID hash to personal name converter
+  Future<List<String>> getStaffName(String names) async {
+    // to store the staff names
+    List<String> staffNames = [];
+    // split all the id by ,
+    List<String> personalIDs = names.split(",");
+    for (String personalID in personalIDs) {
+      PersonalInfo staff =
+          await MyPersonalInfoRepository.getSpecificPersonalInfo(
+            userID: personalID,
+          );
+      // then add all the names to staffNames list
+      staffNames.add(staff.name);
+      print("STAFF NAMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE: ${staff.name}");
+    }
+    return staffNames;
+  }
+
+  Column footer() {
+    return Column(
+      children: [
+        SizedBox(height: 20),
+        MyTextFormatter.p(
+          text: "Created by: $bufferedStaffName",
+          fontsize: kDefaultFontSize - 2,
+          color: Colors.grey.shade600,
+        ),
+      ],
+    );
+  }
 }

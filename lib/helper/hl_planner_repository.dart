@@ -78,7 +78,7 @@ class HomeLifePlannerRepository {
   }
 
   // DELETE
-  void deleteTask({required String taskID}) {
+  static Future<void> deleteTask({required String taskID}) async {
     _collectionReference.doc(taskID).delete();
   }
 }

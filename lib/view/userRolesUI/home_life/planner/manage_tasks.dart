@@ -1,10 +1,14 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/helper/hl_planner_repository.dart';
 import 'package:wanderhuman_app/model/home_life_models/hl_planner_model.dart';
 import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
+import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
 import 'package:wanderhuman_app/view/components/appbar.dart';
+import 'package:wanderhuman_app/view/components/info_dialogue.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
+import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/userRolesUI/home_life/planner/planner.dart';
 import 'package:wanderhuman_app/view/userRolesUI/home_life/planner/task_card.dart';
 
@@ -22,6 +26,11 @@ class _HomeLifeManageTaskState extends State<HomeLifeManageTask> {
 
     print("TASKSSSSSSSSSSSSSSSSSS: ${tasks.length}");
     return tasks;
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override
@@ -48,7 +57,6 @@ class _HomeLifeManageTaskState extends State<HomeLifeManageTask> {
 
               floatingButton(
                 onTap: () {
-                  Navigator.pop(context);
                   MyNavigator.goTo(context, HomeLifePlanner());
                 },
               ),
@@ -83,6 +91,44 @@ class _HomeLifeManageTaskState extends State<HomeLifeManageTask> {
                         context,
                         HomeLifePlanner(plannedTask: snapshot.data![index]),
                       );
+                    },
+                    onLongPress: () {
+                      if (FirebaseAuth.instance.currentUser!.uid ==
+                          snapshot.data![index].createdBy) {
+                        myAlertDialogue(
+                          context: context,
+                          alertTitle:
+                              "Delete ${snapshot.data![index].taskName}?",
+                          alertContent:
+                              "You created this task, are you sure you want to delete this task?",
+                          onApprovalPressed: () {
+                            Future.delayed(Duration(milliseconds: 800), () {
+                              HomeLifePlannerRepository.deleteTask(
+                                taskID: snapshot.data![index].taskID,
+                              );
+                            });
+                            // Navigator.pop(context);
+                            myInfoDialogue(
+                              context: context,
+                              alertTitle: "Notice",
+                              alertContent:
+                                  "The Task '${snapshot.data![index].taskName}' was Successfuly Deleted!",
+                              onPress: () {
+                                // to simulate a refreshing interface
+                                Navigator.pop(context);
+                                Navigator.pop(context);
+                                MyNavigator.goTo(context, HomeLifeManageTask());
+                              },
+                            );
+                          },
+                        );
+                      } else {
+                        showMyAnimatedSnackBar(
+                          context: context,
+                          dataToDisplay:
+                              "You did not created this task, therefore you cannot delete it.",
+                        );
+                      }
                     },
                     child: TaskCard(task: snapshot.data![index]),
                   );

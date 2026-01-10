@@ -70,6 +70,9 @@ class MyPersonalInfoRepository {
     required String userID,
   }) async {
     try {
+      // DocumentSnapshot queryDocumentSnapshot = await FirebaseFirestore.instance.collection("Personal Info").where("userID", isEqualTo: userID).get().then((value) => value.docs.first);
+      // DocumentSnapshot queryDocumentSnapshot = await _personalInfoCollectionReference.doc(userID).get();
+
       List<PersonalInfo> allPersonalInfoRecords =
           await getAllPersonalInfoRecords();
       PersonalInfo? personalInfo;
