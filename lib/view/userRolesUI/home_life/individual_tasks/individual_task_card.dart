@@ -1,18 +1,25 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:wanderhuman_app/model/home_life_models/hl_planner_model.dart';
+import 'package:wanderhuman_app/helper/home_life_repository.dart';
+import 'package:wanderhuman_app/model/home_life_models/task_model.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
 import 'package:wanderhuman_app/view/components/lines.dart';
 
 class IndividualTaskCard extends StatefulWidget {
-  final HomeLifePlannerModel? plannedTask; // not yet implemented
+  final String dateID;
+  final String participantID;
+  final HLTaskModel plannedTask;
   final double widthPercentage;
   final double heightPercentage;
   const IndividualTaskCard({
     super.key,
     this.widthPercentage = 0.9,
     this.heightPercentage = 0.2,
-    this.plannedTask,
+    required this.dateID,
+    required this.participantID,
+    required this.plannedTask,
   });
 
   @override
@@ -20,13 +27,14 @@ class IndividualTaskCard extends StatefulWidget {
 }
 
 class _IndividualTaskCardState extends State<IndividualTaskCard> {
+  bool isDone = true;
   @override
   Widget build(BuildContext context) {
     // to make the ripple effect of Inkwell visible
     return Container(
       width: MyDimensionAdapter.getWidth(context) * 0.8,
       height: MyDimensionAdapter.getHeight(context) * 0.14,
-      margin: EdgeInsets.only(top: 10),
+      margin: EdgeInsets.only(top: 7, left: 3, right: 3, bottom: 3),
       // padding: EdgeInsets.only(left: 10, right: 10, top: 5, bottom: 5),
       decoration: BoxDecoration(
         // color: Colors.blue.shade100,
@@ -60,7 +68,15 @@ class _IndividualTaskCardState extends State<IndividualTaskCard> {
           //     MyColorPalette.formColor, // The background hold color
         ),
         child: InkWell(
-          onTap: () {},
+          onTap: () {
+            HomeLifeRepository.updateIsDoneTaskStatus(
+              dateID: widget.dateID,
+              participantID: widget.participantID,
+              taskID: widget.plannedTask.taskID!,
+              isDone: isDone,
+            );
+            print("IS DONE STATUS: $isDone");
+          },
           child: Stack(
             alignment: Alignment.center,
             children: [
@@ -69,8 +85,12 @@ class _IndividualTaskCardState extends State<IndividualTaskCard> {
                 child: Checkbox.adaptive(
                   activeColor: Colors.blue.shade300,
                   side: BorderSide(color: Colors.blue.shade200, width: 1.5),
-                  value: true,
-                  onChanged: (value) {},
+                  value: isDone,
+                  onChanged: (value) {
+                    setState(() {
+                      isDone = value!;
+                    });
+                  },
                 ),
               ),
               Positioned(
@@ -91,9 +111,9 @@ class _IndividualTaskCardState extends State<IndividualTaskCard> {
                   // color: Colors.amber,
                   alignment: Alignment.centerLeft,
                   child: MyTextFormatter.p(
-                    // text: "hello",
-                    text:
-                        "jsjb skjfb sfdkjbf skdjbfdksjbf skjbfksbfs fkjbdsfbs fsdkbfbsdfdfk sfkbsf sdkfks",
+                    // text:
+                    //     "jsjb skjfb sfdkjbf skdjbfdksjbf skjbfksbfs fkjbdsfbs fsdkbfbsdfdfk sfkbsf sdkfks",
+                    text: widget.plannedTask.description,
                     maxLines: 3,
                   ),
                 ),
@@ -118,7 +138,18 @@ class _IndividualTaskCardState extends State<IndividualTaskCard> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            MyTextFormatter.h3(text: "Hello, World!"),
+            // TITLE
+            Container(
+              width: MyDimensionAdapter.getWidth(context) * 0.42,
+              // color: Colors.white24,
+              child: MyTextFormatter.h3(
+                text: widget.plannedTask.taskName + " hello",
+                maxLines: (widget.plannedTask.taskName.length > 14) ? 2 : 1,
+                fontsize: (widget.plannedTask.taskName.length > 14)
+                    ? kDefaultFontSize
+                    : kDefaultFontSize + 2,
+              ),
+            ),
             Spacer(),
             MyLine(
               color: const Color.fromARGB(180, 144, 202, 249),
@@ -130,7 +161,8 @@ class _IndividualTaskCardState extends State<IndividualTaskCard> {
               children: [
                 MyTextFormatter.p(text: "Date", fontsize: kDefaultFontSize - 3),
                 MyTextFormatter.p(
-                  text: "07:30PM",
+                  text: widget.plannedTask.time,
+                  // text: "07:30 AM",
                   fontsize: kDefaultFontSize - 2,
                 ),
               ],

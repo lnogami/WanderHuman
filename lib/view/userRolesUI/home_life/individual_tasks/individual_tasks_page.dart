@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/helper/home_life_repository.dart';
-import 'package:wanderhuman_app/model/home_life_models/hl_planner_model.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
 import 'package:wanderhuman_app/utilities/properties/date_formatter.dart';
@@ -11,18 +10,18 @@ import 'package:wanderhuman_app/view/userRolesUI/home_life/individual_tasks/indi
 
 class IndividualTasks extends StatefulWidget {
   final PersonalInfo patientInfo;
-  final HomeLifePlannerModel? plannedTask; // not yet implemented
-  const IndividualTasks({
-    super.key,
-    required this.patientInfo,
-    this.plannedTask,
-  });
+
+  const IndividualTasks({super.key, required this.patientInfo});
 
   @override
   State<IndividualTasks> createState() => _IndividualTasksState();
 }
 
 class _IndividualTasksState extends State<IndividualTasks> {
+  // Future<HomeLifeRepository> getTasks(){
+  //   return HomeLifeRepository.getAllTasks();
+  // }
+
   @override
   void initState() {
     super.initState();
@@ -55,11 +54,37 @@ class _IndividualTasksState extends State<IndividualTasks> {
                   );
                 },
               ),
-              SizedBox(height: 30),
 
-              IndividualTaskCard(),
-              SizedBox(height: 10),
-              IndividualTaskCard(),
+              // SizedBox(height: 30),
+              Container(
+                width: MyDimensionAdapter.getWidth(context) * 0.8,
+                height: MyDimensionAdapter.getHeight(context) * 0.825,
+                // color: Colors.amber,
+                child: FutureBuilder(
+                  future: HomeLifeRepository.getIndividualPatientTasks(
+                    dateID: MyDateFormatter.formatDate(
+                      dateTimeInString: DateTime.now().toString(),
+                    ),
+                    participantID: widget.patientInfo.userID,
+                  ),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(child: CircularProgressIndicator());
+                    } else {
+                      return ListView.builder(
+                        itemCount: snapshot.data?.length ?? 0,
+                        itemBuilder: (context, index) {
+                          return IndividualTaskCard(
+                            dateID: DateTime.now().toString(),
+                            participantID: widget.patientInfo.userID,
+                            plannedTask: snapshot.data![index],
+                          );
+                        },
+                      );
+                    }
+                  },
+                ),
+              ),
             ],
           ),
         ),

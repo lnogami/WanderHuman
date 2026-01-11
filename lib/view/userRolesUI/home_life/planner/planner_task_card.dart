@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/model/home_life_models/hl_planner_model.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
-import 'package:wanderhuman_app/utilities/properties/time_of_day_formater.dart';
 import 'package:wanderhuman_app/view/components/lines.dart';
 
 class TaskCard extends StatefulWidget {
@@ -19,8 +18,8 @@ class _TaskCardState extends State<TaskCard> {
   /// To have more control about displaying of this repeatInterval logic
   List<String> daysToRepeat = [];
 
-  /// Will hold the formatted value of Time that was converted to String back to TimeOfDay
-  String formattedTimeOfDay = "";
+  // /// Will hold the formatted value of Time that was converted to String back to TimeOfDay
+  // String formattedTimeOfDay = "";
 
   @override
   void initState() {
@@ -32,9 +31,9 @@ class _TaskCardState extends State<TaskCard> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     // this one is not in initState because it will take time to look up for the context (.format()) so thats why its in here
-    formattedTimeOfDay = (MyTimeFormatter.stringToTimeOfDay(
-      widget.task.time,
-    ).format(context).toString());
+    // formattedTimeOfDay = (MyTimeFormatter.stringToTimeOfDay(
+    //   widget.task.time,
+    // ).format(context).toString());
   }
 
   @override
@@ -130,7 +129,7 @@ class _TaskCardState extends State<TaskCard> {
             children: [
               MyTextFormatter.p(text: "Time", fontsize: kDefaultFontSize - 4),
               FittedBox(
-                child: MyTextFormatter.p(text: formattedTimeOfDay, maxLines: 2),
+                child: MyTextFormatter.p(text: widget.task.time, maxLines: 2),
               ),
             ],
           ),

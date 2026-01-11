@@ -4,6 +4,7 @@ class HLTaskModel {
   taskID; // Nullable because a new task doesn't have an ID until Firestore gives it one
   final String taskName;
   final String description;
+  final String time;
   final bool isDone;
   final String?
   caregiverId; // Added for that "Collection Group Query" capability we discussed
@@ -13,6 +14,7 @@ class HLTaskModel {
     required this.taskID,
     required this.taskName,
     required this.description,
+    required this.time,
     required this.isDone, // Default to false (not done) when creating
     required this.caregiverId,
   });
@@ -24,6 +26,7 @@ class HLTaskModel {
     return {
       'taskName': taskName,
       'description': description,
+      'time': time,
       'isDone': isDone,
       'caregiverId': caregiverId,
       // Note: We rarely save 'id' inside the map because it's already the document name!
@@ -40,6 +43,7 @@ class HLTaskModel {
           data['taskName'] ??
           '', // '??' is a safety check: if null, use empty string
       description: data['description'] ?? '',
+      time: data['time'] ?? '',
       isDone: data['isDone'] ?? false,
       caregiverId: data['caregiverId'],
     );

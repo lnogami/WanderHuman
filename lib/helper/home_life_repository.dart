@@ -161,9 +161,15 @@ import 'package:wanderhuman_app/utilities/properties/date_formatter.dart';
 /// HomeLifeRepository is the executer of the HomeLifePlanner
 /// Therefore, HomeLifePlanner is the single source of truth for every tasks.
 class HomeLifeRepository {
-  /// Root collection reference
+  /// Root collection reference (1st Layer)
   static final CollectionReference _rootCollection = FirebaseFirestore.instance
       .collection("HomeLife");
+
+  /// This is the 2nd Layer of data (subcollection 1) where it is for participants
+  static final String _subcollection1 = "HLParticipants";
+
+  /// This is the 3nd Layer of data (subcollection 2) where it is for the tasks for each participants
+  static final String _subcollection2 = "HLTasks";
 
   // =========================================================
   // Level 1: The Date (The "Container")
@@ -187,13 +193,13 @@ class HomeLifeRepository {
       print("CREATE RECORD: DAILY RECORD HAS BEEN ADDED");
 
       // first, get all the task from the HomeLifePlanner
-      //        HomeLifePlanner is the source of truth forthese tasks
+      //        HomeLifePlanner is the source of truth for these tasks
       List<HomeLifePlannerModel> tasks =
           await HomeLifePlannerRepository.getAllTasks();
       // then, iterate all the tasks to make individual records
       for (var task in tasks) {
         // in each task, there are multiple participants, so get each participant's ID by spliting them
-        List participantsIDs = task.participants.split(",");
+        List<String> participantsIDs = task.participants.split(",");
         // and then, iterate again, base on those participantsIDs
         for (var participantID in participantsIDs) {
           // since those are just IDs, now we need to get the actual data of those participant patient
@@ -204,12 +210,12 @@ class HomeLifeRepository {
               );
           //
 
-          /// TODO: this implementation of customized ID is not yet final, because it might not work as intended later on.
-          // this is for creating a customized taskID, that is Readable in the database (for debugging purposes)
-          String tempTaskID = "L2_${personalInfo.name}_${task.taskName}";
-          // after that, replace all the whitespaces with underscores, so that it will be a single word
-          //             I am not still familiar with RegExp's symbols hehe
-          String formattedTaskID = tempTaskID.replaceAll(RegExp(r'\s+'), '_');
+          // /// TODO: this implementation of customized ID is not yet final, because it might not work as intended later on.
+          // // this is for creating a customized taskID, that is Readable in the database (for debugging purposes)
+          // String tempTaskID = "L2_${personalInfo.name}_${task.taskName}";
+          // // after that, replace all the whitespaces with underscores, so that it will be a single word
+          // //             I am not still familiar with RegExp's symbols hehe
+          // String formattedTaskID = tempTaskID.replaceAll(RegExp(r'\s+'), '_');
 
           // finally, for the Layer 2 (HLParticipants)
           //          Add those participants in the dailyRecord
@@ -220,10 +226,12 @@ class HomeLifeRepository {
               assignedCaregiver: task.createdBy,
             ),
 
-            /// TODO: this implementation of customized ID is not yet final, because it might not work as intended later on.
+            /// TODO the four commented out lines below this is deletable
+            // (deletable) : this implementation of customized ID is not yet final, because it might not work as intended later on.
             // the taskID for each individual task is named from the combination
             //            of taskName and participant patient's name (for readability in the database, debugging purposes)
-            taskID: formattedTaskID,
+            // taskID: formattedTaskID,
+            taskID: participantID,
           );
           print("ADDED PARTICIPANT: ${personalInfo.name}");
 
@@ -231,17 +239,21 @@ class HomeLifeRepository {
           //            Add those tasks in the dailyRecord
           _addTask(
             dateID: dateOnlyFormat, // for L1 Doc
-            participantID: formattedTaskID, // for L2 Doc
+            // participantID: formattedTaskID, // for L2 Doc //TODO (deletable)
+            participantID: participantID, // for L2 Doc
             task: HLTaskModel(
+              // TODO (deletable) the two commented out lines below this is deletable
               // L3 just means Layer 3, to indicate it is in the Tasks
-              taskID: "L3_$formattedTaskID",
+              // taskID: "L3_$formattedTaskID",
+              taskID: task.taskID,
               taskName: task.taskName,
               description: task.taskDescription,
+              time: task.time,
               isDone: false,
               caregiverId: task.createdBy,
             ),
           );
-          print("ADDED TASKKKKK: L3_${formattedTaskID}");
+          // print("ADDED TASKKKKK: L3_${formattedTaskID}");
         }
       }
     } else {
@@ -310,9 +322,169 @@ class HomeLifeRepository {
           .taskID, // Ensures the ID inside the data matches the document name
       "taskName": task.taskName,
       "description": task.description,
+      "time": task.time,
       "isDone": task.isDone,
       "caregiverId": task.caregiverId,
     });
+  }
+
+  // =========================================================
+  // Getter Logic
+  // =========================================================
+  static Future<List<HLTaskModel>> getIndividualPatientTasks({
+    required String dateID,
+    required String participantID,
+  }) async {
+    try {
+      QuerySnapshot tasksSnapshot = await _rootCollection
+          .doc(dateID)
+          .collection(_subcollection1)
+          .doc(participantID)
+          .collection(_subcollection2)
+          .get();
+
+      // // what's happening here is that we use the QuerySnapshot [taskSnapshot]
+      // // to call all the documents [docs]
+      // // then, iterate all the documents with a doc variable as parameter (this returns an Iterable object)
+      // //      in each doc, we get its data by calling .data(),
+      // //                   then we convert it as Map<String, dynmic> because .data() will return a generic Object
+      // //                   then return it as an HLTaskModel object, it will be
+      // //                        added to the .toList() method one by one in each iteration
+      // // then, after iterating all the doc in docs, we will convert to .toList()
+      // //       because .map((e){}) will not run in the first place if it wont call .toList(), the CPU will just skip the .map((e){})
+      // //       method calling the .toList() will materialize the data inside it, meaning those data will be created in memory
+      // // finally, return it as a list of HLTaskModel objects
+      // return tasksSnapshot.docs.map((doc) {
+      //   Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      //   return HLTaskModel.fromFirestore(data, doc.id);
+      // }).toList();
+
+      // print("DOES NOT ERROR BEFORE RETURNING TASKS");
+      // print("THE NUMBER OF DOCUMENTS RETRIEVED: ${tasksSnapshot.size}");
+
+      List<HLTaskModel> tasks = tasksSnapshot.docs.map((doc) {
+        // 1. EXTRACT: We cast .data() to a Map because Firestore returns a generic Object.
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+
+        // print("DOES NOT ERROR AFTER CASTING");
+        // print("IS DATA EMPTY?: ${data.isEmpty}");
+
+        // 2. TRANSFORM: We convert the raw Map into our clean HLTaskModel object.
+        return HLTaskModel.fromFirestore(data, doc.id);
+      }).toList();
+      // 3. EXECUTE: .map() is "Lazy". It prepares the transformation instruction but doesn't run it yet.
+      //    Calling .toList() forces the iteration to happen NOW, processing all documents
+      //    and returning the final List<HLTaskModel>.
+
+      // sorts the list chronologically (by converting time to minutes)
+      // I think this somewhat like a quicksort, a as the pivot (middle element in the list)
+      // a compared to b, if a is smaller than b return -1 then b will go to the right side of a and vice versa.
+      tasks.sort((a, b) {
+        return _timeToMinutes(a.time).compareTo(_timeToMinutes(b.time));
+      });
+
+      return tasks;
+    }
+    // just in case an error occurs, we will know what it is
+    catch (e) {
+      print(
+        "ERROW WHEN RETRIEVING DATAAAAAAAAAAAAAAAAA in getIndividualPatientTasks method: $e",
+      );
+      // throw FirebaseException(plugin: e.toString());
+      rethrow;
+    }
+  }
+
+  // Helper function to convert "03:00 PM" -> 900 (minutes)
+  // THIS IS FROM GEMINI not my code hehe
+  /// This function is associated for helping to sort a list based on Time
+  static int _timeToMinutes(String timeString) {
+    // 1. Split the string into parts: "03:00" and "PM"
+    // Assuming format "hh:mm AM/PM" or "h:mm AM/PM"
+    final parts = timeString.split(' ');
+    final timeParts = parts[0].split(':');
+
+    int hour = int.parse(timeParts[0]);
+    int minute = int.parse(timeParts[1]);
+    String period = parts[1]; // AM or PM
+
+    // 2. Adjust hour for AM/PM logic
+    if (period == "PM" && hour != 12) {
+      hour += 12; // 3 PM becomes 15
+    } else if (period == "AM" && hour == 12) {
+      hour = 0; // 12 AM becomes 0
+    }
+
+    // 3. Return total minutes
+    return (hour * 60) + minute;
+  }
+
+  /// TODO : not yet implemented
+  static Future<bool> getTaskStatus({
+    required String dateID,
+    required String participantID,
+    required String taskID,
+  }) async {
+    DocumentSnapshot<Map<String, dynamic>> docRef = await _rootCollection
+        .doc(dateID)
+        .collection("HLParticipants")
+        .doc(participantID)
+        .collection("HLTasks")
+        .doc(taskID)
+        .get();
+    Map doc = docRef.data() as Map<String, dynamic>;
+
+    return doc["isDone"];
+  }
+
+  // =========================================================
+  // Update Logic
+  // =========================================================
+
+  /// TODO: not yet implemented
+  /// To update the status (isDone) of a task
+  static Future<void> updateIsDoneTaskStatus({
+    required String dateID,
+    required String participantID,
+    required String taskID,
+    required bool isDone,
+  }) async {
+    try {
+      DocumentReference docRef = _rootCollection
+          .doc(dateID)
+          .collection("HLParticipants")
+          .doc(participantID)
+          .collection("HLTasks")
+          .doc(taskID);
+
+      await docRef.set({"isDone": isDone}, SetOptions(merge: true));
+    } catch (e) {
+      print("ERROR WHEN UPDATING TASK STATUS: $e");
+    }
+  }
+
+  /// To update a task
+  static Future<void> updateTask({
+    required String dateID,
+    required String participantID,
+    required HLTaskModel task,
+  }) async {
+    DocumentReference docRef = _rootCollection
+        .doc(dateID)
+        .collection("HLParticipants")
+        .doc(participantID)
+        .collection("HLTasks")
+        .doc(task.taskID);
+
+    await docRef.set({
+      "taskID": task
+          .taskID, // Ensures the ID inside the data matches the document name
+      "taskName": task.taskName,
+      "description": task.description,
+      "time": task.time,
+      "isDone": task.isDone,
+      "caregiverId": task.caregiverId,
+    }, SetOptions(merge: true));
   }
 
   // =========================================================
@@ -371,15 +543,15 @@ class HomeLifeRepository {
     await participantsSnapshot.reference.delete();
   }
 
-  static Future<void> removeParticipant({
-    required String dateID,
-    required String participantID,
-  }) async {
-    // This leaves the patient's tasks orphaned, but removes the patient from the list
-    await _rootCollection
-        .doc(dateID)
-        .collection("HLParticipants")
-        .doc(participantID)
-        .delete();
-  }
+  // static Future<void> removeParticipant({
+  //   required String dateID,
+  //   required String participantID,
+  // }) async {
+  //   // This leaves the patient's tasks orphaned, but removes the patient from the list
+  //   await _rootCollection
+  //       .doc(dateID)
+  //       .collection("HLParticipants")
+  //       .doc(participantID)
+  //       .delete();
+  // }
 }

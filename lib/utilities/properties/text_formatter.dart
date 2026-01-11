@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
 
 class MyTextFormatter {
+  // not yet optimized as h3
   static Text h1({
     required String text,
     Color color = MyColorPalette.titleTextColor,
@@ -22,12 +23,14 @@ class MyTextFormatter {
   }
 
   static Text h3({
+    /// This is a special case for a long title
+    double lineHeight = 1.5,
+    int maxLines = 1,
     required String text,
     Color color = MyColorPalette.subtitleTextColor,
     double fontsize = (kDefaultFontSize + 4),
     FontStyle fontStyle = FontStyle.normal,
     FontWeight fontWeight = FontWeight.w600,
-    int maxLines = 1,
   }) {
     return Text(
       text,
@@ -35,6 +38,7 @@ class MyTextFormatter {
       maxLines: maxLines,
       softWrap: (maxLines > 1) ? true : false,
       style: TextStyle(
+        height: (maxLines > 1) ? 1 : lineHeight,
         fontSize: fontsize,
         fontStyle: fontStyle,
         color: color,
@@ -43,6 +47,7 @@ class MyTextFormatter {
     );
   }
 
+  // not yet optimized as h3
   static Text h5({
     required String text,
     Color color = MyColorPalette.subtitleTextColor,
