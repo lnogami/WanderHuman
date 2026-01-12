@@ -63,7 +63,6 @@ class HomeLifePatientRecords extends StatelessWidget {
                         contactNumber: snapshot.data![index].contactNumber,
                         emailAdd: snapshot.data![index].email,
                         onTap: () {
-                          Navigator.pop(context);
                           MyNavigator.goTo(
                             context,
                             // ViewPatientForm(

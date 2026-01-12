@@ -18,7 +18,9 @@ class MyDateFormatter {
   ///#### [4] 12/17/25
   ///#### [5] 12/17/25 12:00 AM
   ///#### [6] Dec 17, 2025 12:00 AM
-  ///#### [7] Provide your own format options (ex. MMM - (Dec), d - (17), y - (2025), EEE - (Mon), hh - hour, mm - minute, a - AM/PM)
+  ///#### [7] Provide your own format options
+  /// Note: If you chose `7` as your formatOptions, provide `customeFormat` <br>
+  /// ex. `MMM` -> (Dec), `d` -> (17), `y` -> (2025), `EEE` -> (Mon), `hh` -? hour, `mm` -> minute, `a` -> AM/PM)
   static String formatDate({
     required dynamic dateTimeInString,
     int? formatOptions,

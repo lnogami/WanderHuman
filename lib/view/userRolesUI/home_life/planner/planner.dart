@@ -85,14 +85,21 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
 
       bufferedStaffName = (await getStaffName(
         widget.plannedTask!.createdBy,
-      )).join(","); // await the async call
+      )).join(","); // await the async call, before calling .join()
 
+      // isRepeatedEveryDay is false if the elements (days) of selectedRepeatInterval is not equal to repeatChoices's length
+      if (selectedRepeatInterval.length != repeatChoices.length) {
+        isRepeatedEveryDay = false;
+        print("IS REPEATED EVERYDAYYYYYYYYYYYYYYYYYYY: $isRepeatedEveryDay");
+      }
       // this will make the paricipants dropdown expand
       if (addedParticipants.length != participants.length) {
         isAllParticipantsSelected = false;
+        print("IS ALL PARTICIPANTS SELECTEDDDDDDDDDDDD: $isRepeatedEveryDay");
       }
+
+      setState(() {});
     }
-    setState(() {});
   }
 
   /// Load participants from Database and add to participants list
@@ -210,7 +217,7 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
                       )
                     : notEditableDisplay(
                         context,
-                        text: selectedRepeatInterval.join(", "),
+                        text: widget.plannedTask!.repeatInterval,
                       ),
 
                 SizedBox(height: 12),
@@ -227,15 +234,6 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
                   message: "Who are the participants involved in this task?",
                   child: participantsDropDown(context),
                 ),
-                // MyCustTooltip(
-                //   message: "Who are the participants involved in this task?",
-                //   child: (isEditable)
-                //       ? participantsDropDown(context)
-                //       : notEditableDisplay(
-                //           context,
-                //           text: addedParticipants.join(", "),
-                //         ),
-                // ),
 
                 // the space between the dropdown area and the buttons id proportional to whether all participants are selected or not (participantsArea is expanded).
                 SizedBox(height: (!isAllParticipantsSelected) ? 40 : 60),
@@ -392,7 +390,9 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
                 title: Text(
                   (isRepeatedEveryDay)
                       ? "Every Day"
-                      : (selectedRepeatInterval.isEmpty)
+                      :
+                        // if not repeated everyday, and no day is selected
+                        (selectedRepeatInterval.isEmpty)
                       ? "Please Select a Day"
                       : selectedRepeatInterval.join(", "),
                 ),
@@ -415,7 +415,6 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
             ),
           ),
         ),
-
         // Added Participants AREA
         AnimatedContainer(
           duration: Duration(milliseconds: 600),

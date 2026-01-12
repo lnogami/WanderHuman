@@ -4,9 +4,14 @@ class MyTimeFormatter {
   static TimeOfDay stringToTimeOfDay(String stringToTime) {
     // 1. Remove the "TimeOfDay(" prefix and ")" suffix
     // Format becomes: "14:30"
-    String cleanTime = stringToTime
-        .replaceAll("TimeOfDay(", "")
-        .replaceAll(")", "");
+
+    // Old (deletable), this was before the database was updated
+    // String cleanTime = stringToTime
+    //     .replaceAll("TimeOfDay(", "")
+    //     .replaceAll(")", "");
+
+    // removes ' AM' or ' PM' from the string
+    String cleanTime = stringToTime.replaceAll(" AM", "").replaceAll(" PM", "");
 
     // 2. Split by the colon
     List<String> parts = cleanTime.split(":");

@@ -235,24 +235,35 @@ class HomeLifeRepository {
           );
           print("ADDED PARTICIPANT: ${personalInfo.name}");
 
-          // and also, finally, for the Layer 3 (HLTasks)
-          //            Add those tasks in the dailyRecord
-          _addTask(
-            dateID: dateOnlyFormat, // for L1 Doc
-            // participantID: formattedTaskID, // for L2 Doc //TODO (deletable)
-            participantID: participantID, // for L2 Doc
-            task: HLTaskModel(
-              // TODO (deletable) the two commented out lines below this is deletable
-              // L3 just means Layer 3, to indicate it is in the Tasks
-              // taskID: "L3_$formattedTaskID",
-              taskID: task.taskID,
-              taskName: task.taskName,
-              description: task.taskDescription,
-              time: task.time,
-              isDone: false,
-              caregiverId: task.createdBy,
+          // this will filter out the task that has not schedule for this day
+          List<String> daySchedule = task.repeatInterval.split(",");
+          if (daySchedule.contains(
+            MyDateFormatter.formatDate(
+              dateTimeInString: DateTime.now(),
+              formatOptions: 7,
+              customedFormat: "EEE", // EEE means short name of day ex.Mon,Tue
             ),
-          );
+          )) {
+            // and also, finally, for the Layer 3 (HLTasks)
+            //            Add those tasks in the dailyRecord
+            _addTask(
+              dateID: dateOnlyFormat, // for L1 Doc
+              // participantID: formattedTaskID, // for L2 Doc //TODO (deletable)
+              participantID: participantID, // for L2 Doc
+              task: HLTaskModel(
+                // TODO (deletable) the two commented out lines below this is deletable
+                // L3 just means Layer 3, to indicate it is in the Tasks
+                // taskID: "L3_$formattedTaskID",
+                taskID: task.taskID,
+                taskName: task.taskName,
+                description: task.taskDescription,
+                time: task.time,
+                isDone: false,
+                caregiverId: task.createdBy,
+              ),
+            );
+          }
+
           // print("ADDED TASKKKKK: L3_${formattedTaskID}");
         }
       }
@@ -425,8 +436,11 @@ class HomeLifeRepository {
     required String participantID,
     required String taskID,
   }) async {
+    // NOTE: always use MyDateFormatter in the first doc, because we named the first doc
+    //       as a formatter date String like "Jan 10, 2025".
+    //       Otherwise, it will cause an unintended bug.
     DocumentSnapshot<Map<String, dynamic>> docRef = await _rootCollection
-        .doc(dateID)
+        .doc(MyDateFormatter.formatDate(dateTimeInString: dateID))
         .collection("HLParticipants")
         .doc(participantID)
         .collection("HLTasks")
@@ -441,7 +455,7 @@ class HomeLifeRepository {
   // Update Logic
   // =========================================================
 
-  /// TODO: not yet implemented
+  // TODO: not yet implemented
   /// To update the status (isDone) of a task
   static Future<void> updateIsDoneTaskStatus({
     required String dateID,
@@ -450,14 +464,19 @@ class HomeLifeRepository {
     required bool isDone,
   }) async {
     try {
+      // NOTE: always use MyDateFormatter in the first doc, because we named the first doc
+      //       as a formatter date String like "Jan 10, 2025".
+      //       Otherwise, it will cause an unintended bug.
       DocumentReference docRef = _rootCollection
-          .doc(dateID)
+          .doc(MyDateFormatter.formatDate(dateTimeInString: dateID))
           .collection("HLParticipants")
           .doc(participantID)
           .collection("HLTasks")
           .doc(taskID);
 
       await docRef.set({"isDone": isDone}, SetOptions(merge: true));
+
+      print("SUCCESSFULLY UPDATED TASK STATUS: $isDone");
     } catch (e) {
       print("ERROR WHEN UPDATING TASK STATUS: $e");
     }

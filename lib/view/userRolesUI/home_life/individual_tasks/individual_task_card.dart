@@ -1,11 +1,11 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/helper/home_life_repository.dart';
 import 'package:wanderhuman_app/model/home_life_models/task_model.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
+import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
 import 'package:wanderhuman_app/view/components/lines.dart';
+import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 
 class IndividualTaskCard extends StatefulWidget {
   final String dateID;
@@ -27,7 +27,37 @@ class IndividualTaskCard extends StatefulWidget {
 }
 
 class _IndividualTaskCardState extends State<IndividualTaskCard> {
-  bool isDone = true;
+  bool isDone = false;
+
+  /// to update isDone property of a task
+  Future<void> updateIsDoneTask() async {
+    await HomeLifeRepository.updateIsDoneTaskStatus(
+      dateID: widget.dateID,
+      participantID: widget.participantID,
+      taskID: widget.plannedTask.taskID!,
+      isDone: isDone,
+    );
+  }
+
+  /// to get isDone property of a task
+  Future<void> getTaskStatus() async {
+    bool tempIsDone = await HomeLifeRepository.getTaskStatus(
+      dateID: widget.dateID,
+      participantID: widget.participantID,
+      taskID: widget.plannedTask.taskID!,
+    );
+
+    setState(() {
+      isDone = tempIsDone;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getTaskStatus();
+  }
+
   @override
   Widget build(BuildContext context) {
     // to make the ripple effect of Inkwell visible
@@ -69,13 +99,31 @@ class _IndividualTaskCardState extends State<IndividualTaskCard> {
         ),
         child: InkWell(
           onTap: () {
-            HomeLifeRepository.updateIsDoneTaskStatus(
-              dateID: widget.dateID,
-              participantID: widget.participantID,
-              taskID: widget.plannedTask.taskID!,
-              isDone: isDone,
-            );
-            print("IS DONE STATUS: $isDone");
+            // if task is not yet done
+            if (!isDone) {
+              myAlertDialogue(
+                context: context,
+                alertTitle: "Confirm Task Completion",
+                alertContent:
+                    "\nAre you sure this task [${widget.plannedTask.taskName}] is done? \nOnce confirmed, it cannot be undone",
+                onApprovalPressed: () {
+                  setState(() {
+                    isDone = true;
+                  });
+                  updateIsDoneTask();
+                  // to pop the dialog box
+                  Navigator.pop(context);
+                },
+              );
+            }
+            // if already done, just showing a visual cue that this task is already done
+            else {
+              showMyAnimatedSnackBar(
+                context: context,
+                bgColor: Colors.white70,
+                dataToDisplay: "You already marked this task as done!",
+              );
+            }
           },
           child: Stack(
             alignment: Alignment.center,
@@ -87,9 +135,7 @@ class _IndividualTaskCardState extends State<IndividualTaskCard> {
                   side: BorderSide(color: Colors.blue.shade200, width: 1.5),
                   value: isDone,
                   onChanged: (value) {
-                    setState(() {
-                      isDone = value!;
-                    });
+                    // there's nothing here because it was handle by this widget as a whole button
                   },
                 ),
               ),
@@ -143,7 +189,7 @@ class _IndividualTaskCardState extends State<IndividualTaskCard> {
               width: MyDimensionAdapter.getWidth(context) * 0.42,
               // color: Colors.white24,
               child: MyTextFormatter.h3(
-                text: widget.plannedTask.taskName + " hello",
+                text: widget.plannedTask.taskName,
                 maxLines: (widget.plannedTask.taskName.length > 14) ? 2 : 1,
                 fontsize: (widget.plannedTask.taskName.length > 14)
                     ? kDefaultFontSize
