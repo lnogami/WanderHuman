@@ -105,7 +105,7 @@ class _IndividualTaskCardState extends State<IndividualTaskCard> {
                 context: context,
                 alertTitle: "Confirm Task Completion",
                 alertContent:
-                    "\nAre you sure this task [${widget.plannedTask.taskName}] is done? \nOnce confirmed, it cannot be undone",
+                    "\nAre you sure this task \n'${widget.plannedTask.taskName.trim()}' is done? \nONCE CONFIRMED,\nIT CANNOT BE UNDONE.",
                 onApprovalPressed: () {
                   setState(() {
                     isDone = true;
@@ -128,6 +128,7 @@ class _IndividualTaskCardState extends State<IndividualTaskCard> {
           child: Stack(
             alignment: Alignment.center,
             children: [
+              // checkbox
               Positioned(
                 left: -(MyDimensionAdapter.getWidth(context) * 0.0018),
                 child: Checkbox.adaptive(
@@ -139,6 +140,7 @@ class _IndividualTaskCardState extends State<IndividualTaskCard> {
                   },
                 ),
               ),
+              // vertical line
               Positioned(
                 left: MyDimensionAdapter.getWidth(context) * 0.115,
                 child: MyLine(
@@ -147,7 +149,9 @@ class _IndividualTaskCardState extends State<IndividualTaskCard> {
                   length: MyDimensionAdapter.getHeight(context) * 0.12,
                 ),
               ),
+              // card's top area (task name and date)
               topArea(context),
+              // card's bottom area (task description)
               Positioned(
                 top: MyDimensionAdapter.getHeight(context) * 0.05,
                 left: MyDimensionAdapter.getWidth(context) * 0.14,

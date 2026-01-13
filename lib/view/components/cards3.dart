@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wanderhuman_app/helper/home_life_repository.dart';
+import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
@@ -8,27 +10,39 @@ import 'package:wanderhuman_app/view/components/image_picker.dart';
 /// This widget if for other formation of Card (used for Home Life age)
 class MyCardInfoDisplayer3 extends StatelessWidget {
   final VoidCallback? onTap;
-  final String profilePicture;
-  // acts as the title of the card
-  final String name;
-  // acts as the subtitle of the card
-  final String age;
-  // acts as the description/additional info of the card
-  final String contactNumber;
-  final String emailAdd;
+  final PersonalInfo personalInfo;
+  // final String profilePicture;
+  // // acts as the title of the card
+  // final String name;
+  // // acts as the subtitle of the card
+  // final String age;
+  // // acts as the description/additional info of the card
+  // final String contactNumber;
+  // final String emailAdd;
   // final String batteryPercentage;
   final String batteryPercentage;
-  const MyCardInfoDisplayer3({
+  MyCardInfoDisplayer3({
     super.key,
     this.onTap,
-    required this.name,
-    required this.age,
-    required this.contactNumber,
-    this.emailAdd = "No Email",
-    required this.profilePicture,
+    // required this.name,
+    // required this.age,
+    // required this.contactNumber,
+    // this.emailAdd = "No Email",
+    // required this.profilePicture,
+    required this.personalInfo,
     // required this.batteryPercentage,
     this.batteryPercentage = "25",
   });
+
+  Future<String> numberOfTasksLeft() async {
+    List numberOfTasks = await HomeLifeRepository.getIndividualPatientTasks(
+      dateID: DateTime.now().toString(),
+      participantID: personalInfo.userID,
+      isToRetrieveUnFinishTasks: true,
+    );
+
+    return numberOfTasks.length.toString();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +91,7 @@ class MyCardInfoDisplayer3 extends StatelessWidget {
           child: MyImageDisplayer(
             profileImageSize: 80,
             base64ImageString: MyImageProcessor.decodeStringToUint8List(
-              profilePicture,
+              personalInfo.picture,
             ),
           ),
         ),
@@ -102,7 +116,7 @@ class MyCardInfoDisplayer3 extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               MyTextFormatter.h3(
-                text: name,
+                text: personalInfo.name,
                 // fontsize: kDefaultFontSize + 2,
                 fontWeight: FontWeight.w600,
               ),
@@ -114,19 +128,48 @@ class MyCardInfoDisplayer3 extends StatelessWidget {
               ),
               Row(
                 children: [
-                  MyTextFormatter.h5(text: age, fontsize: kDefaultFontSize - 1),
+                  MyTextFormatter.h5(
+                    text: "${personalInfo.age} years old",
+                    fontsize: kDefaultFontSize - 1,
+                  ),
                   Spacer(),
-                  CircleAvatar(
-                    backgroundColor: taskColorDeterminer(int.tryParse("1")!),
-                    radius: 8,
-                    child: FittedBox(
-                      child: MyTextFormatter.p(
-                        text: "4",
-                        // fontsize: kDefaultFontSize - 4,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white,
-                      ),
-                    ),
+                  FutureBuilder(
+                    future: numberOfTasksLeft(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done &&
+                          snapshot.hasData) {
+                        return Container(
+                          width: MyDimensionAdapter.getWidth(context) * 0.042,
+                          height: MyDimensionAdapter.getWidth(context) * 0.042,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.all(Radius.circular(2)),
+                            color: taskColorDeterminer(
+                              int.tryParse(snapshot.data!)!,
+                            ),
+                          ),
+
+                          // CircleAvatar(
+                          //   backgroundColor: taskColorDeterminer(int.tryParse("0")!),
+                          //   radius: 8,
+                          child: FittedBox(
+                            child: MyTextFormatter.p(
+                              text: snapshot.data!,
+                              // fontsize: kDefaultFontSize + 2,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                        );
+                      } else {
+                        return SizedBox(
+                          width: MyDimensionAdapter.getWidth(context) * 0.042,
+                          height: MyDimensionAdapter.getWidth(context) * 0.042,
+                          child: CircularProgressIndicator.adaptive(
+                            strokeWidth: 1.5,
+                          ),
+                        );
+                      }
+                    },
                   ),
                   SizedBox(width: 2.5),
                   MyTextFormatter.p(
@@ -135,20 +178,12 @@ class MyCardInfoDisplayer3 extends StatelessWidget {
                   ),
                 ],
               ),
-              // Text(
-              //   emailAdd,
-              //   overflow: TextOverflow.ellipsis,
-              //   style: TextStyle(
-              //     fontSize: (kDefaultFontSize - 1),
-              //     // color: Colors.blue.shade400,
-              //   ),
-              // ),
               Row(
                 children: [
                   Text(
-                    contactNumber,
+                    personalInfo.contactNumber,
                     style: TextStyle(
-                      fontSize: (kDefaultFontSize - 2),
+                      fontSize: (kDefaultFontSize - 1.35),
                       // color: Colors.blue.shade400,
                     ),
                   ),
@@ -157,6 +192,7 @@ class MyCardInfoDisplayer3 extends StatelessWidget {
                   batteryVisual(
                     context: context,
                     percentage: int.tryParse(batteryPercentage)!,
+                    // percentage: int.tryParse("100")!,
                   ),
                   SizedBox(width: 2.5),
                   MyTextFormatter.p(
@@ -174,10 +210,10 @@ class MyCardInfoDisplayer3 extends StatelessWidget {
 }
 
 Color taskColorDeterminer(int tasks) {
-  if (tasks >= 5) {
-    return Colors.redAccent.shade100;
-  } else if (tasks > 1) {
-    return Colors.orange.shade400;
+  if (tasks > 3) {
+    return const Color.fromARGB(255, 205, 77, 75);
+  } else if (tasks > 0) {
+    return const Color.fromARGB(255, 240, 145, 3);
   } else {
     return Colors.green.shade400;
   }
@@ -195,7 +231,7 @@ Container batteryVisual({
     width: MyDimensionAdapter.getWidth(context) * 0.12,
     height: MyDimensionAdapter.getHeight(context) * 0.02,
     // color: Colors.purple,
-    padding: EdgeInsets.only(left: 10),
+    padding: EdgeInsets.only(left: 5, right: 5),
     // the battery
     child: Container(
       width: MyDimensionAdapter.getWidth(context) * 0.07,
@@ -225,6 +261,7 @@ Container batteryVisual({
               ),
             ),
           ),
+          // battery body
           Positioned(
             left: 2,
             child: Container(
@@ -291,8 +328,8 @@ Color batteryColorDeterminer(int percentage) {
   } else if (percentage >= 50) {
     return Colors.lightGreen.shade400;
   } else if (percentage >= 25) {
-    return Colors.orange.shade400;
+    return Colors.orange.shade500;
   } else {
-    return Colors.redAccent.shade100;
+    return Colors.redAccent.shade200;
   }
 }

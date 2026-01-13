@@ -57,11 +57,12 @@ class HomeLifePatientRecords extends StatelessWidget {
                     itemCount: snapshot.data!.length,
                     itemBuilder: (context, index) {
                       return MyCardInfoDisplayer3(
-                        profilePicture: snapshot.data![index].picture,
-                        name: snapshot.data![index].name,
-                        age: "${snapshot.data![index].age} years old",
-                        contactNumber: snapshot.data![index].contactNumber,
-                        emailAdd: snapshot.data![index].email,
+                        personalInfo: snapshot.data![index],
+                        // profilePicture: snapshot.data![index].picture,
+                        // name: snapshot.data![index].name,
+                        // age: "${snapshot.data![index].age} years old",
+                        // contactNumber: snapshot.data![index].contactNumber,
+                        // emailAdd: snapshot.data![index].email,
                         onTap: () {
                           MyNavigator.goTo(
                             context,

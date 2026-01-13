@@ -104,6 +104,8 @@ class _HomeLifeManageTaskState extends State<HomeLifeManageTask> {
                           onApprovalPressed: () {
                             Future.delayed(Duration(milliseconds: 800), () {
                               HomeLifePlannerRepository.deleteTask(
+                                participantID:
+                                    snapshot.data![index].participants,
                                 taskID: snapshot.data![index].taskID,
                               );
                             });
@@ -115,6 +117,7 @@ class _HomeLifeManageTaskState extends State<HomeLifeManageTask> {
                                   "The Task '${snapshot.data![index].taskName}' was Successfuly Deleted!",
                               onPress: () {
                                 // to simulate a refreshing interface
+                                Navigator.pop(context);
                                 Navigator.pop(context);
                                 Navigator.pop(context);
                                 MyNavigator.goTo(context, HomeLifeManageTask());

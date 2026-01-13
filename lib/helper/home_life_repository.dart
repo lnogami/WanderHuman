@@ -177,7 +177,10 @@ class HomeLifeRepository {
 
   /// Creates the document for the day (e.g., 'DEC 17,2025' or '2025-10-27')
   /// ##### This will only create a Document once per day
-  static Future<void> createDailyRecord({required String dateID}) async {
+  /// The [bool] return type is not really needed to be use, it's just
+  /// for debugging purposes only, its still works without using the return type.  <br>
+  /// returns `true` if the dailyRecord successfully created, `false` otherwise
+  static Future<bool> createDailyRecord({required String dateID}) async {
     // to format the date (remove the time) so we could have a uniform time
     String dateOnlyFormat = MyDateFormatter.formatDate(
       dateTimeInString: dateID,
@@ -185,10 +188,12 @@ class HomeLifeRepository {
 
     // if the record is not yet added, add it
     if (!await _isDailyRecordAlreadyRecorded(dateOnlyFormat)) {
+      // create the first Layer document
       await _rootCollection.doc(dateOnlyFormat).set({
         "createdAt": DateTime.now().toString(),
         "dateID": dateOnlyFormat,
       }, SetOptions(merge: true));
+
       // this print is for debugging purposes only
       print("CREATE RECORD: DAILY RECORD HAS BEEN ADDED");
 
@@ -208,7 +213,6 @@ class HomeLifeRepository {
               await MyPersonalInfoRepository.getSpecificPersonalInfo(
                 userID: participantID,
               );
-          //
 
           // /// TODO: this implementation of customized ID is not yet final, because it might not work as intended later on.
           // // this is for creating a customized taskID, that is Readable in the database (for debugging purposes)
@@ -267,13 +271,18 @@ class HomeLifeRepository {
           // print("ADDED TASKKKKK: L3_${formattedTaskID}");
         }
       }
+
+      // this bool return type is for debugging purposes only
+      return true;
     } else {
       print("CREATE RECORD: DAILY RECORD ALREADYYYY EXISTS");
+      // this bool return type is for debugging purposes only
+      return false;
     }
   }
 
   /// To check if the daily record is already recorded
-  /// This method is visible in the back-end
+  /// This method is only visible in the back-end
   static Future<bool> _isDailyRecordAlreadyRecorded(String dateID) async {
     // bool isAlreadyRecorded = false;
     QuerySnapshot homeLifeRepository = await _rootCollection
@@ -339,20 +348,148 @@ class HomeLifeRepository {
     });
   }
 
+  // Use this `ONLY` if the IndividualTasks for the days is already created and you want to add a task in the planner.
+  static Future<bool> insertDailyRecord({
+    required String dateID,
+    required HomeLifePlannerModel task,
+  }) async {
+    // to format the date (remove the time) so we could have a uniform time
+    String dateOnlyFormat = MyDateFormatter.formatDate(
+      dateTimeInString: dateID,
+    );
+
+    // if the record is not yet added, add it
+    if (await _isDailyRecordAlreadyRecorded(dateOnlyFormat)) {
+      // await _rootCollection.doc(dateOnlyFormat).set({
+      //   "createdAt": DateTime.now().toString(),
+      //   "dateID": dateOnlyFormat,
+      // }, SetOptions(merge: true));
+      // // this print is for debugging purposes only
+      // print("CREATE RECORD: DAILY RECORD HAS BEEN ADDED");
+
+      // // first, get all the task from the HomeLifePlanner
+      // //        HomeLifePlanner is the source of truth for these tasks
+      // List<HomeLifePlannerModel> tasks =
+      //     await HomeLifePlannerRepository.getAllTasks();
+      // then, iterate all the tasks to make individual records
+      // for (var task in tasks) {
+
+      // in each task, there are multiple participants, so get each participant's ID by spliting them
+      List<String> participantsIDs = task.participants.split(",");
+      // and then, iterate again, base on those participantsIDs
+      for (var participantID in participantsIDs) {
+        // since those are just IDs, now we need to get the actual data of those participant patient
+        //                           so we can use them later on
+        PersonalInfo personalInfo =
+            await MyPersonalInfoRepository.getSpecificPersonalInfo(
+              userID: participantID,
+            );
+
+        // finally, for the Layer 2 (HLParticipants)
+        //          Add those participants in the dailyRecord
+        _addParticipant(
+          dateID: dateOnlyFormat,
+          patient: HLPatientTaskModel(
+            patientName: personalInfo.name,
+            assignedCaregiver: task.createdBy,
+          ),
+          taskID: participantID,
+        );
+        print("ADDED PARTICIPANT: ${personalInfo.name}");
+
+        // this will filter out the task that has not schedule for this day
+        List<String> daySchedule = task.repeatInterval.split(",");
+        if (daySchedule.contains(
+          MyDateFormatter.formatDate(
+            dateTimeInString: DateTime.now(),
+            formatOptions: 7,
+            customedFormat: "EEE", // EEE means short name of day ex.Mon,Tue
+          ),
+        )) {
+          // and also, finally, for the Layer 3 (HLTasks)
+          //            Add those tasks in the dailyRecord
+          _addTask(
+            dateID: dateOnlyFormat, // for L1 Doc
+            participantID: participantID, // for L2 Doc
+            task: HLTaskModel(
+              taskID: task.taskID,
+              taskName: task.taskName,
+              description: task.taskDescription,
+              time: task.time,
+              isDone: false,
+              caregiverId: task.createdBy,
+            ),
+          );
+        }
+
+        print("ADDED TASKKKKK TO: ${participantID}}");
+      }
+      // }
+
+      // this bool return type is for debugging purposes only
+      return true;
+    } else {
+      print(
+        "INSERT RECORD STATUS: DAILY RECORD WAS NOT YET BEEN CREATED. WAITING FOR THE INDIVIDUAL TASK PAGE TO OPEN",
+      );
+      // this bool return type is for debugging purposes only
+      return false;
+    }
+  }
+
   // =========================================================
   // Getter Logic
   // =========================================================
+
+  /// This function has two purposes:
+  /// 1. For retrieving all individual patient's tasks, DO NOT provide an argument for `isToRetrieveUnFinishTasks` <br>
+  /// 2. To retrieve only those unfinished tasks, provide `isToRetrieveUnFinishTasks` as `true`
   static Future<List<HLTaskModel>> getIndividualPatientTasks({
     required String dateID,
     required String participantID,
+    bool isToRetrieveUnFinishTasks = false,
   }) async {
     try {
-      QuerySnapshot tasksSnapshot = await _rootCollection
-          .doc(dateID)
-          .collection(_subcollection1)
-          .doc(participantID)
-          .collection(_subcollection2)
-          .get();
+      // QuerySnapshot tasksSnapshot = await _rootCollection
+      //     .doc(dateID)
+      //     .collection(_subcollection1)
+      //     .doc(participantID)
+      //     .collection(_subcollection2)
+      //     .get();
+
+      late QuerySnapshot tasksSnapshot;
+
+      // if calling this function to retrieve unfinished task
+      if (isToRetrieveUnFinishTasks) {
+        tasksSnapshot = await _rootCollection
+            .doc(
+              MyDateFormatter.formatDate(
+                dateTimeInString: DateTime.now().toString(),
+              ),
+            )
+            .collection(_subcollection1)
+            .doc(participantID)
+            .collection(_subcollection2)
+            .where("isDone", isEqualTo: false)
+            .get();
+
+        print("TASKSNAPSHOT DOC COUNT: ${tasksSnapshot.size}");
+      }
+      // else, if calling this function to retrieve all task
+      else {
+        tasksSnapshot = await _rootCollection
+            .doc(
+              MyDateFormatter.formatDate(
+                dateTimeInString: DateTime.now().toString(),
+              ),
+            )
+            .collection(_subcollection1)
+            .doc(participantID)
+            .collection(_subcollection2)
+            .get();
+
+        print("TASKSNAPSHOT DOC COUNT: ${tasksSnapshot.size}");
+      }
 
       // // what's happening here is that we use the QuerySnapshot [taskSnapshot]
       // // to call all the documents [docs]
@@ -369,10 +506,6 @@ class HomeLifeRepository {
       //   Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       //   return HLTaskModel.fromFirestore(data, doc.id);
       // }).toList();
-
-      // print("DOES NOT ERROR BEFORE RETURNING TASKS");
-      // print("THE NUMBER OF DOCUMENTS RETRIEVED: ${tasksSnapshot.size}");
-
       List<HLTaskModel> tasks = tasksSnapshot.docs.map((doc) {
         // 1. EXTRACT: We cast .data() to a Map because Firestore returns a generic Object.
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
@@ -430,7 +563,6 @@ class HomeLifeRepository {
     return (hour * 60) + minute;
   }
 
-  /// TODO : not yet implemented
   static Future<bool> getTaskStatus({
     required String dateID,
     required String participantID,
@@ -489,7 +621,11 @@ class HomeLifeRepository {
     required HLTaskModel task,
   }) async {
     DocumentReference docRef = _rootCollection
-        .doc(dateID)
+        .doc(
+          MyDateFormatter.formatDate(
+            dateTimeInString: DateTime.now().toString(),
+          ),
+        )
         .collection("HLParticipants")
         .doc(participantID)
         .collection("HLTasks")
@@ -560,6 +696,39 @@ class HomeLifeRepository {
     }
     // C. DELETE the participant document itself
     await participantsSnapshot.reference.delete();
+  }
+
+  /// for deleting a single task of the day
+  static Future<void> deleteATaskForTheDay({
+    required String dateID,
+    required String participantID,
+    required String taskID,
+  }) async {
+    try {
+      // split all the participants of the task
+      List<String> participantsIDs = participantID.split(",");
+      // and then, iterate each participant's ID then delete each corresponding task.
+      for (var participantID in participantsIDs) {
+        DocumentReference docRef = _rootCollection
+            .doc(
+              MyDateFormatter.formatDate(
+                dateTimeInString: DateTime.now().toString(),
+              ),
+            )
+            .collection("HLParticipants")
+            .doc(participantID)
+            .collection("HLTasks")
+            .doc(taskID);
+
+        await docRef.delete();
+        // final taskName = docRef as Map;
+        // print("${taskName["taskName"]}");
+      }
+      print("SUCCESSFULLY DELETE THE TASK FOR EACH INDIVIDUAL PARTICIPANTS.");
+    } catch (e) {
+      print("ERROR DELETING A TASK IN HOMELIFEREPOSITORY, ERROR: $e");
+      rethrow;
+    }
   }
 
   // static Future<void> removeParticipant({

@@ -27,7 +27,7 @@ class MyCustAppBar extends StatelessWidget {
     this.textColor = MyColorPalette.titleTextColor,
     this.fontSize = (kDefaultFontSize + 7),
     this.fontWeight = FontWeight.w700,
-    this.shadowColor = const Color.fromARGB(10, 33, 149, 243), // newly added
+    this.shadowColor = const Color.fromARGB(20, 33, 149, 243), // newly added
   });
 
   @override
@@ -64,11 +64,16 @@ class MyCustAppBar extends StatelessWidget {
                   )
                 : SizedBox(),
           ),
-          MyTextFormatter.h1(
-            text: title,
-            color: textColor,
-            fontWeight: fontWeight,
-            fontsize: fontSize,
+          Container(
+            width: MyDimensionAdapter.getWidth(context) * 0.67,
+            alignment: Alignment.center,
+            child: MyTextFormatter.h1(
+              text: title,
+              color: textColor,
+              fontWeight: fontWeight,
+              fontsize: fontSize,
+              overflow: TextOverflow.fade,
+            ),
           ),
           Positioned(
             right: actionButtonsRightMargin,

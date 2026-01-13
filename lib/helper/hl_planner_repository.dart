@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:wanderhuman_app/helper/home_life_repository.dart';
 import 'package:wanderhuman_app/model/home_life_models/hl_planner_model.dart';
 
 class HomeLifePlannerRepository {
@@ -12,7 +13,9 @@ class HomeLifePlannerRepository {
   }
 
   // ADD
-  static void addTask(HomeLifePlannerModel planner) {
+  /// The String return type is not really needed to be use,
+  /// it still works without using the return type.
+  static String addTask(HomeLifePlannerModel planner) {
     DocumentReference docRef = _generatedDocID();
 
     docRef.set({
@@ -27,6 +30,8 @@ class HomeLifePlannerRepository {
       "createdAt": planner.createdAt,
       "createdBy": planner.createdBy,
     });
+
+    return docRef.id;
   }
 
   // EDIT
@@ -78,7 +83,19 @@ class HomeLifePlannerRepository {
   }
 
   // DELETE
-  static Future<void> deleteTask({required String taskID}) async {
+  // By deleting a record (task) in Planner page, it will also delete all the same task in IndividualTasks page.
+  static Future<void> deleteTask({
+    required String participantID,
+    required String taskID,
+  }) async {
+    // delete the doc in HomeLifePlannerRepository
     _collectionReference.doc(taskID).delete();
+
+    // then delete the doc in HomeLifeRepository
+    HomeLifeRepository.deleteATaskForTheDay(
+      dateID: DateTime.now().toString(),
+      participantID: participantID,
+      taskID: taskID,
+    );
   }
 }

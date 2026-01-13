@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wanderhuman_app/helper/hl_planner_repository.dart';
+import 'package:wanderhuman_app/helper/home_life_repository.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/model/home_life_models/hl_planner_model.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
@@ -908,6 +909,7 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
             ? "Are you sure you want to save this task?"
             : "Are you sure about this update you have made?",
         onApprovalPressed: () {
+          // EDIT/UPDATE TASK LOGIC
           if (widget.plannedTask != null) {
             HomeLifePlannerRepository.editTask(
               taskID: widget.plannedTask!.taskID,
@@ -924,11 +926,35 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
                 createdBy: widget.plannedTask!.createdBy,
               ),
             );
-          } else {
-            HomeLifePlannerRepository.addTask(
+          }
+          // CREATE NEW TASK LOGIC
+          else {
+            // To add the task in HomeLifePlannerRepository.
+            String taskID = HomeLifePlannerRepository.addTask(
               HomeLifePlannerModel(
                 // taskID is left empty here, because it will be generated in repository
                 taskID: '',
+                taskName: titleController.text,
+                taskDescription: descriptionController.text,
+                participants: addedParticipants.join(','),
+                repeatInterval: selectedRepeatInterval.join(','),
+                time: MyTimeFormatter.timeOfDayToString(time!),
+                fromDate: fromDate.toString(),
+                untilDate: untilDate.toString(),
+                createdAt: DateTime.now().toString(),
+                createdBy: FirebaseAuth.instance.currentUser!.uid,
+              ),
+            );
+
+            // To add the daily record directly in HomeLifeRepository just in case IndividualTasks was already created.
+            // This is just the same as the addTask method above, but this is specifically for
+            //      the scenario where the automation of tasks for the day was alreay created,
+            //      just insert this one record directly in IndividualTasks.
+            HomeLifeRepository.insertDailyRecord(
+              dateID: DateTime.now().toString(),
+              task: HomeLifePlannerModel(
+                // the task ID was needed for the insertion of task in IndividualTasks
+                taskID: taskID,
                 taskName: titleController.text,
                 taskDescription: descriptionController.text,
                 participants: addedParticipants.join(','),
