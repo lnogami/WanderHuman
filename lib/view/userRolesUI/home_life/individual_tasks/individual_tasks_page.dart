@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/helper/home_life_repository.dart';
+import 'package:wanderhuman_app/model/home_life_models/task_model.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
 import 'package:wanderhuman_app/utilities/properties/date_formatter.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
+import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
 import 'package:wanderhuman_app/view/components/appbar.dart';
+import 'package:wanderhuman_app/view/components/dropdown_button.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/userRolesUI/home_life/individual_tasks/individual_task_card.dart';
-import 'package:wanderhuman_app/view/userRolesUI/home_life/individual_tasks/patient_records.dart';
 
 class IndividualTasks extends StatefulWidget {
   final PersonalInfo patientInfo;
@@ -40,11 +42,62 @@ class _IndividualTasksState extends State<IndividualTasks> {
     }
   }
 
+  /// Will contain all the days to display as options
+  List<String> allDaysToDisplayOptions = ["All"];
+
+  /// Selected option, by default it is set today
+  String selectedDayToDisplay = MyDateFormatter.formatDate(
+    dateTimeInString: DateTime.now().toString(),
+  );
+
+  /// This is for the loading animation, like what FutureBuilder is doing under the hood
+  bool isDropdownLoading = true;
+
+  /// Load all days
+  Future<void> getDaysToDisplayInDropdown() async {
+    List<String> days = await HomeLifeRepository.getAllDaysOfRecordedTasks();
+    days.sort();
+
+    setState(() {
+      allDaysToDisplayOptions.addAll(days.reversed);
+      // why [1]? because [0] is All, and today's date is the [1]
+      selectedDayToDisplay = allDaysToDisplayOptions[1];
+      isDropdownLoading = false;
+    });
+  }
+
+  /// This is relative to the FutureBuilder for displaying the task of a specific day.
+  Future<List<HLTaskModel>> pageDisplayOptions(String option) {
+    switch (option) {
+      case "All":
+        // temporary pa ni
+        // return HomeLifeRepository.getIndividualPatientTasks(
+        //   dateID: MyDateFormatter.formatDate(
+        //     dateTimeInString: DateTime.now().toString(),
+        //   ),
+        //   participantID: widget.patientInfo.userID,
+        // );
+        print("ALL HAS BEEN SELECTEDDDDDDDDDDDDDDDDDDD");
+        return HomeLifeRepository.getAllIndividualPatientTasks(
+          dateID: "Jan 12, 2026",
+          participantID: widget.patientInfo.userID,
+        );
+      default:
+        print("$option HAS BEEN SELECTEDDDDDDDDDDDDDDDDDDD");
+        return HomeLifeRepository.getIndividualPatientTasks(
+          dateID: option,
+          participantID: widget.patientInfo.userID,
+        );
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     // this will create the tasks once a day, and at the same time it will reload this page to simulate a reshing animation
     refreshPageWhenFirstTimeOpeningThisPage();
+    // this will load the days to display as options in the dropdown menu
+    getDaysToDisplayInDropdown();
   }
 
   @override
@@ -68,8 +121,8 @@ class _IndividualTasksState extends State<IndividualTasks> {
                   Navigator.pop(context);
                   MyNavigator.goTo(
                     context,
-                    // IndividualTasks(patientInfo: widget.patientInfo),
-                    HomeLifePatientRecords(),
+                    IndividualTasks(patientInfo: widget.patientInfo),
+                    // HomeLifePatientRecords(),
                   );
                 },
               ),
@@ -79,29 +132,84 @@ class _IndividualTasksState extends State<IndividualTasks> {
                 width: MyDimensionAdapter.getWidth(context) * 0.8,
                 height: MyDimensionAdapter.getHeight(context) * 0.825,
                 // color: Colors.amber,
-                child: FutureBuilder(
-                  future: HomeLifeRepository.getIndividualPatientTasks(
-                    dateID: MyDateFormatter.formatDate(
-                      dateTimeInString: DateTime.now().toString(),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    MyTextFormatter.p(
+                      text: "Display Options",
+                      fontsize: kDefaultFontSize - 2,
                     ),
-                    participantID: widget.patientInfo.userID,
-                  ),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Center(child: CircularProgressIndicator());
-                    } else {
-                      return ListView.builder(
-                        itemCount: snapshot.data?.length ?? 0,
-                        itemBuilder: (context, index) {
-                          return IndividualTaskCard(
-                            dateID: DateTime.now().toString(),
-                            participantID: widget.patientInfo.userID,
-                            plannedTask: snapshot.data![index],
-                          );
+                    (isDropdownLoading)
+                        ? CircularProgressIndicator()
+                        : Container(
+                            width: MyDimensionAdapter.getWidth(context) * 0.8,
+                            height:
+                                MyDimensionAdapter.getHeight(context) * 0.07,
+                            // color: Colors.white,
+                            child: MyDropdownMenuButton(
+                              items: allDaysToDisplayOptions,
+                              initialValue: selectedDayToDisplay,
+                              isLeadingIconVisible: false,
+                              onChanged: (value) {
+                                setState(() {
+                                  selectedDayToDisplay = value!;
+                                });
+                              },
+                            ),
+                          ),
+                    Container(
+                      width: MyDimensionAdapter.getWidth(context) * 0.8,
+                      height: MyDimensionAdapter.getHeight(context) * 0.72,
+                      // color: Colors.green,
+                      child: FutureBuilder(
+                        // future: HomeLifeRepository.getIndividualPatientTasks(
+                        //   dateID: MyDateFormatter.formatDate(
+                        //     dateTimeInString: DateTime.now().toString(),
+                        //   ),
+                        //   participantID: widget.patientInfo.userID,
+                        // ),
+                        future: pageDisplayOptions(selectedDayToDisplay),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return Center(child: CircularProgressIndicator());
+                          } else {
+                            return ListView.builder(
+                              itemCount: snapshot.data?.length ?? 0,
+                              itemBuilder: (context, index) {
+                                if (selectedDayToDisplay == "All") {
+                                  // return Center(
+                                  //   child: CircularProgressIndicator.adaptive(),
+                                  // );
+                                  return IndividualTaskCard(
+                                    // ✅ FIX: Add a unique Key!
+                                    // This forces Flutter to rebuild the card from scratch when the date changes.
+                                    key: ValueKey(
+                                      "${widget.patientInfo.userID}_$selectedDayToDisplay",
+                                    ),
+                                    dateID: selectedDayToDisplay,
+                                    participantID: widget.patientInfo.userID,
+                                    plannedTask: snapshot.data![index],
+                                  );
+                                } else {
+                                  return IndividualTaskCard(
+                                    // ✅ FIX: Add a unique Key!
+                                    // This forces Flutter to rebuild the card from scratch when the date changes.
+                                    key: ValueKey(
+                                      "${widget.patientInfo.userID}_$selectedDayToDisplay",
+                                    ),
+                                    dateID: selectedDayToDisplay,
+                                    participantID: widget.patientInfo.userID,
+                                    plannedTask: snapshot.data![index],
+                                  );
+                                }
+                              },
+                            );
+                          }
                         },
-                      );
-                    }
-                  },
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

@@ -1,6 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/helper/home_life_repository.dart';
+import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/model/home_life_models/task_model.dart';
+import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
 import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
@@ -28,15 +31,26 @@ class IndividualTaskCard extends StatefulWidget {
 
 class _IndividualTaskCardState extends State<IndividualTaskCard> {
   bool isDone = false;
+  // temporary variable to quickly reflect the name after clicking this card checkbox/button
+  String tempIsDoneBy = "";
 
   /// to update isDone property of a task
   Future<void> updateIsDoneTask() async {
+    PersonalInfo personalInfo =
+        await MyPersonalInfoRepository.getSpecificPersonalInfo(
+          userID: FirebaseAuth.instance.currentUser!.uid,
+        );
     await HomeLifeRepository.updateIsDoneTaskStatus(
       dateID: widget.dateID,
       participantID: widget.participantID,
       taskID: widget.plannedTask.taskID!,
       isDone: isDone,
+      isDoneBy: personalInfo.name,
     );
+
+    setState(() {
+      tempIsDoneBy = personalInfo.name;
+    });
   }
 
   /// to get isDone property of a task
@@ -121,7 +135,7 @@ class _IndividualTaskCardState extends State<IndividualTaskCard> {
               showMyAnimatedSnackBar(
                 context: context,
                 bgColor: Colors.white70,
-                dataToDisplay: "You already marked this task as done!",
+                dataToDisplay: "This task was already marked as done!",
               );
             }
           },
@@ -162,9 +176,49 @@ class _IndividualTaskCardState extends State<IndividualTaskCard> {
                   alignment: Alignment.centerLeft,
                   child: MyTextFormatter.p(
                     // text:
-                    //     "jsjb skjfb sfdkjbf skdjbfdksjbf skjbfksbfs fkjbdsfbs fsdkbfbsdfdfk sfkbsf sdkfks",
+                    // "jsjb skjfb sfdkjbf skdjbfdksjbf skjbfksbfs fkjbdsfbs fsdkbfbsdfdfk sfkbsf sdkfks",
                     text: widget.plannedTask.description,
+                    lineHeight: 1.2,
                     maxLines: 3,
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 2,
+                left: MyDimensionAdapter.getWidth(context) * 0.14,
+                child: Container(
+                  width: MyDimensionAdapter.getWidth(context) * 0.645,
+                  height: MyDimensionAdapter.getHeight(context) * 0.017,
+                  margin: EdgeInsets.only(top: 2),
+                  padding: EdgeInsets.only(left: 5, right: 5),
+                  // color: Colors.yellow.shade100,
+                  alignment: Alignment.centerLeft,
+                  child: Row(
+                    children: [
+                      FittedBox(
+                        child: MyTextFormatter.p(
+                          text:
+                              (widget.plannedTask.isDoneBy != '' ||
+                                  tempIsDoneBy != '')
+                              ? "Done by: "
+                              : "",
+                          // text: widget.plannedTask.description,
+                          maxLines: 1,
+                        ),
+                      ),
+                      // this will display the person who have marked this task done, in short, the one who checked this task.
+                      FittedBox(
+                        child: MyTextFormatter.p(
+                          // tempIsDoneBy is for when this task is not yet done and gets done,
+                          //              just to quickly reflect a temporary version of the data being save in the database
+                          text: (tempIsDoneBy != '')
+                              ? tempIsDoneBy
+                              : widget.plannedTask.isDoneBy,
+                          fontWeight: FontWeight.w500,
+                          maxLines: 1,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -209,7 +263,7 @@ class _IndividualTaskCardState extends State<IndividualTaskCard> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                MyTextFormatter.p(text: "Date", fontsize: kDefaultFontSize - 3),
+                MyTextFormatter.p(text: "Time", fontsize: kDefaultFontSize - 3),
                 MyTextFormatter.p(
                   text: widget.plannedTask.time,
                   // text: "07:30 AM",

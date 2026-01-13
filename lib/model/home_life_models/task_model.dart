@@ -6,6 +6,7 @@ class HLTaskModel {
   final String description;
   final String time;
   final bool isDone;
+  final String isDoneBy;
   final String?
   caregiverId; // Added for that "Collection Group Query" capability we discussed
 
@@ -16,6 +17,7 @@ class HLTaskModel {
     required this.description,
     required this.time,
     required this.isDone, // Default to false (not done) when creating
+    required this.isDoneBy,
     required this.caregiverId,
   });
 
@@ -28,6 +30,7 @@ class HLTaskModel {
       'description': description,
       'time': time,
       'isDone': isDone,
+      'isDoneBy': isDoneBy,
       'caregiverId': caregiverId,
       // Note: We rarely save 'id' inside the map because it's already the document name!
     };
@@ -45,6 +48,7 @@ class HLTaskModel {
       description: data['description'] ?? '',
       time: data['time'] ?? '',
       isDone: data['isDone'] ?? false,
+      isDoneBy: data['isDoneBy'] ?? '',
       caregiverId: data['caregiverId'],
     );
   }

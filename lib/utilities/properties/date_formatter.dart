@@ -70,6 +70,20 @@ class MyDateFormatter {
         return _parseDirtyTimestampString(dateTimeToParse);
       }
 
+      // ATTEMPT: "Can you read this string ('Jan 13, 2025') using the pattern 'MMM d, y'?"
+      //
+      // IF YES: Convert it to a DateTime object AND RETURN IT IMMEDIATELY.
+      //         (The function stops here. It does NOT run any code below this.)
+      //
+      // IF NO:  (e.g., the string is "2025-01-13"), this line crashes (throws an error).
+      //         The 'return' never happens.
+      //         We jump straight to the 'catch' block.
+      try {
+        return DateFormat('MMM d, y').parse(dateTimeToParse);
+      } catch (e) {
+        // If it fails (e.g. it's "2026-01-01"), let the standard parser try below
+      }
+
       // CHECK: Is it a standard date string? (e.g. "2025-12-17")
       return DateTime.tryParse(dateTimeToParse) ?? DateTime.now();
     }

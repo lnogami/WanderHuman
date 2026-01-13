@@ -78,6 +78,7 @@ class MyTextFormatter {
     FontStyle fontStyle = FontStyle.normal,
     int maxLines = 1,
     FontWeight fontWeight = FontWeight.w400,
+    double? lineHeight,
   }) {
     return Text(
       text,
@@ -86,6 +87,7 @@ class MyTextFormatter {
       overflow: TextOverflow.ellipsis,
       softWrap: (maxLines > 1) ? true : false,
       style: TextStyle(
+        height: lineHeight,
         fontSize: fontsize,
         fontStyle: fontStyle,
         fontWeight: fontWeight,
