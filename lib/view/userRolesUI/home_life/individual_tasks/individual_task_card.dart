@@ -4,6 +4,7 @@ import 'package:wanderhuman_app/helper/home_life_repository.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/model/home_life_models/task_model.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
+import 'package:wanderhuman_app/utilities/properties/date_formatter.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
 import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
@@ -113,8 +114,19 @@ class _IndividualTaskCardState extends State<IndividualTaskCard> {
         ),
         child: InkWell(
           onTap: () {
+            // if task is out of date, it can't be done anymore
+            if (MyDateFormatter.formatDate(
+                  dateTimeInString: DateTime.now().toString(),
+                ) !=
+                widget.dateID) {
+              showMyAnimatedSnackBar(
+                context: context,
+                dataToDisplay:
+                    "Sorry, this task is already out of date, therefore it can't be done.",
+              );
+            }
             // if task is not yet done
-            if (!isDone) {
+            else if (!isDone) {
               myAlertDialogue(
                 context: context,
                 alertTitle: "Confirm Task Completion",

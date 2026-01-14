@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
+import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
 import 'package:wanderhuman_app/view/components/appbar.dart';
 import 'package:wanderhuman_app/view/components/cards3.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
@@ -42,7 +43,13 @@ class HomeLifePatientRecords extends StatelessWidget {
           FutureBuilder(
             future: getPatient(),
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              } else if (snapshot.data!.isEmpty) {
+                return Center(
+                  child: MyTextFormatter.p(text: "No Patient Found . ."),
+                );
+              } else {
                 return Container(
                   width: MyDimensionAdapter.getWidth(context),
                   height: MyDimensionAdapter.getHeight(context),
@@ -76,8 +83,6 @@ class HomeLifePatientRecords extends StatelessWidget {
                     },
                   ),
                 );
-              } else {
-                return Center(child: CircularProgressIndicator());
               }
             },
           ),
@@ -88,8 +93,9 @@ class HomeLifePatientRecords extends StatelessWidget {
               title: "Manage Patient",
               backButton: () {
                 Navigator.pop(context);
-                Navigator.pop(context);
-                MyNavigator.goTo(context, HomeLifePatientRecords());
+                // the 2 lines below are for debugging purposes only
+                // Navigator.pop(context);
+                // MyNavigator.goTo(context, HomeLifePatientRecords());
               },
               actionButtons: [
                 // IconButton(

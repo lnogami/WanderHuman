@@ -240,6 +240,8 @@ class HomeLifeRepository {
           print("ADDED PARTICIPANT: ${personalInfo.name}");
 
           // this will filter out the task that has not schedule for this day
+          // for example lets's say the only day schedule a task have is Mon and today is Tuesday
+          //             therefore the task will not be created because today is not it's scheduled day.
           List<String> daySchedule = task.repeatInterval.split(",");
           if (daySchedule.contains(
             MyDateFormatter.formatDate(
@@ -252,12 +254,8 @@ class HomeLifeRepository {
             //            Add those tasks in the dailyRecord
             _addTask(
               dateID: dateOnlyFormat, // for L1 Doc
-              // participantID: formattedTaskID, // for L2 Doc //TODO (deletable)
               participantID: participantID, // for L2 Doc
               task: HLTaskModel(
-                // TODO (deletable) the two commented out lines below this is deletable
-                // L3 just means Layer 3, to indicate it is in the Tasks
-                // taskID: "L3_$formattedTaskID",
                 taskID: task.taskID,
                 taskName: task.taskName,
                 description: task.taskDescription,
@@ -265,14 +263,12 @@ class HomeLifeRepository {
                 isDone: false,
                 isDoneBy: '', // will be filled later when it isDone is true,
                 caregiverId: task.createdBy,
+                createdAt: dateID,
               ),
             );
           }
-
-          // print("ADDED TASKKKKK: L3_${formattedTaskID}");
         }
       }
-
       // this bool return type is for debugging purposes only
       return true;
     } else {
@@ -289,7 +285,6 @@ class HomeLifeRepository {
     QuerySnapshot homeLifeRepository = await _rootCollection
         .where("dateID", isEqualTo: dateID)
         .get();
-
     // return isAlreadyRecorded;
     return homeLifeRepository.docs.isNotEmpty;
   }
@@ -347,6 +342,7 @@ class HomeLifeRepository {
       "isDone": task.isDone,
       "isDoneBy": task.isDoneBy,
       "caregiverId": task.caregiverId,
+      "createdAt": task.createdAt,
     });
   }
 
@@ -421,6 +417,7 @@ class HomeLifeRepository {
               isDone: false,
               isDoneBy: '', // will be filled later when it isDone is true
               caregiverId: task.createdBy,
+              createdAt: dateID,
             ),
           );
         }
@@ -724,7 +721,9 @@ class HomeLifeRepository {
       "description": task.description,
       "time": task.time,
       "isDone": task.isDone,
+      // "isDoneBy": task.isDoneBy,
       "caregiverId": task.caregiverId,
+      // "createdAt": task.createdAt,
     }, SetOptions(merge: true));
   }
 

@@ -7,8 +7,10 @@ class HLTaskModel {
   final String time;
   final bool isDone;
   final String isDoneBy;
-  final String?
-  caregiverId; // Added for that "Collection Group Query" capability we discussed
+  // Added for that "Collection Group Query" capability we discussed
+  final String? caregiverId;
+  // newly added
+  final String? createdAt;
 
   // 2. Constructor: How we create the object in our app
   HLTaskModel({
@@ -19,6 +21,8 @@ class HLTaskModel {
     required this.isDone, // Default to false (not done) when creating
     required this.isDoneBy,
     required this.caregiverId,
+    // newly added
+    required this.createdAt,
   });
 
   // 3. toMap(): The "Packer"
@@ -32,6 +36,7 @@ class HLTaskModel {
       'isDone': isDone,
       'isDoneBy': isDoneBy,
       'caregiverId': caregiverId,
+      'createdAt': createdAt,
       // Note: We rarely save 'id' inside the map because it's already the document name!
     };
   }
@@ -42,14 +47,15 @@ class HLTaskModel {
   factory HLTaskModel.fromFirestore(Map<String, dynamic> data, String docId) {
     return HLTaskModel(
       taskID: docId, // We inject the Document ID separately here
-      taskName:
-          data['taskName'] ??
-          '', // '??' is a safety check: if null, use empty string
+      // '??' is a safety check: if null, use empty string
+      taskName: data['taskName'] ?? '',
       description: data['description'] ?? '',
       time: data['time'] ?? '',
       isDone: data['isDone'] ?? false,
       isDoneBy: data['isDoneBy'] ?? '',
-      caregiverId: data['caregiverId'],
+      caregiverId: data['caregiverId'] ?? '',
+      // dateID is not really required when creating task, it only optional for displaying in UI
+      createdAt: data['createdAt'] ?? '',
     );
   }
 }

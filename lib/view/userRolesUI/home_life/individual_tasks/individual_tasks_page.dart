@@ -43,7 +43,7 @@ class _IndividualTasksState extends State<IndividualTasks> {
   }
 
   /// Will contain all the days to display as options
-  List<String> allDaysToDisplayOptions = ["All"];
+  List<String> allDaysToDisplayOptions = ["All Dates"];
 
   /// Selected option, by default it is set today
   String selectedDayToDisplay = MyDateFormatter.formatDate(
@@ -69,7 +69,7 @@ class _IndividualTasksState extends State<IndividualTasks> {
   /// This is relative to the FutureBuilder for displaying the task of a specific day.
   Future<List<HLTaskModel>> pageDisplayOptions(String option) {
     switch (option) {
-      case "All":
+      case "All Dates":
         // temporary pa ni
         // return HomeLifeRepository.getIndividualPatientTasks(
         //   dateID: MyDateFormatter.formatDate(
@@ -109,26 +109,10 @@ class _IndividualTasksState extends State<IndividualTasks> {
           width: MyDimensionAdapter.getWidth(context),
           child: Column(
             children: [
-              MyCustAppBar(
-                title: "Tasks for ${widget.patientInfo.name}",
-                // // newly added, not yet final
-                // color: Colors.blue.shade200,
-                // textColor: Colors.white,
-                // backButtonColor: Colors.white70,
-                //
-                backButton: () {
-                  Navigator.pop(context);
-                  Navigator.pop(context);
-                  MyNavigator.goTo(
-                    context,
-                    IndividualTasks(patientInfo: widget.patientInfo),
-                    // HomeLifePatientRecords(),
-                  );
-                },
-              ),
+              appBar(context),
 
-              // SizedBox(height: 30),
-              Container(
+              // BODY
+              SizedBox(
                 width: MyDimensionAdapter.getWidth(context) * 0.8,
                 height: MyDimensionAdapter.getHeight(context) * 0.825,
                 // color: Colors.amber,
@@ -162,49 +146,44 @@ class _IndividualTasksState extends State<IndividualTasks> {
                       height: MyDimensionAdapter.getHeight(context) * 0.72,
                       // color: Colors.green,
                       child: FutureBuilder(
-                        // future: HomeLifeRepository.getIndividualPatientTasks(
-                        //   dateID: MyDateFormatter.formatDate(
-                        //     dateTimeInString: DateTime.now().toString(),
-                        //   ),
-                        //   participantID: widget.patientInfo.userID,
-                        // ),
                         future: pageDisplayOptions(selectedDayToDisplay),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
                             return Center(child: CircularProgressIndicator());
-                          } else {
-                            return ListView.builder(
-                              itemCount: snapshot.data?.length ?? 0,
-                              itemBuilder: (context, index) {
-                                if (selectedDayToDisplay == "All") {
-                                  // return Center(
-                                  //   child: CircularProgressIndicator.adaptive(),
-                                  // );
-                                  return IndividualTaskCard(
-                                    // ✅ FIX: Add a unique Key!
-                                    // This forces Flutter to rebuild the card from scratch when the date changes.
-                                    key: ValueKey(
-                                      "${widget.patientInfo.userID}_$selectedDayToDisplay",
-                                    ),
-                                    dateID: selectedDayToDisplay,
-                                    participantID: widget.patientInfo.userID,
-                                    plannedTask: snapshot.data![index],
-                                  );
-                                } else {
-                                  return IndividualTaskCard(
-                                    // ✅ FIX: Add a unique Key!
-                                    // This forces Flutter to rebuild the card from scratch when the date changes.
-                                    key: ValueKey(
-                                      "${widget.patientInfo.userID}_$selectedDayToDisplay",
-                                    ),
-                                    dateID: selectedDayToDisplay,
-                                    participantID: widget.patientInfo.userID,
-                                    plannedTask: snapshot.data![index],
-                                  );
-                                }
-                              },
+                          } else if (snapshot.data!.isEmpty) {
+                            return Center(
+                              child: MyTextFormatter.p(
+                                text:
+                                    "No Tasks for ${widget.patientInfo.name.trim()} Today . .\n\n",
+                              ),
                             );
+                          }
+                          // this is where data is displayed
+                          else {
+                            if (selectedDayToDisplay == "All Dates") {
+                              return listViewBuilderThatCatersAllDates(
+                                snapshot,
+                              );
+                            }
+                            // specific dates are catered here
+                            else {
+                              return ListView.builder(
+                                itemCount: snapshot.data?.length ?? 0,
+                                itemBuilder: (context, index) {
+                                  return IndividualTaskCard(
+                                    // // ✅ FIX: Add a unique Key!
+                                    // // This forces Flutter to rebuild the card from scratch when the date changes.
+                                    // key: ValueKey(
+                                    //   "${widget.patientInfo.userID}_$selectedDayToDisplay",
+                                    // ),
+                                    dateID: selectedDayToDisplay,
+                                    participantID: widget.patientInfo.userID,
+                                    plannedTask: snapshot.data![index],
+                                  );
+                                },
+                              );
+                            }
                           }
                         },
                       ),
@@ -217,5 +196,101 @@ class _IndividualTasksState extends State<IndividualTasks> {
         ),
       ),
     );
+  }
+
+  MyCustAppBar appBar(BuildContext context) {
+    return MyCustAppBar(
+      title: "Tasks for ${widget.patientInfo.name}",
+      // // newly added, not yet final
+      // color: Colors.blue.shade200,
+      // textColor: Colors.white,
+      // backButtonColor: Colors.white70,
+      //
+      backButton: () {
+        Navigator.pop(context);
+        // the 6 lines below are for debugging purposes only
+        // Navigator.pop(context);
+        // MyNavigator.goTo(
+        //   context,
+        //   IndividualTasks(patientInfo: widget.patientInfo),
+        //   // HomeLifePatientRecords(),
+        // );
+      },
+    );
+  }
+
+  ListView listViewBuilderThatCatersAllDates(
+    AsyncSnapshot<List<HLTaskModel>> snapshot,
+  ) {
+    return ListView.builder(
+      itemCount: snapshot.data?.length ?? 0,
+      itemBuilder: (context, index) {
+        final task = snapshot.data![index];
+
+        // 1. Get Current Date
+        String currentDate = task.createdAt!;
+
+        // 2. Get Previous Date (Safe check)
+        String previousDate = "";
+        // if the date of the current task is not the same as the previous task then store it as the previous date
+        if (index > 0) {
+          previousDate = snapshot.data![index - 1].createdAt!;
+        }
+
+        // 3. Compare: Show header if it's the very first item OR date changed
+        bool showHeader = (index == 0) || (currentDate != previousDate);
+
+        // 4. Return the UI
+        if (showHeader) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // The Header Design
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 0, 10),
+                child: Row(
+                  children: [
+                    MyTextFormatter.h3(
+                      text: currentDate,
+                      color: Colors.grey.shade600,
+                      fontsize: kDefaultFontSize + 2,
+                    ),
+                    if (isTheDateToday(currentDate))
+                      MyTextFormatter.h3(
+                        text: "  (Today)",
+                        color: Colors.blue.shade400,
+                        fontsize: kDefaultFontSize + 1,
+                      ),
+                  ],
+                ),
+              ),
+              // The Task
+              IndividualTaskCard(
+                key: ValueKey("${task.taskID}_$selectedDayToDisplay"),
+                dateID: currentDate,
+                participantID: widget.patientInfo.userID,
+                plannedTask: task,
+              ),
+            ],
+          );
+        } else {
+          // Just the Task (No Header)
+          return IndividualTaskCard(
+            key: ValueKey("${task.taskID}_$selectedDayToDisplay"),
+            dateID: currentDate,
+            participantID: widget.patientInfo.userID,
+            plannedTask: task,
+          );
+        }
+      },
+    );
+  }
+
+  /// This method is ssociated with listViewBuilderThatCatersAllDates
+  bool isTheDateToday(String dateToCompare) {
+    return MyDateFormatter.formatDate(
+          dateTimeInString: DateTime.now().toString(),
+        ) ==
+        dateToCompare;
   }
 }

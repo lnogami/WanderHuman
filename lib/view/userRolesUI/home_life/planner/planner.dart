@@ -211,15 +211,15 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
                 ),
                 SizedBox(height: 10),
 
-                (isEditable)
-                    ? MyCustTooltip(
-                        message: "How often the task should be repeated?",
-                        child: repeatDropDown(context),
-                      )
-                    : notEditableDisplay(
-                        context,
-                        text: widget.plannedTask!.repeatInterval,
-                      ),
+                MyCustTooltip(
+                  message: "How often the task should be repeated?",
+                  child: (isEditable)
+                      ? repeatDropDown(context)
+                      : notEditableDisplay(
+                          context,
+                          text: widget.plannedTask!.repeatInterval,
+                        ),
+                ),
 
                 SizedBox(height: 12),
 
@@ -261,17 +261,30 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
       title: "Planner",
       backButton: () {
         Navigator.pop(context);
-        Navigator.pop(context);
-        MyNavigator.goTo(
-          context,
-          HomeLifePlanner(plannedTask: widget.plannedTask),
-        );
+        // the 5 lines below are for debugging purposes only
+        // Navigator.pop(context);
+        // MyNavigator.goTo(
+        //   context,
+        //   HomeLifePlanner(plannedTask: widget.plannedTask),
+        // );
       },
       backButtonColor: Colors.blue.shade300,
       actionButtons: [
         MyCustTooltip(
           message: "Hold the buttons to know what they are for.",
-          child: Icon(Icons.info_outline_rounded, color: Colors.grey.shade400),
+          child: GestureDetector(
+            onTap: () {
+              showMyAnimatedSnackBar(
+                context: context,
+                dataToDisplay: "Hold the buttons to know what they are for.",
+                bgColor: Colors.white,
+              );
+            },
+            child: Icon(
+              Icons.info_outline_rounded,
+              color: Colors.grey.shade400,
+            ),
+          ),
         ),
         (widget.plannedTask != null)
             ? MyCustTooltip(
@@ -907,7 +920,7 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
             : "Confirm Update",
         alertContent: (widget.plannedTask == null)
             ? "Are you sure you want to save this task?"
-            : "Are you sure about this update you have made?",
+            : "Are you sure you want to save these changes?\n\nNotice: To ensure data integrity, this update will not affect today's tasks. The changes will take effect starting tomorrow.",
         onApprovalPressed: () {
           // EDIT/UPDATE TASK LOGIC
           if (widget.plannedTask != null) {
@@ -1007,6 +1020,7 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
     return staffNames;
   }
 
+  // will just display who created the task
   Column footer() {
     return Column(
       children: [

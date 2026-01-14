@@ -31,7 +31,7 @@ class MyCardInfoDisplayer3 extends StatelessWidget {
     // required this.profilePicture,
     required this.personalInfo,
     // required this.batteryPercentage,
-    this.batteryPercentage = "25",
+    this.batteryPercentage = "99",
   });
 
   Future<String> numberOfTasksLeft() async {
@@ -272,6 +272,7 @@ Container batteryVisual({
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  // battery bar below 25%
                   Expanded(
                     child: Container(
                       // width: MyDimensionAdapter.getWidth(context) * 0.025,

@@ -24,8 +24,20 @@ class _HomeLifeManageTaskState extends State<HomeLifeManageTask> {
     List<HomeLifePlannerModel> tasks =
         await HomeLifePlannerRepository.getAllTasks();
 
+    // // sort by createdAt
+    // tasks.sort((a, b) {
+    //   return a.createdAt.compareTo(b.createdAt);
+    // });
+
+    // sort by taskName
+    tasks.sort((a, b) {
+      return a.taskName.compareTo(b.taskName);
+    });
     print("TASKSSSSSSSSSSSSSSSSSS: ${tasks.length}");
-    return tasks;
+    return tasks.reversed.toList();
+
+    // print("TASKSSSSSSSSSSSSSSSSSS: ${tasks.length}");
+    // return tasks;
   }
 
   @override
@@ -48,18 +60,43 @@ class _HomeLifeManageTaskState extends State<HomeLifeManageTask> {
                 title: "Manage Tasks",
                 backButton: () {
                   Navigator.pop(context);
-                  Navigator.pop(context);
-                  MyNavigator.goTo(context, HomeLifeManageTask());
+                  // the 2 lines below are for debugging purposes only
+                  // Navigator.pop(context);
+                  // MyNavigator.goTo(context, HomeLifeManageTask());
                 },
+                actionButtons: [
+                  GestureDetector(
+                    onTap: () {
+                      MyNavigator.goTo(context, HomeLifePlanner());
+                    },
+                    child: Icon(
+                      Icons.add_rounded,
+                      color: Colors.blue.shade300,
+                      size: 32,
+                    ),
+                  ),
+                  // IconButton(
+                  //   onPressed: () {},
+                  //   iconSize: 32,
+                  //   // splashRadius: 24,
+                  //   splashColor: MyColorPalette.splashColor,
+                  //   icon: Icon(
+                  //     Icons.add_rounded,
+                  //     color: Colors.blue.shade300,
+                  //     // size: 32,
+                  //   ),
+                  // ),
+                  SizedBox(width: 5),
+                ],
               ),
 
               body(context),
 
-              floatingButton(
-                onTap: () {
-                  MyNavigator.goTo(context, HomeLifePlanner());
-                },
-              ),
+              // floatingButton(
+              //   onTap: () {
+              //     MyNavigator.goTo(context, HomeLifePlanner());
+              //   },
+              // ),
             ],
           ),
         ),
@@ -80,7 +117,11 @@ class _HomeLifeManageTaskState extends State<HomeLifeManageTask> {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Center(child: CircularProgressIndicator.adaptive());
             } else if (snapshot.data!.isEmpty) {
-              return Center(child: Text("No Task Found . ."));
+              return Center(
+                child: Text(
+                  "No Task Found . .\n\nCreate Tasks\nPress the + icon above.\n\n\n\n",
+                ),
+              );
             } else {
               return ListView.builder(
                 itemCount: snapshot.data!.length,
@@ -144,37 +185,37 @@ class _HomeLifeManageTaskState extends State<HomeLifeManageTask> {
     );
   }
 
-  Positioned floatingButton({required VoidCallback onTap}) {
-    return Positioned(
-      right: 50,
-      bottom: 50,
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: 60,
-          height: 60,
-          decoration: BoxDecoration(
-            color: Colors.blue.shade400,
-            borderRadius: BorderRadius.circular(50),
-            border: Border.all(color: Colors.white60, width: 2),
-            boxShadow: [
-              BoxShadow(
-                color: const Color.fromARGB(80, 1, 100, 200),
-                blurRadius: 4,
-                offset: Offset(0, 2),
-                blurStyle: BlurStyle.normal,
-              ),
-              // BoxShadow(
-              //   color: Colors.white70,
-              //   blurRadius: 10,
-              //   offset: Offset(0, 4),
-              //   blurStyle: BlurStyle.inner,
-              // ),
-            ],
-          ),
-          child: Icon(Icons.add_rounded, color: Colors.white, size: 32),
-        ),
-      ),
-    );
-  }
+  // Positioned floatingButton({required VoidCallback onTap}) {
+  //   return Positioned(
+  //     right: 50,
+  //     bottom: 50,
+  //     child: GestureDetector(
+  //       onTap: onTap,
+  //       child: Container(
+  //         width: 60,
+  //         height: 60,
+  //         decoration: BoxDecoration(
+  //           color: const Color.fromARGB(100, 66, 164, 245),
+  //           borderRadius: BorderRadius.circular(50),
+  //           border: Border.all(color: Colors.white60, width: 2),
+  //           boxShadow: [
+  //             BoxShadow(
+  //               color: const Color.fromARGB(80, 1, 100, 200),
+  //               blurRadius: 4,
+  //               offset: Offset(0, 2),
+  //               blurStyle: BlurStyle.normal,
+  //             ),
+  //             // BoxShadow(
+  //             //   color: Colors.white70,
+  //             //   blurRadius: 10,
+  //             //   offset: Offset(0, 4),
+  //             //   blurStyle: BlurStyle.inner,
+  //             // ),
+  //           ],
+  //         ),
+  //         child: Icon(Icons.add_rounded, color: Colors.white, size: 32),
+  //       ),
+  //     ),
+  //   );
+  // }
 }
