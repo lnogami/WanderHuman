@@ -16,7 +16,7 @@ import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/components/image_displayer.dart';
 import 'package:wanderhuman_app/view/components/image_picker.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
-import 'package:wanderhuman_app/view/login/widgets/textfield.dart';
+import 'package:wanderhuman_app/view/components/textfield.dart';
 
 class ViewPatientForm extends StatefulWidget {
   final PersonalInfo patientPersonalInfo;

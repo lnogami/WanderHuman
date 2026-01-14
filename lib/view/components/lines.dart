@@ -5,12 +5,14 @@ class MyLine extends StatelessWidget {
   final double length;
   final double thickness;
   final Color color;
+  final bool isRounded;
   const MyLine({
     super.key,
     this.isVertical = true,
     required this.length,
     this.thickness = 1,
     this.color = Colors.black26,
+    this.isRounded = false,
   });
 
   @override
@@ -19,14 +21,20 @@ class MyLine extends StatelessWidget {
       return Container(
         width: thickness,
         height: length,
-        color: color,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: isRounded ? BorderRadius.circular(10) : null,
+        ),
         margin: EdgeInsets.symmetric(horizontal: 5),
       );
     } else {
       return Container(
         width: length,
         height: thickness,
-        color: color,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: isRounded ? BorderRadius.circular(10) : null,
+        ),
         margin: EdgeInsets.symmetric(vertical: 5),
       );
     }

@@ -16,7 +16,7 @@ import 'package:wanderhuman_app/view/components/dropdown_button.dart';
 import 'package:wanderhuman_app/view/components/image_displayer.dart';
 import 'package:wanderhuman_app/view/components/image_picker.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
-import 'package:wanderhuman_app/view/login/widgets/textfield.dart';
+import 'package:wanderhuman_app/view/components/textfield.dart';
 
 class ViewStaffForm extends StatefulWidget {
   final PersonalInfo staffPersonalInfo;

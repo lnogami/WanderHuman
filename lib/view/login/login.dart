@@ -6,7 +6,7 @@ import 'package:wanderhuman_app/view/components/button.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/login/register_account.dart';
 import 'package:wanderhuman_app/view/login/widgets/layout_material.dart';
-import 'package:wanderhuman_app/view/login/widgets/textfield.dart';
+import 'package:wanderhuman_app/view/components/textfield.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -15,25 +15,25 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
-// mainly for login
-late TextEditingController emailController;
-late TextEditingController passwordController;
-// mainly for signup
-late TextEditingController confirmPasswordController;
-
-late FocusNode passwordFocusNode;
-// error notifier
-Color emailFieldColor = Colors.blue;
-Color passwordFieldColor = Colors.blue;
-
-// FocusNode confirmPasswordFocusNode = FocusNode();
-
-bool isGoingToSignUp = false;
-double animatedContainerHeight = 0;
-double rotationAngle = 0;
-int animationDuration = 300;
-
 class _LoginPageState extends State<LoginPage> {
+  // mainly for login
+  late TextEditingController emailController;
+  late TextEditingController passwordController;
+  // mainly for signup
+  late TextEditingController confirmPasswordController;
+
+  late FocusNode passwordFocusNode;
+  // error notifier
+  Color emailFieldColor = MyColorPalette.borderColor;
+  Color passwordFieldColor = MyColorPalette.borderColor;
+
+  // FocusNode confirmPasswordFocusNode = FocusNode();
+
+  bool isGoingToSignUp = false;
+  double animatedContainerHeight = 0;
+  double rotationAngle = 0;
+  int animationDuration = 300;
+
   // FOR LOGIN
   Future<void> signInWithEmailAndPassword() async {
     try {
@@ -44,7 +44,12 @@ class _LoginPageState extends State<LoginPage> {
           );
       print("LOGGED IN: $userCredential");
     } on FirebaseAuthException catch (e) {
-      print(e.message);
+      print("Error during login: ${e.message}");
+      showMyAnimatedSnackBar(
+        // ignore: use_build_context_synchronously
+        context: context,
+        dataToDisplay: "The email or password is incorrect.",
+      );
     }
   }
 
@@ -56,24 +61,25 @@ class _LoginPageState extends State<LoginPage> {
       });
     } else {
       setState(() {
-        emailFieldColor = Colors.blue;
+        emailFieldColor = MyColorPalette.borderColor;
       });
     }
   }
 
   // FOR PASSWORD INPUT FIELDS VALIDATION
   void _latestValueOnConfirmPasswordListener() {
-    if (confirmPasswordController.text.trim() ==
-        passwordController.text.trim()) {
-      setState(() {
-        passwordFieldColor = Colors.blue;
-      });
-      print("PASSWORDS MATCH!");
-    } else {
+    if (confirmPasswordController.text.trim() !=
+            passwordController.text.trim() ||
+        confirmPasswordController.text.length < 6) {
       setState(() {
         passwordFieldColor = Colors.redAccent;
       });
       print("PASSWORDS DOES NOT MATCH!");
+    } else {
+      setState(() {
+        passwordFieldColor = MyColorPalette.borderColor;
+        print("PASSWORDS MATCH!");
+      });
     }
   }
 
@@ -98,8 +104,12 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void dispose() {
     super.dispose();
+    emailController.removeListener(_latestValueOnEmailControllerListener);
     emailController.dispose();
     passwordController.dispose();
+    confirmPasswordController.removeListener(
+      _latestValueOnConfirmPasswordListener,
+    );
     confirmPasswordController.dispose();
     passwordFocusNode.dispose();
   }
@@ -107,53 +117,54 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: Container(
-          width: MyDimensionAdapter.getWidth(context),
-          height: MyDimensionAdapter.getHeight(context),
-          // color: Colors.amber.shade200,
-          child: Stack(
-            alignment: Alignment.topCenter,
-            children: [
-              MyLayoutMaterial(
-                distanceFromTop: 0,
-                heightPercentage: 0.40,
-                color: Colors.blue.shade500,
-              ),
-              MyLayoutMaterial(
-                distanceFromTop: 210,
-                isSquare: true,
-                isSquareSize: MyDimensionAdapter.getHeight(context) * .65,
-                borderRadius: 120,
-                rotationAngle: -4,
-              ),
-              // this is where the main content is
-              MyLayoutMaterial(
-                distanceFromTop: 300,
-                heightPercentage: 0.7,
-                // color: const Color.fromARGB(118, 76, 175, 79),
-                isRotatable: false,
-                child: loginContentArea(),
-              ),
+      body: SingleChildScrollView(
+        child: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: Container(
+            width: MyDimensionAdapter.getWidth(context),
+            height: MyDimensionAdapter.getHeight(context),
+            // color: Colors.amber.shade200,
+            child: Stack(
+              alignment: Alignment.topCenter,
+              children: [
+                MyLayoutMaterial(
+                  distanceFromTop: 0,
+                  heightPercentage: 0.40,
+                  color: Colors.blue.shade300,
+                ),
+                MyLayoutMaterial(
+                  distanceFromTop: 210,
+                  isSquare: true,
+                  isSquareSize: MyDimensionAdapter.getHeight(context) * .65,
+                  borderRadius: 120,
+                  rotationAngle: -4,
+                ),
+                // this is where the main content is
+                MyLayoutMaterial(
+                  distanceFromTop: 300,
+                  heightPercentage: 0.7,
+                  isRotatable: false,
+                  child: loginContentArea(),
+                ),
 
-              // this is where the logo will be placed, and be animated if possible
-              Positioned(
-                top: 200,
-                child: ClipRRect(
-                  borderRadius: BorderRadiusGeometry.circular(15),
-                  child: AnimatedContainer(
-                    width: 100,
-                    height: 100,
-                    transformAlignment: Alignment.center,
-                    transform: Matrix4.rotationZ(rotationAngle),
-                    color: Colors.blue,
-                    duration: Duration(milliseconds: animationDuration),
-                    // onEnd: () {},
+                // this is where the logo will be placed, and be animated if possible
+                Positioned(
+                  top: 200,
+                  child: ClipRRect(
+                    borderRadius: BorderRadiusGeometry.circular(15),
+                    child: AnimatedContainer(
+                      width: 100,
+                      height: 100,
+                      transformAlignment: Alignment.center,
+                      transform: Matrix4.rotationZ(rotationAngle),
+                      color: Colors.blue.shade300,
+                      duration: Duration(milliseconds: animationDuration),
+                      // onEnd: () {},
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -246,7 +257,7 @@ class _LoginPageState extends State<LoginPage> {
           showMyAnimatedSnackBar(
             context: context,
             dataToDisplay:
-                "Passwords does not match. Please take a look at it, thanks.",
+                "Passwords does not match. Please make sure it matches.",
           );
         }
         // if Password does not have 6 or more characters

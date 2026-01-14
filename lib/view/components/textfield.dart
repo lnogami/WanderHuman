@@ -67,6 +67,15 @@ class _MyCustTextfieldState extends State<MyCustTextfield> {
   bool _isObscurePassword = false;
 
   @override
+  void initState() {
+    super.initState();
+
+    if (widget.isPasswordField) {
+      _isObscurePassword = true;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       // color: Colors.amber,

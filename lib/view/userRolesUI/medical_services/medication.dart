@@ -20,7 +20,7 @@ import 'package:wanderhuman_app/view/components/date_picker.dart';
 import 'package:wanderhuman_app/view/components/dropdown_button.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
-import 'package:wanderhuman_app/view/login/widgets/textfield.dart';
+import 'package:wanderhuman_app/view/components/textfield.dart';
 import 'package:wanderhuman_app/view/userRolesUI/medical_services/medication_history.dart';
 
 class Medication extends StatefulWidget {
