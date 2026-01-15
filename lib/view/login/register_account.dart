@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
-import 'package:wanderhuman_app/view/login/widgets/register_account_form.dart';
+import 'package:wanderhuman_app/view/login/register_account_form.dart';
 
 /// context is for BuildContext, email and password will be used for RegisterAccountForm
 void bottomModalSheetOfSignUp({
