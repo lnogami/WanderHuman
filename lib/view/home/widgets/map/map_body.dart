@@ -7,10 +7,12 @@ import 'package:geolocator/geolocator.dart' as gl;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mp;
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
+import 'package:wanderhuman_app/view/components/info_dialogue.dart';
+import 'package:wanderhuman_app/view/components/page_navigator.dart';
+import 'package:wanderhuman_app/view/home/home.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/bottom_modal_sheet_for_patient.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/point_annotation_options.dart';
-import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
-import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/show_alert_dialog.dart';
+import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 
 class MapBody extends StatefulWidget {
   const MapBody({super.key});
@@ -31,6 +33,32 @@ class _MapBodyState extends State<MapBody> {
   // Keep track of existing annotations by Firestore document ID
   Map<String, mp.PointAnnotation> userAnnotations = {};
 
+  // newly added
+  bool isLocationServiceEnabled = false;
+  Future<void> checkLocationServiceStatus() async {
+    isLocationServiceEnabled = await gl.Geolocator.isLocationServiceEnabled();
+    // mounted refers to if the widget is still on the tree
+    if (mounted) {
+      // code to be added here to make this code appear again if the Location is still turned off.
+      // showMyDialogBox(context, isLocationServiceEnabled);
+      if (!isLocationServiceEnabled) {
+        myInfoDialogue(
+          context: context,
+          alertTitle: "Location is Off",
+          alertContent: "\nPlease turn it on first.",
+          onPressText: "Refresh",
+          barrierColor: Color.fromARGB(72, 45, 60, 71),
+          onPress: () {
+            // this will simulate a refresh
+            Navigator.pop(context);
+            Navigator.pop(context);
+            MyNavigator.goTo(context, HomePage());
+          },
+        );
+      }
+    }
+  }
+
   // temporary
   gl.Position? myPosition;
 
@@ -39,6 +67,7 @@ class _MapBodyState extends State<MapBody> {
     super.initState();
     setupMapboxAccessToken();
     checkAndRequestLocationPermission();
+    checkLocationServiceStatus();
   }
 
   @override
@@ -115,13 +144,9 @@ class _MapBodyState extends State<MapBody> {
 
     // I AM NOT ALLOWED TO HIDE THE MAPBOX LOGO BECAUSE IT'S IN SERVICE TERMS AND POLICES.
 
-    bool isLocationServiceEnabled =
-        await gl.Geolocator.isLocationServiceEnabled();
-    // mounted refers to if the widget is still on the tree
-    if (mounted) {
-      // code to be added here to make this code appear again if the Location is still turned off.
-      showMyDialogBox(context, isLocationServiceEnabled);
-    }
+    //// original code of the new method getLocationServiceStatus()
+    // bool isLocationServiceEnabled =
+    //     await gl.Geolocator.isLocationServiceEnabled();
 
     // Start listening to Firebase users
     listenToPatients();
@@ -141,10 +166,11 @@ class _MapBodyState extends State<MapBody> {
         List<PersonalInfo> personsList =
             await MyPersonalInfoRepository.getAllPersonalInfoRecords();
 
-        showMyAnimatedSnackBar(
-          context: context,
-          dataToDisplay: personsList.length.toString(),
-        );
+        // showMyAnimatedSnackBar(
+        //   context: context,
+        //   dataToDisplay: personsList.length.toString(),
+        // );
+
         int n = 0; // (deletable) for debugging purposes only
 
         for (var doc in snapshot.docs) {

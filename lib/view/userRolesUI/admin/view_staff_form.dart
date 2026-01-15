@@ -17,10 +17,11 @@ import 'package:wanderhuman_app/view/components/dropdown_button.dart';
 import 'package:wanderhuman_app/view/components/image_displayer.dart';
 import 'package:wanderhuman_app/view/components/image_picker.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
-import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
+import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/components/textfield.dart';
 import 'package:wanderhuman_app/view/userRolesUI/admin/manage_staff.dart';
 
+/// This page has two uses, for Global use (each staff can have limited access), and for admins who can only edit roles.
 class ViewStaffForm extends StatefulWidget {
   final PersonalInfo staffPersonalInfo;
   const ViewStaffForm({super.key, required this.staffPersonalInfo});
@@ -30,6 +31,13 @@ class ViewStaffForm extends StatefulWidget {
 }
 
 class _AddViewStaffFormState extends State<ViewStaffForm> {
+  // These variables are for Global Use of this Page
+  // this will enable you and only you, to edit your information as this Page is visible for everyone.
+  bool isThisYourSelf = false;
+  // this will enable an admin to edit some part of the information
+  bool isAnAdmin = false;
+
+  // While variable below are from Admin role specific page access
   bool otherInfoIsReadOnly = true;
   TextEditingController nameController = TextEditingController();
   TextEditingController contactNumController = TextEditingController();
@@ -38,20 +46,10 @@ class _AddViewStaffFormState extends State<ViewStaffForm> {
   TextEditingController emailAddController = TextEditingController();
 
   String pictureValue = "";
-
   Uint8List? imageInBytes;
-
-  // List<String> staffNames = [
-  //   "No Name Selected",
-  //   // "Hori",
-  //   // "Verti",
-  //   // "Diago",
-  //   // "Dimensio",
-  // ];
-
-  // Map<String, String> staffInfo = {};
   bool isStaffSelected = false;
-
+  String birthdateValue = "";
+  String? selectedRoleValue;
   List<String> roles = [
     "No Role",
     "Admin",
@@ -82,13 +80,32 @@ class _AddViewStaffFormState extends State<ViewStaffForm> {
     }
   }
 
-  String birthdateValue = "";
+  // this will identfiy if the loggedin user is an admin or not as this page is visible for everyone.
+  Future<void> getLoggedInUserType() async {
+    PersonalInfo personalInfo =
+        await MyPersonalInfoRepository.getSpecificPersonalInfo(
+          userID: FirebaseAuth.instance.currentUser!.uid,
+        );
 
-  String? selectedRoleValue;
+    if (personalInfo.userType == "Admin") {
+      setState(() {
+        isAnAdmin = true;
+      });
+    }
+    if (widget.staffPersonalInfo.userID ==
+        FirebaseAuth.instance.currentUser!.uid) {
+      setState(() {
+        isThisYourSelf = true;
+      });
+    }
+  }
 
   @override
   void initState() {
     super.initState();
+
+    getLoggedInUserType();
+
     setState(() {
       nameController.text = widget.staffPersonalInfo.name;
       contactNumController.text = widget.staffPersonalInfo.contactNumber;
@@ -144,12 +161,12 @@ class _AddViewStaffFormState extends State<ViewStaffForm> {
           textColor: Colors.white,
           backButton: () {
             Navigator.pop(context);
-            Navigator.pop(context);
-            Navigator.pop(context);
-            MyNavigator.goTo(
-              context,
-              ViewStaffForm(staffPersonalInfo: widget.staffPersonalInfo),
-            );
+            // Navigator.pop(context);
+            // Navigator.pop(context);
+            // MyNavigator.goTo(
+            //   context,
+            //   ViewStaffForm(staffPersonalInfo: widget.staffPersonalInfo),
+            // );
           },
           backButtonColor: const Color.fromARGB(235, 255, 255, 255),
           actionButtons: [
@@ -160,9 +177,18 @@ class _AddViewStaffFormState extends State<ViewStaffForm> {
               child: IconButton(
                 highlightColor: Colors.white24,
                 onPressed: () {
-                  setState(() {
-                    otherInfoIsReadOnly = !otherInfoIsReadOnly;
-                  });
+                  if (isThisYourSelf) {
+                    setState(() {
+                      otherInfoIsReadOnly = !otherInfoIsReadOnly;
+                    });
+                  } else {
+                    showMyAnimatedSnackBar(
+                      context: context,
+                      dataToDisplay:
+                          "Sorry, you cannot edit others information.",
+                      bgColor: Colors.white70,
+                    );
+                  }
                 },
                 icon: Icon(
                   Icons.edit_note_outlined,
@@ -177,20 +203,19 @@ class _AddViewStaffFormState extends State<ViewStaffForm> {
             SizedBox(width: 7),
           ],
         ),
-
-        SizedBox(height: 20),
-
-        SizedBox(height: 25),
+        SizedBox(height: 45),
 
         Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            //Full name
             informationRow(
               labelText: "Full Name",
               textController: nameController,
               isReadOnly: otherInfoIsReadOnly,
               prefixIcon: Icons.person_outline_rounded,
             ),
+
             // image part of the form
             GestureDetector(
               child: (imageInBytes == null)
@@ -243,28 +268,41 @@ class _AddViewStaffFormState extends State<ViewStaffForm> {
             Text("Tap to Select an Image", style: TextStyle(fontSize: 12)),
             SizedBox(height: 20),
 
-            MyDropdownMenuButton(
-              items: roles,
-              initialValue:
-                  roles[_getRoleIndex(widget.staffPersonalInfo.userType)],
-              // initialValue: roles[0]
-              hintText: "Role/Position:",
-              icon: Icon(
-                (selectedRoleValue != roles[0])
-                    ? Icons.verified_user_rounded
-                    : Icons.verified_user_outlined,
-                size: 32,
-              ),
-              onChanged: (selectedRole) {
-                setState(() {
-                  selectedRoleValue = selectedRole;
-                  print(
-                    "SELECTED ROLE VALUEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE: $selectedRoleValue",
-                  );
-                });
-              },
-            ),
-            SizedBox(height: 30),
+            // UserType dropdown
+            (isAnAdmin)
+                ? MyDropdownMenuButton(
+                    items: roles,
+                    initialValue:
+                        roles[_getRoleIndex(widget.staffPersonalInfo.userType)],
+                    // initialValue: roles[0]
+                    hintText: "Role/Position:",
+                    icon: Icon(
+                      (selectedRoleValue != roles[0])
+                          ? Icons.verified_user_rounded
+                          : Icons.verified_user_outlined,
+                      size: 32,
+                    ),
+                    onChanged: (selectedRole) {
+                      setState(() {
+                        selectedRoleValue = selectedRole;
+                        print(
+                          "SELECTED ROLE VALUEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE: $selectedRoleValue",
+                        );
+                      });
+                    },
+                  )
+                : informationRow(
+                    labelText: "User Role",
+                    textController: TextEditingController()
+                      ..text = widget.staffPersonalInfo.userType,
+                    isReadOnly: true,
+                    prefixIcon: (otherInfoIsReadOnly)
+                        ? Icons.info_outline_rounded
+                        : Icons.info,
+                  ),
+            // additional space if you are an Admin, because this dropdown above will be visible
+            if (widget.staffPersonalInfo.userType == "Admin")
+              SizedBox(height: 30),
 
             // information part of the form
             informationRow(
@@ -426,69 +464,85 @@ class _AddViewStaffFormState extends State<ViewStaffForm> {
             buttonTextColor: Colors.white,
             buttonTextFontSize: 18,
             buttonTextSpacing: 1.2,
+            // the admin can only edit the role of the staff,
+            // the staff can edit its own information, but not the role
+            color: (!otherInfoIsReadOnly || isAnAdmin)
+                ? Colors.blue
+                : Colors.grey,
             buttonWidth: MyDimensionAdapter.getWidth(context) * 0.40,
             onTap: () {
-              myAlertDialogue(
-                context: context,
-                alertTitle: "Are you sure?",
-                alertContent: (selectedRoleValue == "No Role")
-                    ? "${widget.staffPersonalInfo.name} will be demoted to \nNo Role"
-                    : "${widget.staffPersonalInfo.name} will be assigned as\n$selectedRoleValue",
-                // "${staffPersonalInfo?.name},\n${staffPersonalInfo?.picture},\n${selectedRoleValue},\n${staffPersonalInfo?.sex},\n${staffPersonalInfo?.contactNumber},\n${staffPersonalInfo?.age},\n${staffPersonalInfo?.address},\n${staffPersonalInfo?.createdAt},\nRegisted by: ${FirebaseAuth.instance.currentUser!.uid},\n",
-                // "${staffPersonalInfo?.name},\n${selectedRoleValue},\n${staffPersonalInfo?.sex},\n${staffPersonalInfo?.contactNumber},\n${staffPersonalInfo?.age},\n${staffPersonalInfo?.address},\n${staffPersonalInfo?.createdAt},\nRegisted by: ${FirebaseAuth.instance.currentUser!.uid},\n",
-                onApprovalPressed: () async {
-                  bool isItTrue = true;
-                  isItTrue = await MyPersonalInfoRepository.updatePersonalInfo(
-                    PersonalInfo(
-                      userID: widget.staffPersonalInfo.userID, //
-                      userType: selectedRoleValue!,
-                      name: nameController.text,
-                      age: ageController.text,
-                      sex: widget.staffPersonalInfo.sex, //
-                      birthdate: birthdateValue,
-                      contactNumber: contactNumController.text,
-                      address: addressController.text,
-                      notableBehavior:
-                          widget.staffPersonalInfo.notableBehavior, //
-                      picture: (pictureValue == "")
-                          ? widget.staffPersonalInfo.picture
-                          : pictureValue,
-                      createdAt: widget.staffPersonalInfo.createdAt, //
-                      // to be change base on the current date
-                      lastUpdatedAt: DateTime.now().toString(),
-                      // if this is the first time saving this record from account creation
-                      registeredBy:
-                          (widget.staffPersonalInfo.registeredBy == "")
-                          ? FirebaseAuth.instance.currentUser!.uid
-                          : widget.staffPersonalInfo.registeredBy, //
-                      asignedCaregiver:
-                          widget.staffPersonalInfo.asignedCaregiver, //
-                      deviceID: widget.staffPersonalInfo.deviceID, //
-                      email: widget.staffPersonalInfo.email, //
-                    ),
-                  );
+              FocusManager.instance.primaryFocus?.unfocus();
 
-                  print("DID THE UPDATE WORKKKKKKKKKKKKKKKKKKKK? : $isItTrue");
+              // the admin can only edit the role of the staff,
+              // the staff can edit its own information, but not the role
+              if (isThisYourSelf || isAnAdmin) {
+                myAlertDialogue(
+                  context: context,
+                  alertTitle: "Are you sure?",
+                  alertContent: (selectedRoleValue == "No Role")
+                      ? "${widget.staffPersonalInfo.name} will be demoted to \nNo Role"
+                      : "${widget.staffPersonalInfo.name} will be assigned as\n$selectedRoleValue",
+                  // "${staffPersonalInfo?.name},\n${staffPersonalInfo?.picture},\n${selectedRoleValue},\n${staffPersonalInfo?.sex},\n${staffPersonalInfo?.contactNumber},\n${staffPersonalInfo?.age},\n${staffPersonalInfo?.address},\n${staffPersonalInfo?.createdAt},\nRegisted by: ${FirebaseAuth.instance.currentUser!.uid},\n",
+                  // "${staffPersonalInfo?.name},\n${selectedRoleValue},\n${staffPersonalInfo?.sex},\n${staffPersonalInfo?.contactNumber},\n${staffPersonalInfo?.age},\n${staffPersonalInfo?.address},\n${staffPersonalInfo?.createdAt},\nRegisted by: ${FirebaseAuth.instance.currentUser!.uid},\n",
+                  onApprovalPressed: () async {
+                    await MyPersonalInfoRepository.updatePersonalInfo(
+                      PersonalInfo(
+                        userID: widget.staffPersonalInfo.userID, //
+                        userType: selectedRoleValue!,
+                        name: nameController.text,
+                        age: ageController.text,
+                        sex: widget.staffPersonalInfo.sex, //
+                        birthdate: birthdateValue,
+                        contactNumber: contactNumController.text,
+                        address: addressController.text,
+                        notableBehavior:
+                            widget.staffPersonalInfo.notableBehavior, //
+                        picture: (pictureValue == "")
+                            ? widget.staffPersonalInfo.picture
+                            : pictureValue,
+                        createdAt: widget.staffPersonalInfo.createdAt, //
+                        // to be change base on the current date
+                        lastUpdatedAt: DateTime.now().toString(),
+                        // if this is the first time saving this record from account creation
+                        registeredBy:
+                            (widget.staffPersonalInfo.registeredBy == "")
+                            ? FirebaseAuth.instance.currentUser!.uid
+                            : widget.staffPersonalInfo.registeredBy, //
+                        asignedCaregiver:
+                            widget.staffPersonalInfo.asignedCaregiver, //
+                        deviceID: widget.staffPersonalInfo.deviceID, //
+                        email: widget.staffPersonalInfo.email, //
+                      ),
+                    );
 
-                  print("IS PRESSEDDDDDDDDDDDDDDDDDDDDDDDDDDD 2222222222222");
-                  showMyAnimatedSnackBar(
-                    context: context,
-                    borderColor: Colors.white,
-                    bgColor: Colors.white70,
-                    dataToDisplay: "Completed!",
-                  );
-                  // to pop out the dialog box
-                  Navigator.pop(context);
-                  Future.delayed(Duration(milliseconds: 1200), () {
-                    // to pop out the current page
+                    showMyAnimatedSnackBar(
+                      context: context,
+                      borderColor: Colors.white,
+                      bgColor: Colors.white70,
+                      dataToDisplay: "Successfully updated!",
+                    );
+
+                    // to pop out the dialog box
                     Navigator.pop(context);
-                    // to pop out the previous page (ManageStaff)
-                    Navigator.pop(context);
-                    // to simulate a refreshing page
-                    MyNavigator.goTo(context, ManageStaff());
-                  });
-                },
-              );
+                    Future.delayed(Duration(milliseconds: 1200), () {
+                      // this refresh simulation is only for Admin roles,
+                      // because this will direct to ManageStaff page, which is only admins should access
+                      if (isAnAdmin) {
+                        // to pop out the current page
+                        Navigator.pop(context);
+                        // to pop out the previous page (ManageStaff)
+                        Navigator.pop(context);
+                        // to simulate a refreshing page
+                        MyNavigator.goTo(context, ManageStaff());
+                      }
+                      // this is for other roles
+                      else {
+                        Navigator.pop(context);
+                      }
+                    });
+                  },
+                );
+              }
             },
           ),
         ],

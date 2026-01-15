@@ -5,7 +5,7 @@ import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/universal_sizes.dart';
 import 'package:wanderhuman_app/view/home/widgets/appbar/user_role_previlige.dart';
 import 'package:wanderhuman_app/view/components/option_container.dart';
-import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
+import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 
 class MyMenuOptions extends StatefulWidget {
   final bool isVisible;

@@ -490,7 +490,7 @@ import 'package:wanderhuman_app/view/components/dropdown_button.dart';
 import 'package:wanderhuman_app/view/components/image_displayer.dart';
 import 'package:wanderhuman_app/view/components/image_picker.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
-import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
+import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/components/textfield.dart';
 import 'package:wanderhuman_app/view/userRolesUI/admin/manage_staff.dart';
 

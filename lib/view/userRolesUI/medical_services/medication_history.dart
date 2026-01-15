@@ -118,7 +118,7 @@ class MedicalHistory extends StatelessWidget {
 
           // ... Your existing AppBar Positioned widget ...
           Positioned(
-            top: kToolbarHeight * 0.7,
+            // top: kToolbarHeight * 0.7,
             child: MyCustAppBar(
               title: "Medical History",
               backButton: () => Navigator.pop(context),

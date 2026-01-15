@@ -4,10 +4,13 @@ import 'package:provider/provider.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/font_family.dart';
+import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
 import 'package:wanderhuman_app/view-model/home_appbar_provider.dart';
 import 'package:wanderhuman_app/view/components/button.dart';
 import 'package:wanderhuman_app/view/components/image_displayer.dart';
 import 'package:wanderhuman_app/view/components/image_picker.dart';
+import 'package:wanderhuman_app/view/components/page_navigator.dart';
+import 'package:wanderhuman_app/view/userRolesUI/admin/view_staff_form.dart';
 
 void showProfilePictureBottomModalSheet(BuildContext context) {
   showModalBottomSheet(
@@ -16,7 +19,7 @@ void showProfilePictureBottomModalSheet(BuildContext context) {
     builder: (context) {
       return Container(
         width: MyDimensionAdapter.getWidth(context),
-        height: MyDimensionAdapter.getHeight(context) * 0.8,
+        height: MyDimensionAdapter.getHeight(context) * 0.6,
         decoration: BoxDecoration(
           // color: Colors.purple[100],
           borderRadius: const BorderRadius.only(
@@ -43,6 +46,7 @@ void showProfilePictureBottomModalSheet(BuildContext context) {
                 ),
               ),
             ),
+            SizedBox(height: 8),
             Consumer<HomeAppBarProvider>(
               builder: (context, provider, child) {
                 return Text(
@@ -80,6 +84,39 @@ void showProfilePictureBottomModalSheet(BuildContext context) {
                   }
                 } else {
                   print("User cancelled image picker");
+                }
+              },
+            ),
+            SizedBox(height: 10),
+            FutureBuilder(
+              future: MyPersonalInfoRepository.getSpecificPersonalInfo(
+                userID: FirebaseAuth.instance.currentUser!.uid,
+              ),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator.adaptive());
+                } else if (snapshot.hasData) {
+                  return MyCustButton(
+                    buttonText: "Go To Profile",
+                    buttonTextFontSize: kDefaultFontSize + 2,
+                    buttonTextFontWeight: FontWeight.w600,
+                    buttonTextColor: Colors.grey.shade700,
+                    borderColor: Colors.white54,
+                    color: Colors.white24,
+                    enableShadow: false,
+                    onTap: () async {
+                      MyNavigator.goTo(
+                        context,
+                        ViewStaffForm(staffPersonalInfo: snapshot.data!),
+                      );
+                    },
+                  );
+                } else {
+                  return Center(
+                    child: MyTextFormatter.p(
+                      text: "Oops, something went wrong!",
+                    ),
+                  );
                 }
               },
             ),

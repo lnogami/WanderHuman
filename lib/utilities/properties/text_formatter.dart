@@ -35,6 +35,7 @@ class MyTextFormatter {
     double fontsize = (kDefaultFontSize + 4),
     FontStyle fontStyle = FontStyle.normal,
     FontWeight fontWeight = FontWeight.w600,
+    double? textSpace,
   }) {
     return Text(
       text,
@@ -42,6 +43,7 @@ class MyTextFormatter {
       maxLines: maxLines,
       softWrap: (maxLines > 1) ? true : false,
       style: TextStyle(
+        letterSpacing: textSpace,
         height: (maxLines > 1) ? 1 : lineHeight,
         fontSize: fontsize,
         fontStyle: fontStyle,

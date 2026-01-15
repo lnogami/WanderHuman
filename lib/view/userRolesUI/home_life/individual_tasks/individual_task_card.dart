@@ -9,7 +9,7 @@ import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
 import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
 import 'package:wanderhuman_app/view/components/lines.dart';
-import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
+import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 
 class IndividualTaskCard extends StatefulWidget {
   final String dateID;

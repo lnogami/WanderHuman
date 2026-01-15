@@ -7,7 +7,7 @@ import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/view-model/home_appbar_provider.dart';
 import 'package:wanderhuman_app/view/components/image_displayer.dart';
 import 'package:wanderhuman_app/view/home/widgets/appbar/menu_options.dart';
-import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/profile_picture_bottom_modal_sheet.dart';
+import 'package:wanderhuman_app/view/components/profile_picture_bottom_modal_sheet.dart';
 
 class HomeAppBar extends StatefulWidget {
   const HomeAppBar({super.key});

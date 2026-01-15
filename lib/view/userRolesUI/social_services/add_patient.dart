@@ -13,7 +13,7 @@ import 'package:wanderhuman_app/view/components/customed_text_form_field.dart';
 import 'package:wanderhuman_app/view/components/date_picker.dart';
 import 'package:wanderhuman_app/view/components/image_displayer.dart';
 import 'package:wanderhuman_app/view/components/image_picker.dart';
-import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
+import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 
 class AddPatientForm extends StatefulWidget {
   const AddPatientForm({super.key});
@@ -45,13 +45,11 @@ class _AddPatientFormState extends State<AddPatientForm> {
   @override
   void initState() {
     super.initState();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   }
 
   @override
   void dispose() {
     super.dispose();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     _formKey.currentState?.dispose();
   }
 

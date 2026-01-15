@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:wanderhuman_app/helper/history_reposity.dart';
 import 'package:wanderhuman_app/model/history.dart';
-import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
+import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 
 ///
 Future<bool> savePatientLocation({

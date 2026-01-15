@@ -5,7 +5,6 @@ import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/components/appbar.dart';
 import 'package:wanderhuman_app/view/components/cards.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
-import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/userRolesUI/social_services/add_patient.dart';
 import 'package:wanderhuman_app/view/userRolesUI/social_services/view_patient_form.dart';
 
@@ -77,14 +76,10 @@ class PatientRecords extends StatelessWidget {
           ),
 
           Positioned(
-            top: kToolbarHeight * 0.7,
+            // top: kToolbarHeight * 0.7,
             child: MyCustAppBar(
               title: "Manage Patient",
               backButton: () {
-                showMyAnimatedSnackBar(
-                  context: context,
-                  dataToDisplay: "Back buttonn is pressed",
-                );
                 Navigator.pop(context);
               },
               actionButtons: [

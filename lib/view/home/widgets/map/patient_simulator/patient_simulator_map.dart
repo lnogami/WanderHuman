@@ -8,8 +8,8 @@ import 'package:geolocator/geolocator.dart' as gl;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mp;
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/point_annotation_options.dart';
-import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
-import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/show_alert_dialog.dart';
+import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
+import 'package:wanderhuman_app/view/components/show_alert_dialog.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/patient_simulator/location_saver.dart';
 
 class PatientSimulator extends StatefulWidget {

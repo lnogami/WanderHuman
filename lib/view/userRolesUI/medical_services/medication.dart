@@ -19,7 +19,7 @@ import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/view/components/date_picker.dart';
 import 'package:wanderhuman_app/view/components/dropdown_button.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
-import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
+import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/components/textfield.dart';
 import 'package:wanderhuman_app/view/userRolesUI/medical_services/medication_history.dart';
 
@@ -134,7 +134,6 @@ class _MedicationState extends State<Medication> {
   @override
   void initState() {
     super.initState();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     _patientsInfo = getPatient();
 
     // if bufferedPatientInfo and recordID is not null
@@ -163,9 +162,6 @@ class _MedicationState extends State<Medication> {
     treatmentController.dispose();
     patientsNames.clear();
     selectedNameValue = "";
-
-    // to revert back the system UI mode to normal
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   }
 
   @override
