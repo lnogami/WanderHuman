@@ -239,7 +239,9 @@ class _LoginPageState extends State<LoginPage> {
     return MyCustButton(
       onTap: () async {
         await signInWithEmailAndPassword();
-        print("LOGIN BUTTON PRESSEDDDDDDDDDDDDDDDDDDDDDDDDDD");
+        // print("LOGIN BUTTON PRESSEDDDDDDDDDDDDDDDDDDDDDDDDDD");
+
+        FocusManager.instance.primaryFocus?.unfocus();
       },
       buttonText: "LOGIN",
       color: Colors.blue,

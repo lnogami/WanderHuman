@@ -4,7 +4,7 @@ import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/universal_sizes.dart';
 import 'package:wanderhuman_app/view/home/widgets/appbar/user_role_previlige.dart';
-import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/option_container.dart';
+import 'package:wanderhuman_app/view/components/option_container.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 
 class MyMenuOptions extends StatefulWidget {
@@ -59,7 +59,8 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
   Widget build(BuildContext context) {
     return AnimatedContainer(
       duration: Duration(
-        milliseconds: (MyPersonalInfoRepository.getUserType() == "admin")
+        milliseconds:
+            (MyPersonalInfoRepository.getUserType().toUpperCase() == "ADMIN")
             ? 200
             : 180,
       ),
@@ -67,7 +68,7 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
       width: MyDimensionAdapter.getWidth(context) - 60,
       height: (widget.isVisible)
           // nested conditional operator haha
-          ? (MyPersonalInfoRepository.getUserType() == "admin")
+          ? (MyPersonalInfoRepository.getUserType().toUpperCase() == "ADMIN")
                 // ? 220
                 // : 150
                 ? 150
@@ -204,6 +205,8 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
           (MyPersonalInfoRepository.getUserType().toUpperCase() == "ADMIN")
               ? "You are an "
               : "You are a ",
+          // ? "Your role is an "
+          // : "Your role is ",
           style: TextStyle(fontSize: 11, color: Colors.blueGrey),
         ),
         Text(

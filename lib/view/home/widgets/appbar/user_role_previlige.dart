@@ -3,6 +3,8 @@ import 'package:wanderhuman_app/view/home/widgets/appbar/userPriviligeOptions.da
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/home/widgets/appbar/userPriviligeOptions.dart/home_life.dart';
 import 'package:wanderhuman_app/view/home/widgets/appbar/userPriviligeOptions.dart/medical_services.dart';
+import 'package:wanderhuman_app/view/home/widgets/appbar/userPriviligeOptions.dart/psd.dart';
+import 'package:wanderhuman_app/view/home/widgets/appbar/userPriviligeOptions.dart/psychological_services.dart';
 import 'package:wanderhuman_app/view/home/widgets/appbar/userPriviligeOptions.dart/social_services.dart';
 
 class MyUserRolePrevilige extends StatelessWidget {
@@ -24,6 +26,12 @@ class MyUserRolePrevilige extends StatelessWidget {
 
       case "HOME LIFE":
         return HomeLifePrivilege();
+
+      case "PSYCHOLOGICAL SERVICE":
+        return PsychologicalPrivilege();
+
+      case "PSD":
+        return PSDPrivilege();
 
       default:
         {

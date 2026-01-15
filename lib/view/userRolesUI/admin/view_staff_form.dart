@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print, use_build_context_synchronously
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -12,11 +12,14 @@ import 'package:wanderhuman_app/view/components/appbar.dart';
 import 'package:wanderhuman_app/view/components/button.dart';
 import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
+import 'package:wanderhuman_app/view/components/date_picker.dart';
 import 'package:wanderhuman_app/view/components/dropdown_button.dart';
 import 'package:wanderhuman_app/view/components/image_displayer.dart';
 import 'package:wanderhuman_app/view/components/image_picker.dart';
+import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/components/textfield.dart';
+import 'package:wanderhuman_app/view/userRolesUI/admin/manage_staff.dart';
 
 class ViewStaffForm extends StatefulWidget {
   final PersonalInfo staffPersonalInfo;
@@ -79,17 +82,18 @@ class _AddViewStaffFormState extends State<ViewStaffForm> {
     }
   }
 
+  String birthdateValue = "";
+
   String? selectedRoleValue;
 
   @override
   void initState() {
     super.initState();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-
     setState(() {
       nameController.text = widget.staffPersonalInfo.name;
       contactNumController.text = widget.staffPersonalInfo.contactNumber;
       ageController.text = widget.staffPersonalInfo.age;
+      birthdateValue = widget.staffPersonalInfo.birthdate;
       addressController.text = widget.staffPersonalInfo.address;
       emailAddController.text = widget.staffPersonalInfo.email;
       selectedRoleValue = widget.staffPersonalInfo.userType;
@@ -100,7 +104,6 @@ class _AddViewStaffFormState extends State<ViewStaffForm> {
   @override
   void dispose() {
     super.dispose();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     nameController.dispose();
     contactNumController.dispose();
     ageController.dispose();
@@ -112,16 +115,19 @@ class _AddViewStaffFormState extends State<ViewStaffForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: MyColorPalette.formColor,
-      body: SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        // this is the main body of the Form
-        child: Container(
-          // padding: EdgeInsets.all(20),
-          width: MyDimensionAdapter.getWidth(context),
-          // no specified height since sulod man sya sa SingleChildScrollView
-          padding: EdgeInsets.only(bottom: 30),
-          // decoration: const BoxDecoration(color: MyColorPalette.formColor),
-          child: formSpace(context),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          // this is the main body of the Form
+          child: Container(
+            // padding: EdgeInsets.all(20),
+            width: MyDimensionAdapter.getWidth(context),
+            // no specified height since sulod man sya sa SingleChildScrollView
+            padding: EdgeInsets.only(bottom: 30),
+            // decoration: const BoxDecoration(color: MyColorPalette.formColor),
+            alignment: Alignment.center,
+            child: formSpace(context),
+          ),
         ),
       ),
     );
@@ -138,7 +144,12 @@ class _AddViewStaffFormState extends State<ViewStaffForm> {
           textColor: Colors.white,
           backButton: () {
             Navigator.pop(context);
-            // MyNavigator.goTo(context, const ManageStaff());
+            Navigator.pop(context);
+            Navigator.pop(context);
+            MyNavigator.goTo(
+              context,
+              ViewStaffForm(staffPersonalInfo: widget.staffPersonalInfo),
+            );
           },
           backButtonColor: const Color.fromARGB(235, 255, 255, 255),
           actionButtons: [
@@ -172,6 +183,7 @@ class _AddViewStaffFormState extends State<ViewStaffForm> {
         SizedBox(height: 25),
 
         Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             informationRow(
               labelText: "Full Name",
@@ -204,18 +216,27 @@ class _AddViewStaffFormState extends State<ViewStaffForm> {
                       base64ImageString: imageInBytes,
                     ),
               onTap: () async {
-                MyImageProcessor.myImagePicker().then((value) async {
-                  setState(() {
-                    // this ensures that if no image was picked, the current image will remain
-                    if (value != "") {
-                      pictureValue = value;
-                      imageInBytes = MyImageProcessor.decodeStringToUint8List(
-                        value,
-                      );
-                    }
+                if (!otherInfoIsReadOnly) {
+                  MyImageProcessor.myImagePicker().then((value) async {
+                    setState(() {
+                      // this ensures that if no image was picked, the current image will remain
+                      if (value != "") {
+                        pictureValue = value;
+                        imageInBytes = MyImageProcessor.decodeStringToUint8List(
+                          value,
+                        );
+                      }
+                    });
+                    print("PICTURE VALUE IN FORM: $pictureValue");
                   });
-                  print("PICTURE VALUE IN FORM: $pictureValue");
-                });
+                } else {
+                  showMyAnimatedSnackBar(
+                    context: context,
+                    dataToDisplay:
+                        "To edit, top the edit button at the top right corner.",
+                    bgColor: Colors.white,
+                  );
+                }
               },
             ),
             SizedBox(height: 5),
@@ -256,6 +277,57 @@ class _AddViewStaffFormState extends State<ViewStaffForm> {
                   : Icons.info,
             ),
             informationRow(
+              labelText: "Age",
+              textController: ageController,
+              isReadOnly: otherInfoIsReadOnly,
+              prefixIcon: Icons.calendar_month_outlined,
+            ),
+            (otherInfoIsReadOnly)
+                ? informationRow(
+                    labelText: "Birthdate",
+                    textController: TextEditingController()
+                      ..text = MyDateFormatter.formatDate(
+                        dateTimeInString: birthdateValue,
+                      ),
+                    isReadOnly: true,
+                    prefixIcon: Icons.calendar_month_outlined,
+                  )
+                : Padding(
+                    padding: const EdgeInsets.only(top: 2.5, bottom: 25),
+                    child: MyCustButton(
+                      borderRadius: 8,
+                      widthPercentage: 0.8,
+                      color: MyColorPalette.formColor,
+                      borderColor: MyColorPalette.borderColor,
+                      borderWidth: 1,
+                      buttonShadowColor: const Color.fromARGB(
+                        255,
+                        200,
+                        221,
+                        255,
+                      ),
+                      buttonTextFontSize: kDefaultFontSize + 1.5,
+                      buttonTextSpacing: 1,
+                      buttonText: (birthdateValue == "")
+                          ? "Birthdate"
+                          : "Birthdate: ${MyDateFormatter.formatDate(dateTimeInString: birthdateValue)}",
+                      // : birthdateValue,
+                      onTap: () {
+                        // the age parameter is just for determining the approximate birth year, so the the UX of using this date picker will improve.
+                        myDatePicker(context, age: ageController.text).then((
+                          date,
+                        ) {
+                          if (date == null) {
+                            return "";
+                          }
+                          setState(() {
+                            birthdateValue = date.toString();
+                          });
+                        });
+                      },
+                    ),
+                  ),
+            informationRow(
               labelText: "Contact Number",
               textController: contactNumController,
               isReadOnly: otherInfoIsReadOnly,
@@ -270,7 +342,7 @@ class _AddViewStaffFormState extends State<ViewStaffForm> {
             informationRow(
               labelText: "Email Address",
               textController: emailAddController,
-              isReadOnly: otherInfoIsReadOnly,
+              isReadOnly: true,
               prefixIcon: Icons.email_outlined,
             ),
             informationRow(
@@ -301,12 +373,13 @@ class _AddViewStaffFormState extends State<ViewStaffForm> {
   }) {
     return Container(
       width: MyDimensionAdapter.getWidth(context) * 0.9,
+      alignment: Alignment.center,
       height: (isReadOnly)
           ? MyDimensionAdapter.getHeight(context) * 0.095
           : MyDimensionAdapter.getHeight(context) * 0.075,
       // color: Colors.amber,
       margin: const EdgeInsets.only(bottom: 5),
-      padding: EdgeInsets.only(left: 20, top: (isReadOnly) ? 0 : 5),
+      padding: EdgeInsets.only(top: (isReadOnly) ? 0 : 5),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -358,34 +431,40 @@ class _AddViewStaffFormState extends State<ViewStaffForm> {
               myAlertDialogue(
                 context: context,
                 alertTitle: "Are you sure?",
-                alertContent:
-                    "${widget.staffPersonalInfo.name} will be assigned as\n$selectedRoleValue",
+                alertContent: (selectedRoleValue == "No Role")
+                    ? "${widget.staffPersonalInfo.name} will be demoted to \nNo Role"
+                    : "${widget.staffPersonalInfo.name} will be assigned as\n$selectedRoleValue",
                 // "${staffPersonalInfo?.name},\n${staffPersonalInfo?.picture},\n${selectedRoleValue},\n${staffPersonalInfo?.sex},\n${staffPersonalInfo?.contactNumber},\n${staffPersonalInfo?.age},\n${staffPersonalInfo?.address},\n${staffPersonalInfo?.createdAt},\nRegisted by: ${FirebaseAuth.instance.currentUser!.uid},\n",
                 // "${staffPersonalInfo?.name},\n${selectedRoleValue},\n${staffPersonalInfo?.sex},\n${staffPersonalInfo?.contactNumber},\n${staffPersonalInfo?.age},\n${staffPersonalInfo?.address},\n${staffPersonalInfo?.createdAt},\nRegisted by: ${FirebaseAuth.instance.currentUser!.uid},\n",
                 onApprovalPressed: () async {
-                  print("IS PRESSEDDDDDDDDDDDDDDDDDDDDDDDDDDD");
                   bool isItTrue = true;
                   isItTrue = await MyPersonalInfoRepository.updatePersonalInfo(
                     PersonalInfo(
-                      userID: widget.staffPersonalInfo.userID,
+                      userID: widget.staffPersonalInfo.userID, //
                       userType: selectedRoleValue!,
-                      name: widget.staffPersonalInfo.name,
-                      age: widget.staffPersonalInfo.age,
-                      sex: widget.staffPersonalInfo.sex,
-                      birthdate: widget.staffPersonalInfo.birthdate,
-                      contactNumber: widget.staffPersonalInfo.contactNumber,
-                      address: widget.staffPersonalInfo.address,
-                      notableBehavior: widget.staffPersonalInfo.notableBehavior,
-                      picture: pictureValue,
-                      createdAt: widget.staffPersonalInfo.createdAt,
-                      lastUpdatedAt: widget
-                          .staffPersonalInfo
-                          .lastUpdatedAt, // to be change base on the current date
-                      registeredBy: FirebaseAuth.instance.currentUser!.uid,
+                      name: nameController.text,
+                      age: ageController.text,
+                      sex: widget.staffPersonalInfo.sex, //
+                      birthdate: birthdateValue,
+                      contactNumber: contactNumController.text,
+                      address: addressController.text,
+                      notableBehavior:
+                          widget.staffPersonalInfo.notableBehavior, //
+                      picture: (pictureValue == "")
+                          ? widget.staffPersonalInfo.picture
+                          : pictureValue,
+                      createdAt: widget.staffPersonalInfo.createdAt, //
+                      // to be change base on the current date
+                      lastUpdatedAt: DateTime.now().toString(),
+                      // if this is the first time saving this record from account creation
+                      registeredBy:
+                          (widget.staffPersonalInfo.registeredBy == "")
+                          ? FirebaseAuth.instance.currentUser!.uid
+                          : widget.staffPersonalInfo.registeredBy, //
                       asignedCaregiver:
-                          widget.staffPersonalInfo.asignedCaregiver,
-                      deviceID: widget.staffPersonalInfo.deviceID,
-                      email: widget.staffPersonalInfo.email,
+                          widget.staffPersonalInfo.asignedCaregiver, //
+                      deviceID: widget.staffPersonalInfo.deviceID, //
+                      email: widget.staffPersonalInfo.email, //
                     ),
                   );
 
@@ -393,17 +472,20 @@ class _AddViewStaffFormState extends State<ViewStaffForm> {
 
                   print("IS PRESSEDDDDDDDDDDDDDDDDDDDDDDDDDDD 2222222222222");
                   showMyAnimatedSnackBar(
-                    // ignore: use_build_context_synchronously
                     context: context,
-                    borderColor: Colors.blue.shade300,
-                    bgColor: Colors.blue.shade100,
+                    borderColor: Colors.white,
+                    bgColor: Colors.white70,
                     dataToDisplay: "Completed!",
                   );
-                  // ignore: use_build_context_synchronously
+                  // to pop out the dialog box
                   Navigator.pop(context);
                   Future.delayed(Duration(milliseconds: 1200), () {
-                    // ignore: use_build_context_synchronously
+                    // to pop out the current page
                     Navigator.pop(context);
+                    // to pop out the previous page (ManageStaff)
+                    Navigator.pop(context);
+                    // to simulate a refreshing page
+                    MyNavigator.goTo(context, ManageStaff());
                   });
                 },
               );
@@ -426,62 +508,4 @@ class _AddViewStaffFormState extends State<ViewStaffForm> {
       ),
     );
   }
-
-  // Header (functions as an AppBar but not literally AppBar)
-  // Container headerBar(BuildContext context) {
-  //   return Container(
-  //     width: MyDimensionAdapter.getWidth(context),
-  //     height: kToolbarHeight,
-  //     margin: EdgeInsets.only(top: 0, bottom: 20),
-  //     decoration: BoxDecoration(
-  //       color: const Color.fromARGB(160, 33, 149, 243),
-  //       // borderRadius: BorderRadius.circular(10),
-  //     ),
-  //     child: Center(
-  //       child: Text(
-  //         "Add Staff Form",
-  //         style: TextStyle(
-  //           fontSize: 20,
-  //           color: Colors.white,
-  //           letterSpacing: 0.7,
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  // Future<List<String>> getStaffName() async {
-  //   List<String> staffNames = [];
-  //   List<PersonalInfo> personsList =
-  //       widget.bufferedStaffNames ??
-  //       await MyPersonalInfoRepository.getAllPersonalInfoRecords();
-
-  //   for (var person in personsList) {
-  //     if (person.userType != "Patient") {
-  //       staffNames.add(person.name);
-  //     }
-  //   }
-
-  //   return staffNames;
-  // }
-
-  // Future<PersonalInfo> getStaffInfo(String userName) async {
-  //   try {
-  //     PersonalInfo? staffInfo;
-  //     List<PersonalInfo> personalInfo =
-  //         widget.bufferedStaffNames ??
-  //         await MyPersonalInfoRepository.getAllPersonalInfoRecords();
-
-  //     for (var person in personalInfo) {
-  //       if (person.name == userName) {
-  //         staffInfo = person;
-  //       }
-  //     }
-
-  //     return staffInfo!;
-  //   } catch (e) {
-  //     print("ERROR RETRIEVING DATA ON getStaffInfo: $e");
-  //     throw Exception();
-  //   }
-  // }
 }

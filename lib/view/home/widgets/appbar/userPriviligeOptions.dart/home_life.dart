@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
-import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/option_container.dart';
+import 'package:wanderhuman_app/view/components/option_container.dart';
 import 'package:wanderhuman_app/view/userRolesUI/home_life/individual_tasks/patient_records.dart';
 import 'package:wanderhuman_app/view/userRolesUI/home_life/planner/manage_tasks.dart';
 

@@ -23,6 +23,8 @@ class ManageStaff extends StatelessWidget {
       }
     }
 
+    staffs.sort((a, b) => a.name.compareTo(b.name));
+
     return staffs;
   }
 
@@ -77,28 +79,30 @@ class ManageStaff extends StatelessWidget {
           ),
 
           Positioned(
-            top: kToolbarHeight * 0.7,
-            child: MyCustAppBar(
-              title: "Manage Staff",
-              backButton: () {
-                Navigator.pop(context);
-              },
-              actionButtons: [
-                IconButton(
-                  highlightColor: Colors.blue.shade100,
-                  onPressed: () async {
-                    MyNavigator.goTo(
-                      // ignore: use_build_context_synchronously
-                      context,
-                      AddStaffForm(bufferedStaffNames: await getStaff()),
-                    );
-                  },
-                  icon: Icon(
-                    Icons.person_add_alt_1_rounded,
-                    color: Colors.blue.shade400,
+            // top: kToolbarHeight * 0.7, // (deletable)
+            child: SafeArea(
+              child: MyCustAppBar(
+                title: "Manage Staff",
+                backButton: () {
+                  Navigator.pop(context);
+                },
+                actionButtons: [
+                  IconButton(
+                    highlightColor: Colors.blue.shade100,
+                    onPressed: () async {
+                      MyNavigator.goTo(
+                        // ignore: use_build_context_synchronously
+                        context,
+                        AddStaffForm(bufferedStaffNames: await getStaff()),
+                      );
+                    },
+                    icon: Icon(
+                      Icons.person_add_alt_1_rounded,
+                      color: Colors.blue.shade400,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],

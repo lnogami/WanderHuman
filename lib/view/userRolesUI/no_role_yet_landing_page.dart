@@ -17,14 +17,14 @@ class NoRoleYetLandingPage extends StatelessWidget {
           Center(
             child: Icon(
               Icons.lock_outline_rounded,
-              size: 72,
+              size: 85,
               color: Colors.grey.shade500,
             ),
           ),
           Container(
             width: MyDimensionAdapter.getWidth(context),
             // margin: EdgeInsets.only(left: 50, right: 40),
-            padding: EdgeInsets.only(top: 20, left: 50, right: 20, bottom: 30),
+            padding: EdgeInsets.only(top: 32, left: 50, right: 20, bottom: 30),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -48,7 +48,7 @@ class NoRoleYetLandingPage extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(height: 24),
+                SizedBox(height: 32),
                 MyTextFormatter.p(
                   maxLines: 5,
                   text: "Access Pending",

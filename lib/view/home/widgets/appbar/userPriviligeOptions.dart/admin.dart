@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
-import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/option_container.dart';
+import 'package:wanderhuman_app/view/components/option_container.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/patient_simulator/patient_simulator_container.dart';
 import 'package:wanderhuman_app/view/userRolesUI/admin/manage_staff.dart';
 
@@ -36,9 +36,9 @@ class AdminPrivilege extends StatelessWidget {
               SizedBox(width: 5),
               optionsContainer(
                 context,
-                Icons.add_outlined,
+                Icons.folder_copy_outlined,
                 fontSize: 13,
-                "Manage Staff",
+                "Manage",
                 onTap: () {
                   // showMyAnimatedSnackBar(
                   //   context: context,

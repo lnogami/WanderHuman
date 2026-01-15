@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:wanderhuman_app/helper/personal_info_repository.dart';
-import 'package:wanderhuman_app/utilities/properties/universal_sizes.dart';
-import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
-import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/option_container.dart';
-import 'package:wanderhuman_app/view/home/widgets/map/patient_simulator/patient_simulator_container.dart';
+import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
+import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
 
 class PSDPrivilege extends StatelessWidget {
   const PSDPrivilege({super.key});
@@ -13,86 +10,92 @@ class PSDPrivilege extends StatelessWidget {
     return Container(
       child: Column(
         children: [
-          // admin exclusive options
-          (MyPersonalInfoRepository.getUserType() == "admin")
-              ? Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    SizedBox(height: 10),
-                    optionsContainer(
-                      context,
-                      Icons.person_pin_circle_outlined,
-                      bgColor: Colors.green[300]!,
-                      "Simulate",
-                      onTap: () {
-                        //
-                        // Navigator.pop(context);
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(
-                            builder: (context) => PatientSimulatorContainer(),
-                          ),
-                        );
-                      },
-                    ),
-                    SizedBox(height: 10),
-                    optionsContainer(
-                      context,
-                      Icons.add_outlined,
-                      "Placeholder",
-                      onTap: () {
-                        showMyAnimatedSnackBar(
-                          context: context,
-                          dataToDisplay: "Admin Privilege",
-                        );
-                      },
-                    ),
-                    SizedBox(height: 10),
-                  ],
-                )
-              : SizedBox(height: 0),
+          // // admin exclusive options
+          // (MyPersonalInfoRepository.getUserType() == "admin")
+          //     ? Row(
+          //         mainAxisAlignment: MainAxisAlignment.spaceAround,
+          //         children: [
+          //           SizedBox(height: 10),
+          //           optionsContainer(
+          //             context,
+          //             Icons.person_pin_circle_outlined,
+          //             bgColor: Colors.green[300]!,
+          //             "Simulate",
+          //             onTap: () {
+          //               //
+          //               // Navigator.pop(context);
+          //               Navigator.of(context).pushReplacement(
+          //                 MaterialPageRoute(
+          //                   builder: (context) => PatientSimulatorContainer(),
+          //                 ),
+          //               );
+          //             },
+          //           ),
+          //           SizedBox(height: 10),
+          //           optionsContainer(
+          //             context,
+          //             Icons.add_outlined,
+          //             "Placeholder",
+          //             onTap: () {
+          //               showMyAnimatedSnackBar(
+          //                 context: context,
+          //                 dataToDisplay: "Admin Privilege",
+          //               );
+          //             },
+          //           ),
+          //           SizedBox(height: 10),
+          //         ],
+          //       )
+          //     : SizedBox(height: 0),
 
-          SizedBox(height: MySizes.buttonsHorizontalGap),
+          // SizedBox(height: MySizes.buttonsHorizontalGap),
 
-          // buttons/options
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              SizedBox(height: 10),
-              optionsContainer(
-                context,
-                Icons.person_outline_rounded,
-                "Acount",
-                onTap: () {
-                  MyPersonalInfoRepository.getAllPersonalInfoRecords()
-                      .then((value) {
-                        showMyAnimatedSnackBar(
-                          context: context,
-                          dataToDisplay: "${value.length}",
-                        );
-                      })
-                      .catchError((error) {
-                        showMyAnimatedSnackBar(
-                          context: context,
-                          dataToDisplay: error.toString(),
-                        );
-                      });
-                },
-              ),
-              SizedBox(height: 10),
-              optionsContainer(
-                context,
-                Icons.add_outlined,
-                "Add Patient",
-                onTap: () {
-                  // AddPatientForm();
-                  // Navigator.push(
-                  //   context,
-                  //   MaterialPageRoute(builder: (context) => AddPatientForm()),
-                  // );
-                },
-              ),
-              SizedBox(height: 10),
-            ],
+          // // buttons/options
+          // Row(
+          //   mainAxisAlignment: MainAxisAlignment.spaceAround,
+          //   children: [
+          //     SizedBox(height: 10),
+          //     optionsContainer(
+          //       context,
+          //       Icons.person_outline_rounded,
+          //       "Acount",
+          //       onTap: () {
+          //         MyPersonalInfoRepository.getAllPersonalInfoRecords()
+          //             .then((value) {
+          //               showMyAnimatedSnackBar(
+          //                 context: context,
+          //                 dataToDisplay: "${value.length}",
+          //               );
+          //             })
+          //             .catchError((error) {
+          //               showMyAnimatedSnackBar(
+          //                 context: context,
+          //                 dataToDisplay: error.toString(),
+          //               );
+          //             });
+          //       },
+          //     ),
+          //     SizedBox(height: 10),
+          //     optionsContainer(
+          //       context,
+          //       Icons.add_outlined,
+          //       "Add Patient",
+          //       onTap: () {
+          //         // AddPatientForm();
+          //         // Navigator.push(
+          //         //   context,
+          //         //   MaterialPageRoute(builder: (context) => AddPatientForm()),
+          //         // );
+          //       },
+          //     ),
+          //     SizedBox(height: 10),
+          //   ],
+          // ),
+          Container(
+            // color: Colors.amber,
+            height: MyDimensionAdapter.getHeight(context) * 0.068,
+            alignment: Alignment.center,
+            child: MyTextFormatter.p(text: "Sorry, there's nothing here."),
           ),
         ],
       ),

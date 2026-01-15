@@ -83,9 +83,7 @@ class MainApp extends StatelessWidget {
               return Scaffold(
                 body: const Center(child: CircularProgressIndicator()),
               );
-            }
-            // else, if the stream has data, it will return a FutureBuilder
-            else {
+            } else if (streamSnapshot.data != null) {
               // a FutureBuilder is just like a StreamBuilder but it is done after the execution of the Future is finished.
               return FutureBuilder(
                 // FutureBuilder's source of data, a Future with generic PersonalInfo type
@@ -107,16 +105,16 @@ class MainApp extends StatelessWidget {
                       userNameToDisplay: futureSnapshot.data!.name,
                     );
                   }
-                  // will direct you to the HomePage if the user has a data and has a role
-                  else if (streamSnapshot.data != null) {
-                    return HomePage();
-                  }
-                  // will direct you to the LoginPage if the user has no data, meaning the user is not logged in
+                  // // will direct you to the HomePage if the user has a data and has a role
                   else {
-                    return LoginPage();
+                    return HomePage();
                   }
                 },
               );
+            }
+            // will direct you to the LoginPage if the user has no data, meaning the user is not logged in or not yet registered
+            else {
+              return LoginPage();
             }
           },
         ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
-import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/option_container.dart';
+import 'package:wanderhuman_app/view/components/option_container.dart';
 import 'package:wanderhuman_app/view/userRolesUI/social_services/add_patient.dart';
 import 'package:wanderhuman_app/view/userRolesUI/social_services/manage_patient.dart';
 
@@ -23,7 +23,7 @@ class SocialServicesPrivilege extends StatelessWidget {
                 Icons.person_outline_rounded,
                 "Records",
                 onTap: () {
-                  Navigator.pop(context);
+                  // Navigator.pop(context);
                   MyNavigator.goTo(context, PatientRecords());
                 },
               ),
@@ -33,7 +33,7 @@ class SocialServicesPrivilege extends StatelessWidget {
                 Icons.add_outlined,
                 "Add Patient",
                 onTap: () {
-                  Navigator.pop(context);
+                  // Navigator.pop(context);
                   MyNavigator.goTo(context, AddPatientForm());
                 },
               ),

@@ -472,7 +472,7 @@
 // }
 
 //
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print, use_build_context_synchronously
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -489,8 +489,10 @@ import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/components/dropdown_button.dart';
 import 'package:wanderhuman_app/view/components/image_displayer.dart';
 import 'package:wanderhuman_app/view/components/image_picker.dart';
+import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/components/textfield.dart';
+import 'package:wanderhuman_app/view/userRolesUI/admin/manage_staff.dart';
 
 class AddStaffForm extends StatefulWidget {
   final List<PersonalInfo>? bufferedStaffNames;
@@ -557,10 +559,44 @@ class _AddStaffFormState extends State<AddStaffForm> {
 
   String? selectedRoleValue;
 
+  Future<List<String>> getStaffName() async {
+    List<String> staffNames = [];
+    List<PersonalInfo> personsList =
+        widget.bufferedStaffNames ??
+        await MyPersonalInfoRepository.getAllPersonalInfoRecords();
+
+    for (var person in personsList) {
+      // only get the staff with No Role yet
+      if (person.userType != "Patient" && person.userType == "No Role") {
+        staffNames.add(person.name);
+      }
+    }
+    return staffNames;
+  }
+
+  Future<PersonalInfo> getStaffInfo(String userName) async {
+    try {
+      PersonalInfo? staffInfo;
+      List<PersonalInfo> personalInfo =
+          widget.bufferedStaffNames ??
+          await MyPersonalInfoRepository.getAllPersonalInfoRecords();
+
+      for (var person in personalInfo) {
+        if (person.name == userName) {
+          staffInfo = person;
+        }
+      }
+
+      return staffInfo!;
+    } catch (e) {
+      print("ERROR RETRIEVING DATA ON getStaffInfo: $e");
+      throw Exception();
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     selectedNameValue = staffNames[0];
 
     // gets all the name of the staff
@@ -576,7 +612,6 @@ class _AddStaffFormState extends State<AddStaffForm> {
   @override
   void dispose() {
     super.dispose();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     contactNumController.dispose();
     ageController.dispose();
     addressController.dispose();
@@ -587,16 +622,18 @@ class _AddStaffFormState extends State<AddStaffForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: MyColorPalette.formColor,
-      body: SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        // this is the main body of the Form
-        child: Container(
-          // padding: EdgeInsets.all(20),
-          width: MyDimensionAdapter.getWidth(context),
-          // no specified height since sulod man sya sa SingleChildScrollView
-          padding: EdgeInsets.only(bottom: 20),
-          // decoration: const BoxDecoration(color: MyColorPalette.formColor),
-          child: formSpace(context),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          // this is the main body of the Form
+          child: Container(
+            // padding: EdgeInsets.all(20),
+            width: MyDimensionAdapter.getWidth(context),
+            // no specified height since sulod man sya sa SingleChildScrollView
+            padding: EdgeInsets.only(bottom: 20),
+            // decoration: const BoxDecoration(color: MyColorPalette.formColor),
+            child: formSpace(context),
+          ),
         ),
       ),
     );
@@ -616,35 +653,50 @@ class _AddStaffFormState extends State<AddStaffForm> {
           },
           backButtonColor: const Color.fromARGB(235, 255, 255, 255),
           actionButtons: [
-            // if no user was selected yet, this toggleable wont appear
-            (selectedNameValue != staffNames[0])
-                ? Tooltip(
-                    message: (otherInfoIsReadOnly)
-                        ? "Turn on to enable editing other details of the staff."
-                        : "Press again to turn off editing other details of the staff.",
-                    child: IconButton(
-                      highlightColor: Colors.white24,
-                      onPressed: () {
-                        setState(() {
-                          otherInfoIsReadOnly = !otherInfoIsReadOnly;
-                        });
-                      },
-                      icon: Icon(
-                        Icons.edit_note_outlined,
-                        color: (otherInfoIsReadOnly)
-                            ? const Color.fromARGB(255, 202, 202, 202)
-                            : const Color.fromARGB(235, 255, 255, 255),
-                        size: 32,
-                      ),
-                    ),
-                  )
-                : SizedBox(),
+            // // if no user was selected yet, this toggleable wont appear
+            // (selectedNameValue != staffNames[0])
+            //     ? Tooltip(
+            //         message: (otherInfoIsReadOnly)
+            //             ? "Turn on to enable editing other details of the staff."
+            //             : "Press again to turn off editing other details of the staff.",
+            //         child: IconButton(
+            //           highlightColor: Colors.white24,
+            //           onPressed: () {
+            //             setState(() {
+            //               otherInfoIsReadOnly = !otherInfoIsReadOnly;
+            //             });
+            //           },
+            //           icon: Icon(
+            //             Icons.edit_note_outlined,
+            //             color: (otherInfoIsReadOnly)
+            //                 ? const Color.fromARGB(255, 202, 202, 202)
+            //                 : const Color.fromARGB(235, 255, 255, 255),
+            //             size: 32,
+            //           ),
+            //         ),
+            //       )
+            //     : SizedBox(),
             SizedBox(width: 7),
           ],
         ),
 
         SizedBox(height: 20),
 
+        (staffNames.length == 1)
+            ? SizedBox(
+                height: MyDimensionAdapter.getHeight(context) * 0.75,
+                child: Center(
+                  child: MyTextFormatter.p(text: "All staff have roles."),
+                ),
+              )
+            : infoColumn(context),
+      ],
+    );
+  }
+
+  Column infoColumn(BuildContext context) {
+    return Column(
+      children: [
         MyDropdownMenuButton(
           items: staffNames,
           initialValue: staffNames[0],
@@ -780,6 +832,22 @@ class _AddStaffFormState extends State<AddStaffForm> {
                         ? Icons.info_outline_rounded
                         : Icons.info,
                   ),
+
+                  informationRow(
+                    labelText: "Age",
+                    textController: ageController,
+                    isReadOnly: otherInfoIsReadOnly,
+                    prefixIcon: Icons.calendar_month_outlined,
+                  ),
+                  informationRow(
+                    labelText: "Birthdate",
+                    textController: TextEditingController()
+                      ..text = MyDateFormatter.formatDate(
+                        dateTimeInString: staffPersonalInfo!.birthdate,
+                      ),
+                    isReadOnly: true,
+                    prefixIcon: Icons.calendar_month_outlined,
+                  ),
                   informationRow(
                     labelText: "Contact Number",
                     textController: contactNumController,
@@ -914,11 +982,16 @@ class _AddStaffFormState extends State<AddStaffForm> {
                       contactNumber: staffPersonalInfo!.contactNumber,
                       address: staffPersonalInfo!.address,
                       notableBehavior: staffPersonalInfo!.notableBehavior,
-                      picture: pictureValue,
+                      picture: (pictureValue == "")
+                          ? staffPersonalInfo!.picture
+                          : pictureValue,
                       createdAt: staffPersonalInfo!.createdAt,
-                      lastUpdatedAt: staffPersonalInfo!
-                          .lastUpdatedAt, // to be change base on the current date
-                      registeredBy: FirebaseAuth.instance.currentUser!.uid,
+                      // to be change base on the current date
+                      lastUpdatedAt: DateTime.now().toString(),
+                      // if this is the first time saving this record from account creation
+                      registeredBy: (staffPersonalInfo!.registeredBy == "")
+                          ? FirebaseAuth.instance.currentUser!.uid
+                          : staffPersonalInfo!.registeredBy, //
                       asignedCaregiver: staffPersonalInfo!.asignedCaregiver,
                       deviceID: staffPersonalInfo!.deviceID,
                       email: staffPersonalInfo!.email,
@@ -926,17 +999,25 @@ class _AddStaffFormState extends State<AddStaffForm> {
                   );
 
                   print("DID THE UPDATE WORKKKKKKKKKKKKKKKKKKKK? : $isItTrue");
+                  print("PROFILE PICTUREEEEEEEEEE: $pictureValue");
 
                   print("IS PRESSEDDDDDDDDDDDDDDDDDDDDDDDDDDD 2222222222222");
                   showMyAnimatedSnackBar(
-                    // ignore: use_build_context_synchronously
                     context: context,
-                    borderColor: Colors.blue.shade300,
-                    bgColor: Colors.blue.shade100,
+                    borderColor: Colors.white,
+                    bgColor: Colors.white70,
                     dataToDisplay: "Completed!",
                   );
-                  // ignore: use_build_context_synchronously
+                  // to pop out the dialog box
                   Navigator.pop(context);
+                  Future.delayed(Duration(milliseconds: 1200), () {
+                    // to pop out the current page
+                    Navigator.pop(context);
+                    // to pop out the previous page (ManageStaff)
+                    Navigator.pop(context);
+                    // to simulate a refreshing page
+                    MyNavigator.goTo(context, ManageStaff());
+                  });
                 },
               );
             },
@@ -981,39 +1062,4 @@ class _AddStaffFormState extends State<AddStaffForm> {
   //     ),
   //   );
   // }
-
-  Future<List<String>> getStaffName() async {
-    List<String> staffNames = [];
-    List<PersonalInfo> personsList =
-        widget.bufferedStaffNames ??
-        await MyPersonalInfoRepository.getAllPersonalInfoRecords();
-
-    for (var person in personsList) {
-      if (person.userType != "Patient") {
-        staffNames.add(person.name);
-      }
-    }
-
-    return staffNames;
-  }
-
-  Future<PersonalInfo> getStaffInfo(String userName) async {
-    try {
-      PersonalInfo? staffInfo;
-      List<PersonalInfo> personalInfo =
-          widget.bufferedStaffNames ??
-          await MyPersonalInfoRepository.getAllPersonalInfoRecords();
-
-      for (var person in personalInfo) {
-        if (person.name == userName) {
-          staffInfo = person;
-        }
-      }
-
-      return staffInfo!;
-    } catch (e) {
-      print("ERROR RETRIEVING DATA ON getStaffInfo: $e");
-      throw Exception();
-    }
-  }
 }

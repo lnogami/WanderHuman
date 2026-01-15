@@ -265,7 +265,7 @@ class MyPersonalInfoRepository {
         "notableBehavior": updatedInfo.notableBehavior,
         "profilePicture": updatedInfo.picture,
         // "createdAt": updatedInfo.createdAt.toString(),
-        "lastUpdatedAt": updatedInfo.lastUpdatedAt.toString(),
+        "lastUpdatedAt": updatedInfo.lastUpdatedAt,
         "registeredBy": updatedInfo.registeredBy,
         "asignedCaregiver": updatedInfo.asignedCaregiver,
         "deviceID": updatedInfo.deviceID,

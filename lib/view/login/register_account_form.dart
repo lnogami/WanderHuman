@@ -246,9 +246,8 @@ class _RegisterAccountFormState extends State<RegisterAccountForm> {
 
       docRef.set({
         "userID": userID,
-        // "userType": currentUserTypeGroupvalue.name,
+        "userType": "No Role",
         "name": nameController.text.trim(),
-        // "sex": currentGroupGenderValue.name,
         "sex": sexValue,
         "age": ageController.text.trim(),
         "contactNumber": contactNumberController.text.trim(),
@@ -265,31 +264,6 @@ class _RegisterAccountFormState extends State<RegisterAccountForm> {
 
         // "status" : true,  // to be decided later, if ibutang ba jud ni
       });
-
-      // FirebaseFirestore.instance.collection("Personal Info").add({
-      //   // "name": nameController.text.trim(),
-      //   // "userType": currentUserTypeGroupvalue.toString().split('.').last,
-      //   "userID": FirebaseAuth.instance.currentUser!.uid,
-      //   "userType": currentUserTypeGroupvalue.name,
-      //   "name": nameController.text.trim(),
-      //   "gender": currentGroupGenderValue.name,
-      //   "contactNumber": contactNumberController.text.trim(),
-      //   "address": addressController.text.trim(),
-      //   "notableTrait":
-      //       "", // empty String, as this is for patients only
-      //   "profilePictureURL": "", // to be updated later
-      //   "createdAt": FieldValue.serverTimestamp(),
-      //   "lastUpdatedAt": FieldValue.serverTimestamp(),
-      //   "registeredBy":
-      //       "", // empty String, as this is for patients only
-      //   "assignedCaregiver":
-      //       "", // empty String, as this is for patients only
-      //   "deviceID":
-      //       "", // to be updated later, this one can be null at account creation but can have a value later on when added.
-      //   "email": widget.email.trim(),
-
-      //   // "status" : true,  // to be decided later, if ibutang ba jud ni
-      // });
     });
 
     List<PersonalInfo> personsList =
