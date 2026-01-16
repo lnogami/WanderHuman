@@ -51,7 +51,11 @@ class MedicalHistory extends StatelessWidget {
       );
     }
 
-    return combinedList;
+    combinedList.sort(
+      (a, b) => a.medicalRecord.fromDate.compareTo(b.medicalRecord.fromDate),
+    );
+
+    return combinedList.reversed.toList();
   }
 
   @override
@@ -119,10 +123,12 @@ class MedicalHistory extends StatelessWidget {
           // ... Your existing AppBar Positioned widget ...
           Positioned(
             // top: kToolbarHeight * 0.7,
-            child: MyCustAppBar(
-              title: "Medical History",
-              backButton: () => Navigator.pop(context),
-              // ... rest of your app bar code
+            child: SafeArea(
+              child: MyCustAppBar(
+                title: "Medical History",
+                backButton: () => Navigator.pop(context),
+                // ... rest of your app bar code
+              ),
             ),
           ),
         ],

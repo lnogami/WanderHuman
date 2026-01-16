@@ -77,30 +77,32 @@ class PatientRecords extends StatelessWidget {
 
           Positioned(
             // top: kToolbarHeight * 0.7,
-            child: MyCustAppBar(
-              title: "Manage Patient",
-              backButton: () {
-                Navigator.pop(context);
-              },
-              actionButtons: [
-                IconButton(
-                  highlightColor: Colors.blue.shade100,
-                  onPressed: () async {
-                    // Navigator.pop(context);
-                    MyNavigator.goTo(
-                      // ignore: use_build_context_synchronously
-                      context,
-                      AddPatientForm(
-                        // bufferedpatientNames: await getPatient()
-                      ),
-                    );
-                  },
-                  icon: Icon(
-                    Icons.person_add_alt_1_rounded,
-                    color: Colors.blue.shade400,
+            child: SafeArea(
+              child: MyCustAppBar(
+                title: "Manage Patient",
+                backButton: () {
+                  Navigator.pop(context);
+                },
+                actionButtons: [
+                  IconButton(
+                    highlightColor: Colors.blue.shade100,
+                    onPressed: () async {
+                      // Navigator.pop(context);
+                      MyNavigator.goTo(
+                        // ignore: use_build_context_synchronously
+                        context,
+                        AddPatientForm(
+                          // bufferedpatientNames: await getPatient()
+                        ),
+                      );
+                    },
+                    icon: Icon(
+                      Icons.person_add_alt_1_rounded,
+                      color: Colors.blue.shade400,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],

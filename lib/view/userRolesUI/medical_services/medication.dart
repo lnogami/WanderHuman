@@ -4,7 +4,6 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:wanderhuman_app/helper/medical_services_repository.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/model/medication_model.dart';
@@ -185,17 +184,19 @@ class _MedicationState extends State<Medication> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        MyCustAppBar(
-          title: "Medication",
-          color: const Color.fromARGB(160, 33, 149, 243),
-          textColor: Colors.white,
-          fontWeight: FontWeight.w600,
-          backButton: () {
-            Navigator.pop(context);
-            // Navigator.pop(context);
-            // MyNavigator.goTo(context, Medication());
-          },
-          backButtonColor: Colors.white70,
+        SafeArea(
+          child: MyCustAppBar(
+            title: "Medication",
+            color: const Color.fromARGB(160, 33, 149, 243),
+            textColor: Colors.white,
+            fontWeight: FontWeight.w600,
+            backButton: () {
+              Navigator.pop(context);
+              // Navigator.pop(context);
+              // MyNavigator.goTo(context, Medication());
+            },
+            backButtonColor: Colors.white70,
+          ),
         ),
         SizedBox(height: 25),
 
@@ -283,14 +284,18 @@ class _MedicationState extends State<Medication> {
               ? "Already in Good Condition"
               : "Not Yet Okay",
           onTap: () async {
-            setState(() {
-              isNowOkay = !isNowOkay;
-              if (isNowOkay != widget.medicationModel!.isNowOkay) {
-                isAltered = true;
-              } else {
-                isAltered = false;
-              }
-            });
+            // by default, when registering a medication, it will be "Not Yet Okay".
+            //             it can only be change if this is viewed from Med History
+            if (widget.bufferedPatientInfo != null) {
+              setState(() {
+                isNowOkay = !isNowOkay;
+                if (isNowOkay != widget.medicationModel!.isNowOkay) {
+                  isAltered = true;
+                } else {
+                  isAltered = false;
+                }
+              });
+            }
           },
           widthPercentage: 0.8,
           borderColor: (isNowOkay == true)
@@ -682,34 +687,60 @@ class _MedicationState extends State<Medication> {
                   buttonTextSpacing: 1.2,
                   buttonWidth: MyDimensionAdapter.getWidth(context) * 0.40,
                   onTap: () {
-                    MyMedicalRepository.addRecord(
-                      MedicationModel(
-                        // recordID: "",
-                        patientID: _selectedPatient!.userID,
-                        diagnosis: diagnosisController.text,
-                        treatment: treatmentController.text,
-                        medic: FirebaseAuth.instance.currentUser!.uid,
-                        fromDate: fromDate,
-                        untilDate: untilDate,
-                        isNowOkay: false,
-                        createdAt: DateTime.now().toString(),
-                      ),
-                    );
-                    // removes the dialog box
-                    Navigator.pop(context);
-                    // removes the Medication Page
-                    Navigator.pop(context);
-                    // goes to the MedicationHistory Page after saving an entry
-                    MyNavigator.goTo(context, MedicalHistory());
-                    // print(
-                    //   "ADDEDDDDDDDDDDDDDD: userID: ${_selectedPatient?.userID},  name: ${_selectedPatient?.name},  diagnosis: ${diagnosisController.text},  treatment: ${treatmentController.text}, medic: ${FirebaseAuth.instance.currentUser!.uid}",
-                    // );
-                    showMyAnimatedSnackBar(
-                      context: context,
-                      dataToDisplay: "Done..",
-                    );
-                    // Navigator.pop(context);
-                    // }
+                    if (selectedNameValue != patientsNames[0] &&
+                        diagnosisController.text != "" &&
+                        treatmentController.text != "" &&
+                        fromDate != "" &&
+                        untilDate != "" &&
+                        diagnosisController.text != "" &&
+                        treatmentController.text != "") {
+                      myAlertDialogue(
+                        context: context,
+                        alertTitle: "Confirm to Save",
+                        alertContent: "Please press to continue",
+                        onApprovalPressed: () {
+                          showMyAnimatedSnackBar(
+                            context: context,
+                            dataToDisplay: "Saving..",
+                          );
+                          MyMedicalRepository.addRecord(
+                            MedicationModel(
+                              // recordID: "",
+                              patientID: _selectedPatient!.userID,
+                              diagnosis: diagnosisController.text,
+                              treatment: treatmentController.text,
+                              medic: FirebaseAuth.instance.currentUser!.uid,
+                              fromDate: fromDate,
+                              untilDate: untilDate,
+                              isNowOkay: false,
+                              createdAt: DateTime.now().toString(),
+                            ),
+                          );
+                          // removes the dialog box
+                          Navigator.pop(context);
+                          // removes the Medication Page
+                          Navigator.pop(context);
+                          // goes to the MedicationHistory Page after saving an entry
+                          MyNavigator.goTo(context, MedicalHistory());
+                          // print(
+                          //   "ADDEDDDDDDDDDDDDDD: userID: ${_selectedPatient?.userID},  name: ${_selectedPatient?.name},  diagnosis: ${diagnosisController.text},  treatment: ${treatmentController.text}, medic: ${FirebaseAuth.instance.currentUser!.uid}",
+                          // );
+                          showMyAnimatedSnackBar(
+                            context: context,
+                            dataToDisplay: "Done..",
+                          );
+                          // Navigator.pop(context);
+                          // }
+                        },
+                      );
+                    } else {
+                      showMyAnimatedSnackBar(
+                        context: context,
+                        bgColor: Colors.white70,
+                        dataToDisplay:
+                            "Please fill out all the required fields.",
+                      );
+                    }
                   },
                 )
               : MyCustButton(

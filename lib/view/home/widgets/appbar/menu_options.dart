@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/universal_sizes.dart';
+import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
 import 'package:wanderhuman_app/view/home/widgets/appbar/user_role_previlige.dart';
 import 'package:wanderhuman_app/view/components/option_container.dart';
 import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
@@ -125,7 +126,14 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
                 optionsContainer(
                   context,
                   onTap: () {
-                    FirebaseAuth.instance.signOut();
+                    myAlertDialogue(
+                      context: context,
+                      alertTitle: "Confirm Logout",
+                      alertContent: "Are you sure you want to logout?",
+                      onApprovalPressed: () {
+                        FirebaseAuth.instance.signOut();
+                      },
+                    );
                   },
                   Icons.logout_outlined,
                   "Logout",

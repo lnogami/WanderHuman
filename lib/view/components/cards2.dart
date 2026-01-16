@@ -170,9 +170,9 @@ class _MyCardInfoDisplayer2 extends State<MyCardInfoDisplayer2> {
                   SizedBox(width: 2),
                   Expanded(
                     child: MyTextFormatter.p(
-                      // widget.diagnosis
-                      text:
-                          "jBDkjbwd ajkdbawkd a dawhdbjwhd ejkwbedehj ewdbwe dwd weded ededede de d w dew ",
+                      text: widget.diagnosis,
+                      // text:
+                      //     "jBDkjbwd ajkdbawkd a dawhdbjwhd ejkwbedehj ewdbwe dwd weded ededede de d w dew ",
                       maxLines: 2,
                     ),
                   ),

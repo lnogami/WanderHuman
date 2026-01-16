@@ -57,14 +57,16 @@ class _AddPatientFormState extends State<AddPatientForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: MyColorPalette.formColor,
-      body: SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        // this is the main body of the Form
-        child: Container(
-          padding: EdgeInsets.only(bottom: 30),
-          width: MyDimensionAdapter.getWidth(context),
-          // decoration: const BoxDecoration(color: MyColorPalette.lightBlue),
-          child: formSpace(context),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          // this is the main body of the Form
+          child: Container(
+            padding: EdgeInsets.only(bottom: 30),
+            width: MyDimensionAdapter.getWidth(context),
+            // decoration: const BoxDecoration(color: MyColorPalette.lightBlue),
+            child: formSpace(context),
+          ),
         ),
       ),
     );

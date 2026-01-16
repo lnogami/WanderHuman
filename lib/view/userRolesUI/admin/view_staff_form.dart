@@ -346,9 +346,9 @@ class _AddViewStaffFormState extends State<ViewStaffForm> {
                       ),
                       buttonTextFontSize: kDefaultFontSize + 1.5,
                       buttonTextSpacing: 1,
-                      buttonText: (birthdateValue == "")
-                          ? "Birthdate"
-                          : "Birthdate: ${MyDateFormatter.formatDate(dateTimeInString: birthdateValue)}",
+                      buttonText: (birthdateValue != "")
+                          ? "Birthdate: ${MyDateFormatter.formatDate(dateTimeInString: birthdateValue)}"
+                          : "Birthdate",
                       // : birthdateValue,
                       onTap: () {
                         // the age parameter is just for determining the approximate birth year, so the the UX of using this date picker will improve.
@@ -478,7 +478,7 @@ class _AddViewStaffFormState extends State<ViewStaffForm> {
               if (isThisYourSelf || isAnAdmin) {
                 myAlertDialogue(
                   context: context,
-                  alertTitle: "Are you sure?",
+                  alertTitle: "Confirm update?",
                   alertContent: (selectedRoleValue == "No Role")
                       ? "${widget.staffPersonalInfo.name} will be demoted to \nNo Role"
                       : "${widget.staffPersonalInfo.name} will be assigned as\n$selectedRoleValue",
