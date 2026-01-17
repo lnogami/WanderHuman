@@ -243,13 +243,22 @@ class HomeLifeRepository {
           // for example lets's say the only day schedule a task have is Mon and today is Tuesday
           //             therefore the task will not be created because today is not it's scheduled day.
           List<String> daySchedule = task.repeatInterval.split(",");
+          // and also, if todays date exceeds the untilDate, the task does not created.
+          DateTime untilDateInDateTimeFormat = DateTime.parse(task.untilDate)
+              .add(
+                Duration(days: 1),
+              ); // add 1 day because the condition is < today
+
           if (daySchedule.contains(
-            MyDateFormatter.formatDate(
-              dateTimeInString: DateTime.now(),
-              formatOptions: 7,
-              customedFormat: "EEE", // EEE means short name of day ex.Mon,Tue
-            ),
-          )) {
+                MyDateFormatter.formatDate(
+                  dateTimeInString: DateTime.now(),
+                  formatOptions: 7,
+                  customedFormat:
+                      "EEE", // EEE means short name of day ex.Mon,Tue
+                ),
+              ) &&
+              // if today is before the untilDate, the task will be created
+              DateTime.now().isBefore(untilDateInDateTimeFormat)) {
             // and also, finally, for the Layer 3 (HLTasks)
             //            Add those tasks in the dailyRecord
             _addTask(
@@ -265,6 +274,10 @@ class HomeLifeRepository {
                 caregiverId: task.createdBy,
                 createdAt: dateID,
               ),
+            );
+          } else {
+            print(
+              "NOTICEEEEEEEEEE: Task: ${task.taskName}, was not created because it's either beyond the untilDate of (${task.untilDate} while today is ${DateTime.now()}), OR today is not in its schedule ${daySchedule.join(", ")}",
             );
           }
         }
@@ -417,7 +430,7 @@ class HomeLifeRepository {
               isDone: false,
               isDoneBy: '', // will be filled later when it isDone is true
               caregiverId: task.createdBy,
-              createdAt: dateID,
+              createdAt: dateOnlyFormat,
             ),
           );
         }

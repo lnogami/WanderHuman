@@ -131,6 +131,7 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
                       alertTitle: "Confirm Logout",
                       alertContent: "Are you sure you want to logout?",
                       onApprovalPressed: () {
+                        Navigator.pop(context);
                         FirebaseAuth.instance.signOut();
                       },
                     );

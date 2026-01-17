@@ -964,7 +964,9 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
             //      the scenario where the automation of tasks for the day was alreay created,
             //      just insert this one record directly in IndividualTasks.
             HomeLifeRepository.insertDailyRecord(
-              dateID: DateTime.now().toString(),
+              dateID: MyDateFormatter.formatDate(
+                dateTimeInString: DateTime.now().toString(),
+              ),
               task: HomeLifePlannerModel(
                 // the task ID was needed for the insertion of task in IndividualTasks
                 taskID: taskID,
@@ -975,7 +977,9 @@ class _HomeLifePlannerState extends State<HomeLifePlanner> {
                 time: MyTimeFormatter.timeOfDayToString(time!),
                 fromDate: fromDate.toString(),
                 untilDate: untilDate.toString(),
-                createdAt: DateTime.now().toString(),
+                createdAt: MyDateFormatter.formatDate(
+                  dateTimeInString: DateTime.now().toString(),
+                ),
                 createdBy: FirebaseAuth.instance.currentUser!.uid,
               ),
             );
