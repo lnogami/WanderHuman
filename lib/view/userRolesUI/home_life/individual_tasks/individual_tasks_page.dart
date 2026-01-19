@@ -10,6 +10,7 @@ import 'package:wanderhuman_app/view/components/appbar.dart';
 import 'package:wanderhuman_app/view/components/dropdown_button.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/userRolesUI/home_life/individual_tasks/individual_task_card.dart';
+import 'package:wanderhuman_app/view/userRolesUI/home_life/individual_tasks/patient_records.dart';
 
 class IndividualTasks extends StatefulWidget {
   final PersonalInfo patientInfo;
@@ -208,13 +209,12 @@ class _IndividualTasksState extends State<IndividualTasks> {
       //
       backButton: () {
         Navigator.pop(context);
-        // the 6 lines below are for debugging purposes only
-        // Navigator.pop(context);
-        // MyNavigator.goTo(
-        //   context,
-        //   IndividualTasks(patientInfo: widget.patientInfo),
-        //   // HomeLifePatientRecords(),
-        // );
+        Navigator.pop(context);
+        MyNavigator.goTo(
+          context,
+          // IndividualTasks(patientInfo: widget.patientInfo),
+          HomeLifePatientRecords(),
+        );
       },
     );
   }

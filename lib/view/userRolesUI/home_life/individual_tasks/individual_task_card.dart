@@ -182,13 +182,13 @@ class _IndividualTaskCardState extends State<IndividualTaskCard> {
                 top: MyDimensionAdapter.getHeight(context) * 0.05,
                 left: MyDimensionAdapter.getWidth(context) * 0.14,
                 child: Container(
-                  width: MyDimensionAdapter.getWidth(context) * 0.645,
+                  width: MyDimensionAdapter.getWidth(context) * 0.632,
                   padding: EdgeInsets.only(left: 5, right: 5),
                   // color: Colors.amber,
                   alignment: Alignment.centerLeft,
                   child: MyTextFormatter.p(
                     // text:
-                    // "jsjb skjfb sfdkjbf skdjbfdksjbf skjbfksbfs fkjbdsfbs fsdkbfbsdfdfk sfkbsf sdkfks",
+                    // "jsjb skjfb sfdkjbf skdjbfdksj b s skjb jh h hjhjh jhvhjfksbfs fkjbdsfbs fsdkbfbsdfdfk sfkbsf sdkfks",
                     text: widget.plannedTask.description,
                     lineHeight: 1.2,
                     maxLines: 3,
@@ -272,6 +272,7 @@ class _IndividualTaskCardState extends State<IndividualTaskCard> {
               length: MyDimensionAdapter.getHeight(context) * 0.038,
             ),
             SizedBox(width: 2),
+            // Time
             Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -283,6 +284,7 @@ class _IndividualTaskCardState extends State<IndividualTaskCard> {
                 ),
               ],
             ),
+            SizedBox(width: 2),
           ],
         ),
       ),

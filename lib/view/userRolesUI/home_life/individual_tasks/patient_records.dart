@@ -5,6 +5,8 @@ import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
 import 'package:wanderhuman_app/view/components/appbar.dart';
 import 'package:wanderhuman_app/view/components/cards3.dart';
+import 'package:wanderhuman_app/view/components/gradients.dart';
+import 'package:wanderhuman_app/view/components/last_element_padding.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/userRolesUI/home_life/individual_tasks/individual_tasks_page.dart';
 
@@ -40,86 +42,123 @@ class HomeLifePatientRecords extends StatelessWidget {
       body: Stack(
         alignment: Alignment.topCenter,
         children: [
-          FutureBuilder(
-            future: getPatient(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(child: CircularProgressIndicator());
-              } else if (snapshot.data!.isEmpty) {
-                return Center(
-                  child: MyTextFormatter.p(text: "No Patient Found . ."),
-                );
-              } else {
-                return Container(
-                  width: MyDimensionAdapter.getWidth(context),
-                  height: MyDimensionAdapter.getHeight(context),
-                  padding: EdgeInsets.only(
-                    top: kToolbarHeight + 20,
-                    bottom: 56,
-                    left: 20,
-                    right: 20,
-                  ),
-                  // color: const Color.fromARGB(255, 227, 237, 250),
-                  child: ListView.builder(
-                    itemCount: snapshot.data!.length,
-                    itemBuilder: (context, index) {
-                      return MyCardInfoDisplayer3(
-                        personalInfo: snapshot.data![index],
-                        // profilePicture: snapshot.data![index].picture,
-                        // name: snapshot.data![index].name,
-                        // age: "${snapshot.data![index].age} years old",
-                        // contactNumber: snapshot.data![index].contactNumber,
-                        // emailAdd: snapshot.data![index].email,
-                        onTap: () {
-                          MyNavigator.goTo(
-                            context,
-                            // ViewPatientForm(
-                            //   patientPersonalInfo: snapshot.data![index],
-                            // ),
-                            IndividualTasks(patientInfo: snapshot.data![index]),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                );
-              }
-            },
-          ),
-
-          Positioned(
-            top: kToolbarHeight * 0.7,
-            child: MyCustAppBar(
-              title: "Manage Patient",
-              backButton: () {
-                Navigator.pop(context);
-                // the 2 lines below are for debugging purposes only
-                // Navigator.pop(context);
-                // MyNavigator.goTo(context, HomeLifePatientRecords());
-              },
-              actionButtons: [
-                // IconButton(
-                //   highlightColor: Colors.blue.shade100,
-                //   onPressed: () async {
-                //     // Navigator.pop(context);
-                //     MyNavigator.goTo(
-                //       // ignore: use_build_context_synchronously
-                //       context,
-                //       AddPatientForm(
-                //         // bufferedpatientNames: await getPatient()
-                //       ),
-                //     );
-                //   },
-                //   icon: Icon(
-                //     Icons.person_add_alt_1_rounded,
-                //     color: Colors.blue.shade400,
-                //   ),
-                // ),
-              ],
-            ),
-          ),
+          body(),
+          appBar(context),
+          // to have a fading visual effect at the bottom of the screen
+          MyGradients.fadingBottomGradient(context),
         ],
       ),
+    );
+  }
+
+  Positioned appBar(BuildContext context) {
+    return Positioned(
+      top: kToolbarHeight * 0.7,
+      child: MyCustAppBar(
+        title: "Manage Patient",
+        backButton: () {
+          Navigator.pop(context);
+          // the 2 lines below are for debugging purposes only
+          // Navigator.pop(context);
+          // MyNavigator.goTo(context, HomeLifePatientRecords());
+        },
+        actionButtons: [
+          // IconButton(
+          //   highlightColor: Colors.blue.shade100,
+          //   onPressed: () async {
+          //     // Navigator.pop(context);
+          //     MyNavigator.goTo(
+          //       // ignore: use_build_context_synchronously
+          //       context,
+          //       AddPatientForm(
+          //         // bufferedpatientNames: await getPatient()
+          //       ),
+          //     );
+          //   },
+          //   icon: Icon(
+          //     Icons.person_add_alt_1_rounded,
+          //     color: Colors.blue.shade400,
+          //   ),
+          // ),
+        ],
+      ),
+    );
+  }
+
+  FutureBuilder<List<PersonalInfo>> body() {
+    return FutureBuilder(
+      future: getPatient(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.data!.isEmpty) {
+          return Center(child: MyTextFormatter.p(text: "No Patient Found . ."));
+        } else {
+          return Container(
+            width: MyDimensionAdapter.getWidth(context),
+            height: MyDimensionAdapter.getHeight(context),
+            padding: EdgeInsets.only(
+              top: kToolbarHeight + 20,
+              bottom: 56,
+              left: 20,
+              right: 20,
+            ),
+            // color: const Color.fromARGB(255, 227, 237, 250),
+            child: ListView.builder(
+              itemCount: snapshot.data!.length,
+              itemBuilder: (context, index) {
+                // if this is the first in the list, return a top padded CardInfoDisplayer
+                if (index == 0) {
+                  return MyElementPadding.firstListElementPadding(
+                    padding: 10,
+                    widget: MyCardInfoDisplayer3(
+                      personalInfo: snapshot.data![index],
+                      onTap: () {
+                        MyNavigator.goTo(
+                          context,
+                          IndividualTasks(patientInfo: snapshot.data![index]),
+                        );
+                      },
+                    ),
+                  );
+                }
+                // if the element is the last, return a bottom padded CardInfoDisplayer
+                else if (snapshot.data!.length == index + 1) {
+                  return MyElementPadding.lastListElementPadding(
+                    widget: MyCardInfoDisplayer3(
+                      personalInfo: snapshot.data![index],
+                      onTap: () {
+                        MyNavigator.goTo(
+                          context,
+                          IndividualTasks(patientInfo: snapshot.data![index]),
+                        );
+                      },
+                    ),
+                  );
+                } else {
+                  return MyCardInfoDisplayer3(
+                    personalInfo: snapshot.data![index],
+                    // profilePicture: snapshot.data![index].picture,
+                    // name: snapshot.data![index].name,
+                    // age: "${snapshot.data![index].age} years old",
+                    // contactNumber: snapshot.data![index].contactNumber,
+                    // emailAdd: snapshot.data![index].email,
+                    onTap: () {
+                      MyNavigator.goTo(
+                        context,
+                        // ViewPatientForm(
+                        //   patientPersonalInfo: snapshot.data![index],
+                        // ),
+                        IndividualTasks(patientInfo: snapshot.data![index]),
+                      );
+                    },
+                  );
+                }
+              },
+            ),
+          );
+        }
+      },
     );
   }
 }

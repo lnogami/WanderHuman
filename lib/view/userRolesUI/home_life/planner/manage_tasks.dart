@@ -6,7 +6,9 @@ import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
 import 'package:wanderhuman_app/view/components/appbar.dart';
+import 'package:wanderhuman_app/view/components/gradients.dart';
 import 'package:wanderhuman_app/view/components/info_dialogue.dart';
+import 'package:wanderhuman_app/view/components/last_element_padding.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/userRolesUI/home_life/planner/planner.dart';
@@ -91,6 +93,7 @@ class _HomeLifeManageTaskState extends State<HomeLifeManageTask> {
               ),
 
               body(context),
+              MyGradients.fadingBottomGradient(context),
 
               // floatingButton(
               //   onTap: () {
@@ -109,7 +112,8 @@ class _HomeLifeManageTaskState extends State<HomeLifeManageTask> {
       top: kToolbarHeight,
       child: Container(
         width: MyDimensionAdapter.getWidth(context) * 0.8,
-        height: MyDimensionAdapter.getHeight(context) * 0.9,
+        height: MyDimensionAdapter.getHeight(context) * 0.85,
+        padding: EdgeInsets.only(bottom: 40),
         // color: Colors.amber.shade100,
         child: FutureBuilder(
           future: getTasks(),
@@ -174,7 +178,19 @@ class _HomeLifeManageTaskState extends State<HomeLifeManageTask> {
                         );
                       }
                     },
-                    child: TaskCard(task: snapshot.data![index]),
+                    // what's happening here is if the element is the first or last, return a top or bottom padded TaskCard
+                    child: (index == 0 || snapshot.data!.length == index + 1)
+                        ? (index == 0)
+                              // first element
+                              ? MyElementPadding.firstListElementPadding(
+                                  padding: 30,
+                                  widget: TaskCard(task: snapshot.data![index]),
+                                )
+                              // last element
+                              : MyElementPadding.lastListElementPadding(
+                                  widget: TaskCard(task: snapshot.data![index]),
+                                )
+                        : TaskCard(task: snapshot.data![index]),
                   );
                 },
               );
