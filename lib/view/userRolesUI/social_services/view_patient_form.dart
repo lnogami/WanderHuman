@@ -86,7 +86,6 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
   @override
   void initState() {
     super.initState();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
     setState(() {
       nameController.text = widget.patientPersonalInfo.name;
@@ -105,7 +104,6 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
   @override
   void dispose() {
     super.dispose();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     nameController.dispose();
     contactNumController.dispose();
     ageController.dispose();
@@ -120,16 +118,18 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: MyColorPalette.formColor,
-      body: SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        // this is the main body of the Form
-        child: Container(
-          // padding: EdgeInsets.all(20),
-          width: MyDimensionAdapter.getWidth(context),
-          // no specified height since sulod man sya sa SingleChildScrollView
-          padding: EdgeInsets.only(bottom: 30),
-          // decoration: const BoxDecoration(color: MyColorPalette.formColor),
-          child: formSpace(context),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          // this is the main body of the Form
+          child: Container(
+            // padding: EdgeInsets.all(20),
+            width: MyDimensionAdapter.getWidth(context),
+            // no specified height since sulod man sya sa SingleChildScrollView
+            padding: EdgeInsets.only(bottom: 30),
+            // decoration: const BoxDecoration(color: MyColorPalette.formColor),
+            child: formSpace(context),
+          ),
         ),
       ),
     );
