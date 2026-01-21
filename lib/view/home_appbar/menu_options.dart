@@ -4,7 +4,7 @@ import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/universal_sizes.dart';
 import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
-import 'package:wanderhuman_app/view/home/widgets/appbar/user_role_previlige.dart';
+import 'package:wanderhuman_app/view/home_appbar/user_role_previlige.dart';
 import 'package:wanderhuman_app/view/components/option_container.dart';
 import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 
