@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:wanderhuman_app/components/button.dart';
-import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
+import 'package:wanderhuman_app/view/components/button.dart';
+import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/view_patient_details/patient_details_page.dart';
 
 void showMyBottomNavigationSheet({
@@ -128,10 +128,9 @@ void showMyBottomNavigationSheet({
                       flex: 2,
                       textValueSize: 15,
                       isPossibleToContainLongValue: true,
-                      textLabel: "Notable Trait",
-                      textValue:
-                          // "Often found lying in bed, or sitting in the living room. Needs regular monitoring.",
-                          notableBehavior,
+                      textLabel: "Notable Behavior",
+                      // "Often found lying in bed, or sitting in the living room. Needs regular monitoring.",
+                      textValue: notableBehavior,
                     ),
                   ],
                 ),
@@ -201,11 +200,22 @@ Flexible flexibleSizedContainers({
           ),
           (isPossibleToContainLongValue) ? SizedBox(height: 10) : Spacer(),
           Text(
-            textValue,
+            // if walay sulod and textValue, kani ang default nga e display
+            (textValue == "") ? "NO DATA TO DISPLAY HERE ..." : textValue,
             softWrap: true,
+            overflow: TextOverflow.ellipsis,
+            maxLines: (isPossibleToContainLongValue) ? 2 : 1,
             style: TextStyle(
+              // if walay sulod and textValue, kani ang default nga e display
+              color: (textValue == "")
+                  ? Colors.grey.shade500.withAlpha(200)
+                  : const Color.fromARGB(255, 13, 13, 14),
               fontSize: textValueSize,
               fontWeight: FontWeight.w600,
+              // if walay sulod and textValue, kani ang default nga e display
+              fontStyle: (textValue == "")
+                  ? FontStyle.italic
+                  : FontStyle.normal,
             ),
           ),
         ],

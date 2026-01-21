@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
+import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/home/home.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/patient_simulator/patient_simulator_map.dart';
 

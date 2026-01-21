@@ -1,0 +1,146 @@
+import 'dart:typed_data';
+
+import 'package:flutter/material.dart';
+
+/// This automatcally process the Image from the database and display it.
+class MyImageDisplayer extends StatefulWidget {
+  /// Size of the profile image to be displayed.
+  /// NOTE: If MyImageDisplayer is placed inside a CircleAvatar, this property will be ignored.
+  final double profileImageSize;
+
+  /// If userID is not  provided, the current logged in user's ID will be used.
+  final String? userID;
+
+  /// NOTE: If the base64 is in String format, use
+  /// ### MyImageProcessor.decodeStringToUint8List(base64String)
+  /// then pass this base64ImageString as an argument to base64String parameter.
+  final Uint8List? base64ImageString;
+
+  /// Returns an Oval shaped picture. Otherwise, the original dimension of the picture
+  final bool isOval;
+
+  const MyImageDisplayer({
+    super.key,
+    this.profileImageSize = 150,
+    this.userID,
+    this.base64ImageString,
+    this.isOval = true,
+  });
+
+  @override
+  State<MyImageDisplayer> createState() => MyImageDisplayerState();
+}
+
+// local loader from image picker, for testing purposes only
+// Future<String> _imageLoader() async {
+//   await Future.delayed(const Duration(milliseconds: 400));
+//   return MyImageProcessor.base64Image;
+// }
+
+class MyImageDisplayerState extends State<MyImageDisplayer> {
+  @override
+  Widget build(BuildContext context) {
+    // return FutureBuilder(
+    //   // future: _imageLoader(),
+    //   future: _imageLoaderFromFireBase(),
+    //   builder: (context, snapshot) {
+    //     if (snapshot.connectionState == ConnectionState.done) {
+    //       // != ""  kay naka set sya "" sa imagePicker if walay gi pick
+    //       if (snapshot.hasData || snapshot.data != "") {
+    //         print(
+    //           "Snapshot Dataaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa: ${snapshot.data!.length}",
+    //         );
+    if (widget.base64ImageString != null) {
+      //         print(
+      //           "Snapshot Dataaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa: ${snapshot.data!.length}",
+      //         );
+      if (widget.isOval) {
+        return ClipOval(
+          child: Image.memory(
+            // base64Decode(widget.base64ImageString ?? snapshot.data!),
+            widget.base64ImageString!,
+            width: widget.profileImageSize,
+            height: widget.profileImageSize,
+            fit: BoxFit.cover,
+            // Error Builder: Shows an icon if the string is broken
+            errorBuilder: (context, error, stackTrace) {
+              return Icon(
+                Icons.person_rounded,
+                size: widget.profileImageSize,
+                color: Colors.grey,
+              );
+            },
+          ),
+        );
+      } else {
+        return Image.memory(
+          // base64Decode(widget.base64ImageString ?? snapshot.data!),
+          widget.base64ImageString!,
+          width: widget.profileImageSize,
+          height: widget.profileImageSize,
+          fit: BoxFit.cover,
+          // Error Builder: Shows an icon if the string is broken
+          errorBuilder: (context, error, stackTrace) {
+            return Icon(
+              Icons.person_rounded,
+              size: widget.profileImageSize,
+              color: Colors.grey,
+            );
+          },
+        );
+      }
+      // } else {
+      //   return Icon(
+      //     Icons.person_rounded,
+      //     size: widget.profileImageSize,
+      //     color: Colors.grey,
+      //   );
+      // }
+    } else {
+      return ClipOval(
+        child: SizedBox(
+          width: widget.profileImageSize,
+          height: widget.profileImageSize,
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+    // },
+    // );
+  }
+
+  // // loads image from firebase
+  // Future<String> _imageLoaderFromFireBase() async {
+  //   PersonalInfo personalInfo =
+  //       await MyPersonalInfoRepository.getSpecificPersonalInfo(
+  //         // if userID is null, get the current logged in user's ID
+  //         userID: widget.userID ?? FirebaseAuth.instance.currentUser!.uid,
+  //       );
+  //   // MyImageProcessor.base64Image = personalInfo.picture;
+
+  //   // print("USERRRRRRRRRRRRRRRRRRRRRRRRRRRRRR: ${personalInfo.name}");
+  //   // print(
+  //   //   "BASE64 IMAGE STRING LENGTH FROM DATABASE: ${personalInfo.picture.length}",
+  //   // );
+  //   // print(
+  //   //   "Loaded Image from Databaseeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee: ${personalInfo.picture}",
+  //   // );
+
+  //   // 1. CLEANUP STEP: Fix the string before touching it
+  //   String safeString = personalInfo.picture;
+
+  //   // Remove any hidden newlines (common DB artifact)
+  //   safeString = safeString.replaceAll('\n', '').replaceAll('\r', '');
+
+  //   // Restore missing padding '=' until length is divisible by 4
+  //   while (safeString.length % 4 != 0) {
+  //     safeString += '=';
+  //   }
+
+  //   // print(
+  //   //   "SAFE STRING LENGTHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH: ${safeString.length}",
+  //   // );
+
+  //   return safeString;
+  // }
+}

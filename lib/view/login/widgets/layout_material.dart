@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:wanderhuman_app/utilities/dimension_adapter.dart';
+import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 
 class MyLayoutMaterial extends StatelessWidget {
   final double distanceFromTop;
