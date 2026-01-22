@@ -87,6 +87,26 @@ class _MapBodyState extends State<MapBody> {
       onMapCreated: _onMapCreated,
       // this is the style of the map
       styleUri: mp.MapboxStyles.SATELLITE_STREETS,
+      onStyleLoadedListener: (styleLoadedEventData) {
+        _onStyleLoadedListener(context: context, event: styleLoadedEventData);
+      },
+    );
+  }
+
+  // newly added, not yet tested, I don't know what this is yet
+  _onStyleLoadedListener({
+    required BuildContext context,
+    required mp.StyleLoadedEventData? event,
+  }) async {
+    mapboxMapController!.style.setStyleImportConfigProperty(
+      "basemap",
+      "lightPreset",
+      "night",
+    );
+    mapboxMapController!.style.setStyleImportConfigProperty(
+      "basemap",
+      "showLandmarkIcons",
+      true,
     );
   }
 
@@ -346,10 +366,14 @@ class _MapBodyState extends State<MapBody> {
             // print(position);
             // temporary
             myPosition = position;
+            // CameraOptios sets where the map is centered and how zoomed in it is.
             mapboxMapController?.setCamera(
               mp.CameraOptions(
                 zoom: 15.0,
+                // bearing: 50.0,
+                // pitch: 50.0,
                 center: mp.Point(
+                  // TODO: this could be change to adapt to a new feature, where if the user clicks a patient icon, that patient icon becomes the center of the screen
                   coordinates: mp.Position(
                     position.longitude,
                     position.latitude,
