@@ -21,7 +21,7 @@ class AdminPrivilege extends StatelessWidget {
               optionsContainer(
                 context,
                 Icons.person_pin_circle_outlined,
-                bgColor: Colors.green[300]!,
+                bgColor: const Color.fromARGB(99, 216, 255, 219),
                 "Simulate",
                 onTap: () {
                   // Will uncomment later on

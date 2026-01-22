@@ -24,16 +24,18 @@ class MapBody extends StatefulWidget {
 class _MapBodyState extends State<MapBody> {
   // controller for the map
   mp.MapboxMap? mapboxMapController;
-
+  // point annotation manager
   mp.PointAnnotationManager? pointAnnotationManager;
-
   // to listen to the user's location changes
   StreamSubscription? userPositionStream;
-
   // Keep track of existing annotations by Firestore document ID
   Map<String, mp.PointAnnotation> userAnnotations = {};
+  // temporary
+  gl.Position? myPosition;
 
-  // newly added
+  // TODO: after pressing the refresh, the UI will not change if you logout (but it is already logged out, just the UI doesn't change)
+  // this will check if the location is enabled or not, if not, a dialog box
+  // will appear to refresh the screen.
   bool isLocationServiceEnabled = false;
   Future<void> checkLocationServiceStatus() async {
     isLocationServiceEnabled = await gl.Geolocator.isLocationServiceEnabled();
@@ -59,8 +61,10 @@ class _MapBodyState extends State<MapBody> {
     }
   }
 
-  // temporary
-  gl.Position? myPosition;
+  /// this will initialize the mapbox API
+  Future<void> setupMapboxAccessToken() async {
+    mp.MapboxOptions.setAccessToken(dotenv.env['MAPBOX_ACCESS_TOKEN']!);
+  }
 
   @override
   void initState() {
@@ -77,10 +81,6 @@ class _MapBodyState extends State<MapBody> {
     super.dispose();
   }
 
-  Future<void> setupMapboxAccessToken() async {
-    mp.MapboxOptions.setAccessToken(dotenv.env['MAPBOX_ACCESS_TOKEN']!);
-  }
-
   @override
   Widget build(BuildContext context) {
     return mp.MapWidget(
@@ -90,6 +90,7 @@ class _MapBodyState extends State<MapBody> {
     );
   }
 
+  /// this is the entry point of mapbox's map
   void _onMapCreated(mp.MapboxMap controller) async {
     setState(() {
       mapboxMapController = controller;
@@ -129,6 +130,8 @@ class _MapBodyState extends State<MapBody> {
       ),
     );
 
+    // I AM NOT ALLOWED TO HIDE THE MAPBOX LOGO BECAUSE IT'S IN SERVICE TERMS AND POLICES.
+
     // the stroked i icon next to MapBox icon
     mapboxMapController!.attribution.updateSettings(
       mp.AttributionSettings(
@@ -142,8 +145,6 @@ class _MapBodyState extends State<MapBody> {
       mp.CompassSettings(marginTop: 80, marginRight: 15, opacity: 0.70),
     );
 
-    // I AM NOT ALLOWED TO HIDE THE MAPBOX LOGO BECAUSE IT'S IN SERVICE TERMS AND POLICES.
-
     //// original code of the new method getLocationServiceStatus()
     // bool isLocationServiceEnabled =
     //     await gl.Geolocator.isLocationServiceEnabled();
@@ -152,10 +153,11 @@ class _MapBodyState extends State<MapBody> {
     listenToPatients();
   }
 
-  // Add this to your state variables
+  /// Add this to your state variables
+  /// The first Map is for ?, and the second Map is for ?
   Map<String, Map<String, dynamic>> annotationData = {};
 
-  // Listen to Firestore collection "users" in real-time
+  /// Listen to Firestore collection "users" in real-time
   void listenToPatients() async {
     // History is just a placeholder,    "RealTime" is the collection here.
     FirebaseFirestore.instance.collection("History").snapshots().listen((
@@ -173,12 +175,15 @@ class _MapBodyState extends State<MapBody> {
 
         int n = 0; // (deletable) for debugging purposes only
 
+        // iterate every document in History collection
         for (var doc in snapshot.docs) {
           var data = doc.data();
           n++;
+
           // Extract coordinates   // naka list man gud ni maong ingani [""][0]   naka List ni sya pag save sa firestore kay Position object man gud ang gisend, naconvert sya into array pag abot sa firestore
           double lng = data["currentLocation"][0] ?? "NULL lng";
           double lat = data["currentLocation"][1] ?? "NULL lat";
+
           // to get user name
           String name = MyPersonalInfoRepository.getSpecificUserName(
             personsList: personsList,
@@ -229,7 +234,6 @@ class _MapBodyState extends State<MapBody> {
                 myPosition: mp.Position(lng, lat),
               ),
             );
-
             userAnnotations[doc.id] = newAnnotation!;
           } else {
             // create new annation
@@ -239,7 +243,6 @@ class _MapBodyState extends State<MapBody> {
                 myPosition: mp.Position(lng, lat),
               ),
             );
-
             userAnnotations[doc.id] = newAnnotation!;
           }
 
@@ -287,10 +290,8 @@ class _MapBodyState extends State<MapBody> {
   }
 
   //------------------------------------------------------------------------------
-  /*
-    This will ask for persmission to the user to allow the app to access location
-    services.
-  */
+
+  /// This will ask for persmission to the user to allow the app to access location services.
   Future<void> checkAndRequestLocationPermission() async {
     bool serviceEnabled = await gl.Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
