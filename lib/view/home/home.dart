@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
+import 'package:wanderhuman_app/view/home/widgets/cust_dropdown_patient_list.dart';
 import 'package:wanderhuman_app/view/home_appbar/home_appbar.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_body.dart';
 
@@ -44,6 +45,11 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             Positioned(top: 20, child: HomeAppBar()),
+            Positioned(
+              top: MyDimensionAdapter.getHeight(context) * 0.2,
+              right: 18,
+              child: HomePatientListDropDown(),
+            ),
           ],
         ),
       ),

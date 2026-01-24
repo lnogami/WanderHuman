@@ -85,19 +85,23 @@ class _MapBodyState extends State<MapBody> {
   Widget build(BuildContext context) {
     return mp.MapWidget(
       onMapCreated: _onMapCreated,
-      // this is the style of the map
+      // this is the styles of the map
+      // static realistic view
       styleUri: mp.MapboxStyles.SATELLITE_STREETS,
+      //// dynamic 3D view
+      // styleUri: mp.MapboxStyles.STANDARD,
       onStyleLoadedListener: (styleLoadedEventData) {
         _onStyleLoadedListener(context: context, event: styleLoadedEventData);
       },
     );
   }
 
-  // newly added, not yet tested, I don't know what this is yet
+  // (newly added), not yet fully tested,
   _onStyleLoadedListener({
     required BuildContext context,
     required mp.StyleLoadedEventData? event,
   }) async {
+    // this works with MapboxStyles.STANDARD as it is dynamic (does not work with SATELLITE_STREETS)
     mapboxMapController!.style.setStyleImportConfigProperty(
       "basemap",
       "lightPreset",
@@ -380,6 +384,16 @@ class _MapBodyState extends State<MapBody> {
                   ),
                 ),
               ),
+
+              // (deletable) this is just for testing purposes only
+              // mp.CameraOptions(
+              //   center: mp.Point(
+              //     coordinates: mp.Position(-74.0445, 40.6892),
+              //   ), // Statue of Liberty
+              //   zoom: 16.0,
+              //   pitch:
+              //       45.0, // Tilting the camera makes 3D landmarks much easier to see
+              // ),
             );
 
             // load image as the marker
