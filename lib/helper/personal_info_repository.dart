@@ -44,17 +44,55 @@ class MyPersonalInfoRepository {
     });
   }
 
-  // returns all the records there is in PersonalInfo collection in database (FirebaseFirestore)
-  static Future<List<PersonalInfo>> getAllPersonalInfoRecords() async {
-    try {
-      QuerySnapshot querySnapshot = await _personalInfoCollectionReference
-          // .where("userType", isEqualTo: "Patient")
-          .get();
-      List<PersonalInfo> patients = querySnapshot.docs.map((doc) {
-        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        return PersonalInfo.fromFirestore(doc.id, data);
-      }).toList();
+  // original before the revamp, if this is deleted, it means the revamp work successfully
+  // // returns all the records there is in PersonalInfo collection in database (FirebaseFirestore)
+  // static Future<List<PersonalInfo>> getAllPersonalInfoRecords() async {
+  //   try {
+  //     QuerySnapshot querySnapshot = await _personalInfoCollectionReference
+  //         // .where("userType", isEqualTo: "Patient")
+  //         .get();
+  //     List<PersonalInfo> patients = querySnapshot.docs.map((doc) {
+  //       Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+  //       return PersonalInfo.fromFirestore(doc.id, data);
+  //     }).toList();
 
+  //     // // to cache personal innfo records, for the purpose of getPatientIdAandName()
+  //     // _personalInfoRecords = patients;
+
+  //     print('✅🔍 Successfully fetched ${patients.length} patients');
+  //     return patients;
+  //   } catch (e) {
+  //     print("🔍 $e");
+  //     throw Exception();
+  //   }
+  // }
+  /// Returns all the records there is in PersonalInfo collection in database (FirebaseFirestore)
+  //  newly revamped
+  static Future<List<PersonalInfo>> getAllPersonalInfoRecords({
+    String? fieldName,
+    String? valueToLookFor,
+  }) async {
+    try {
+      late QuerySnapshot querySnapshot;
+      late List<PersonalInfo> patients;
+
+      if (fieldName == null && valueToLookFor == null) {
+        querySnapshot = await _personalInfoCollectionReference
+            // .where("userType", isEqualTo: "Patient")
+            .get();
+        patients = querySnapshot.docs.map((doc) {
+          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+          return PersonalInfo.fromFirestore(doc.id, data);
+        }).toList();
+      } else {
+        querySnapshot = await _personalInfoCollectionReference
+            .where(fieldName!, isEqualTo: valueToLookFor)
+            .get();
+        patients = querySnapshot.docs.map((doc) {
+          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+          return PersonalInfo.fromFirestore(doc.id, data);
+        }).toList();
+      }
       // // to cache personal innfo records, for the purpose of getPatientIdAandName()
       // _personalInfoRecords = patients;
 

@@ -6,6 +6,7 @@ class MyLine extends StatelessWidget {
   final double thickness;
   final Color color;
   final bool isRounded;
+  final double margin;
   const MyLine({
     super.key,
     this.isVertical = true,
@@ -13,6 +14,7 @@ class MyLine extends StatelessWidget {
     this.thickness = 1,
     this.color = Colors.black26,
     this.isRounded = false,
+    this.margin = 5,
   });
 
   @override
@@ -25,7 +27,7 @@ class MyLine extends StatelessWidget {
           color: color,
           borderRadius: isRounded ? BorderRadius.circular(10) : null,
         ),
-        margin: EdgeInsets.symmetric(horizontal: 5),
+        margin: EdgeInsets.symmetric(horizontal: margin),
       );
     } else {
       return Container(
@@ -35,7 +37,7 @@ class MyLine extends StatelessWidget {
           color: color,
           borderRadius: isRounded ? BorderRadius.circular(10) : null,
         ),
-        margin: EdgeInsets.symmetric(vertical: 5),
+        margin: EdgeInsets.symmetric(vertical: margin),
       );
     }
   }

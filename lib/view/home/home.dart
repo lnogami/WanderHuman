@@ -46,7 +46,7 @@ class _HomePageState extends State<HomePage> {
             ),
             Positioned(top: 20, child: HomeAppBar()),
             Positioned(
-              top: MyDimensionAdapter.getHeight(context) * 0.2,
+              top: MyDimensionAdapter.getHeight(context) * 0.18,
               right: 18,
               child: HomePatientListDropDown(),
             ),
