@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:wanderhuman_app/helper/history_reposity.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
@@ -26,17 +25,20 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
   bool isExpanded = false;
   // this will contain the mapbox controller reference
   late MapboxMap _mapControllerRef;
-  // not yet implemented
-  // // this will contain the History og patients
-  // // NOTE: History is just temporary, this must be change to Realtime Location if okay na ang device
-  // List patientsLocation = [];
-  // Future<void> getPatientsLocation() async{
-
-  //   // MyHistoryReposity
-  // }
+  // (not yet implemented)
+  // this will contain the History og patients
+  // NOTE: History is just temporary, this must be change to Realtime Location if okay na ang device
+  List patientsLocation = [];
+  Future<void> getPatientsLocation() async {
+    // TODO: add the Realtime Location collection here
+    // MyHistoryReposity
+  }
 
   // will return all the patients in the PersonalInfo in the database (PersonalInfo)
   Future<List<PersonalInfo>> getPatientList() async {
+    // this is called in here to also fetch Realtime Location callction while getting the patient list
+    getPatientsLocation();
+
     List<PersonalInfo> patientList =
         await MyPersonalInfoRepository.getAllPersonalInfoRecords(
           fieldName: "userType",
@@ -111,7 +113,7 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
                     ? MyDimensionAdapter.getHeight(context) * 0.65
                     : 0,
                 decoration: BoxDecoration(
-                  // color: Colors.white30,
+                  color: Colors.white30,
                   borderRadius: BorderRadius.all(Radius.circular(7)),
                 ),
                 alignment: AlignmentGeometry.topCenter,

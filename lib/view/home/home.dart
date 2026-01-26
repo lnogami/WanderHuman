@@ -35,6 +35,7 @@ class _HomePageState extends State<HomePage> {
         child: Stack(
           alignment: Alignment.topCenter,
           children: [
+            // Map body
             Positioned(
               // child: Container()
               child: SizedBox(
@@ -44,12 +45,14 @@ class _HomePageState extends State<HomePage> {
                 // child: MyMapBody(),
               ),
             ),
-            Positioned(top: 20, child: HomeAppBar()),
+            // Dropdown
             Positioned(
               top: MyDimensionAdapter.getHeight(context) * 0.18,
               right: 18,
               child: HomePatientListDropDown(),
             ),
+            // Appbar
+            Positioned(top: 20, child: HomeAppBar()),
           ],
         ),
       ),

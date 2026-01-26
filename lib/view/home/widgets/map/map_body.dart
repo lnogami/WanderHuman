@@ -7,8 +7,10 @@ import 'package:geolocator/geolocator.dart' as gl;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mp;
 import 'package:provider/provider.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
+import 'package:wanderhuman_app/model/history_model.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/view-model/my_mapbox_ref_provider.dart';
+import 'package:wanderhuman_app/view/components/image_picker.dart';
 import 'package:wanderhuman_app/view/components/info_dialogue.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/home/home.dart';
@@ -193,17 +195,13 @@ class _MapBodyState extends State<MapBody> {
   /// The first Map is for ?, and the second Map is for ?
   Map<String, Map<String, dynamic>> annotationData = {};
 
-  /// Listen to Firestore collection "users" in real-time
+  /// Listen to Firestore collection in real-time
   void listenToPatients() async {
     // History is just a placeholder,    "RealTime" is the collection here.
     FirebaseFirestore.instance.collection("History").snapshots().listen((
       snapshot,
     ) async {
       try {
-        // to get user name, I must first retrieve all the records in PersonalInfo
-        List<PersonalInfo> personsList =
-            await MyPersonalInfoRepository.getAllPersonalInfoRecords();
-
         // showMyAnimatedSnackBar(
         //   context: context,
         //   dataToDisplay: personsList.length.toString(),
@@ -211,38 +209,80 @@ class _MapBodyState extends State<MapBody> {
 
         int n = 0; // (deletable) for debugging purposes only
 
+        // // iterate every document in History collection
+        // for (var doc in snapshot.docs) {
+        //   var data = doc.data();
+        //   n++;
+
+        //   // Extract coordinates   // naka list man gud ni maong ingani [""][0]   naka List ni sya pag save sa firestore kay Position object man gud ang gisend, naconvert sya into array pag abot sa firestore
+        //   double lng = data["currentLocation"][0] ?? "NULL lng";
+        //   double lat = data["currentLocation"][1] ?? "NULL lat";
+
+        //   // to get user name
+        //   String name = MyPersonalInfoRepository.getSpecificUserName(
+        //     personsList: personsList,
+        //     userIDToLookFor: data["patientID"],
+        //   );
+
+        //   // to get personal info based on patient's ID
+        //   PersonalInfo personalInfo =
+        //       await MyPersonalInfoRepository.getSpecificPersonalInfo(
+        //         userID: data["patientID"],
+        //       );
+
+        //   // Store the data associated with this document
+        //   annotationData[doc.id] = {
+        //     'name': name,
+        //     'patientID': data["patientID"],
+        //     'number': n, //for debugging purposes only, might delete later on
+        //     'lng': lng,
+        //     'lat': lat,
+        //     'currentlyIn': data["currentlyIn"],
+        //     'isInSafeZone': data["isInSafeZone"],
+        //     'timeStamp': data["timeStamp"],
+        //     'deviceBatteryPercentage': data["deviceBatteryPercentage"],
+        //     //
+        //     'age': personalInfo.age,
+        //     'sex': personalInfo.sex,
+        //     'contactInfo': personalInfo.contactNumber,
+        //     'address': personalInfo.address,
+        //     'notableBehavior': personalInfo.notableBehavior,
+        //   };
+
+        // newer version of the code above this line
         // iterate every document in History collection
         for (var doc in snapshot.docs) {
           var data = doc.data();
+          // I just converted the data into an object so that it is readable for me
+          HistoryModel historyModel = HistoryModel.fromFirestore(data);
           n++;
 
-          // Extract coordinates   // naka list man gud ni maong ingani [""][0]   naka List ni sya pag save sa firestore kay Position object man gud ang gisend, naconvert sya into array pag abot sa firestore
-          double lng = data["currentLocation"][0] ?? "NULL lng";
-          double lat = data["currentLocation"][1] ?? "NULL lat";
-
-          // to get user name
-          String name = MyPersonalInfoRepository.getSpecificUserName(
-            personsList: personsList,
-            userIDToLookFor: data["patientID"],
-          );
+          // // Extract coordinates   // naka list man gud ni maong ingani [""][0]   naka List ni sya pag save sa firestore kay Position object man gud ang gisend, naconvert sya into array pag abot sa firestore
+          // double lng = data["currentLocation"][0] ?? "NULL lng";
+          // double lat = data["currentLocation"][1] ?? "NULL lat";
+          // (to be used when the current data in the database is replaced with updated ones)
+          double lng = double.parse(historyModel.currentLocationLng);
+          double lat = double.parse(historyModel.currentLocationLat);
 
           // to get personal info based on patient's ID
           PersonalInfo personalInfo =
               await MyPersonalInfoRepository.getSpecificPersonalInfo(
-                userID: data["patientID"],
+                userID: historyModel.patientID,
               );
+          String name = personalInfo.name;
 
           // Store the data associated with this document
           annotationData[doc.id] = {
             'name': name,
-            'patientID': data["patientID"],
+            'patientID': historyModel.patientID,
             'number': n, //for debugging purposes only, might delete later on
             'lng': lng,
             'lat': lat,
-            'currentlyIn': data["currentlyIn"],
-            'isInSafeZone': data["isInSafeZone"],
-            'timeStamp': data["timeStamp"],
-            'deviceBatteryPercentage': data["deviceBatteryPercentage"],
+            'currentlyIn': historyModel.currentlyIn,
+            'isInSafeZone': historyModel.isInSafeZone,
+            'timeStamp': historyModel.timeStamp,
+            'deviceBatteryPercentage': historyModel.deviceBatteryPercentage
+                .toString(),
             //
             'age': personalInfo.age,
             'sex': personalInfo.sex,
@@ -259,26 +299,39 @@ class _MapBodyState extends State<MapBody> {
           //   );
           // }
 
+          // // load image as the marker (temporary)
+          // final Uint8List imageData = await imageToIconLoader(
+          //   // "assets/icons/isagi.jpg",
+          //   "assets/icons/pin.png",
+          // );
+          // load image as the marker (temporary)
+          final Uint8List patientIcon =
+              MyImageProcessor.decodeStringToUint8List(personalInfo.picture);
+
           // If the user already has an annotation, update its position
           if (userAnnotations.containsKey(doc.id)) {
             // remove old annotation
             pointAnnotationManager?.delete(userAnnotations[doc.id]!);
             // create new annotation at the updated location
             var newAnnotation = await pointAnnotationManager?.create(
-              myPointAnnotationOptions(
+              await myPointAnnotationOptions(
                 name: name,
                 myPosition: mp.Position(lng, lat),
+                imageData: patientIcon,
               ),
             );
+            // then add a new annotation to the map
             userAnnotations[doc.id] = newAnnotation!;
           } else {
             // create new annation
             var newAnnotation = await pointAnnotationManager?.create(
-              myPointAnnotationOptions(
+              await myPointAnnotationOptions(
                 name: name,
                 myPosition: mp.Position(lng, lat),
+                imageData: patientIcon,
               ),
             );
+            // then add the new annotation to the map
             userAnnotations[doc.id] = newAnnotation!;
           }
 
@@ -318,9 +371,10 @@ class _MapBodyState extends State<MapBody> {
             },
           );
         }
-      } catch (e) {
+      } catch (e, stackTrace) {
         // showMyAnimatedSnackBar(context: context, dataToDisplay: e.toString());
         print("ERROR ON LISTENTOPATIENTS METHOD: ${e.toString()}");
+        print("ERROR ONNNNNNNNNNNNNNNNNNNNNNNN: $stackTrace");
       }
     });
   }
@@ -414,8 +468,7 @@ class _MapBodyState extends State<MapBody> {
               "assets/icons/pin.png",
             );
 
-            /* 
-            NOTE: this was transferred to a separate file
+            /* NOTE: this was transferred to a separate file
             ///// final Uint8List imageData = await converter();
             // define markers
             // mp.PointAnnotationOptions
@@ -446,7 +499,7 @@ class _MapBodyState extends State<MapBody> {
             */
 
             mp.PointAnnotationOptions pointAnnotationOptions =
-                myPointAnnotationOptions(
+                await myPointAnnotationOptions(
                   imageData: imageData,
                   name: "Hori Zontal",
                   textSize: 12.5,

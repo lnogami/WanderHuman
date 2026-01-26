@@ -18,6 +18,7 @@ dependencies:
   flutter_login: ^5.1.0
   geolocator: ^14.0.2
   # lottie: ^3.3.1
+  image: ^4.7.2
   image_picker: ^1.2.1
   intl: ^0.20.2
   mapbox_maps_flutter: ^2.10.0

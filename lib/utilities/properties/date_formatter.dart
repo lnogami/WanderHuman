@@ -19,6 +19,7 @@ class MyDateFormatter {
   ///#### [5] 12/17/25 12:00 AM
   ///#### [6] Dec 17, 2025 12:00 AM
   ///#### [7] Provide your own format options
+  ///#### [8] Default DateTime format (like a DateTime.now().toString() format result)
   /// Note: If you chose `7` as your formatOptions, provide `customeFormat` <br>
   /// ex. `MMM` -> (Dec), `d` -> (17), `y` -> (2025), `EEE` -> (Mon), `hh` -? hour, `mm` -> minute, `a` -> AM/PM)
   static String formatDate({
@@ -44,6 +45,8 @@ class MyDateFormatter {
           return DateFormat('MMM d, y hh:mm a').format(dateTime);
         case 7:
           return DateFormat(customedFormat).format(dateTime);
+        case 8:
+          return DateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS").format(dateTime);
         default:
           return DateFormat('MMM d, y').format(dateTime);
       }
@@ -59,6 +62,8 @@ class MyDateFormatter {
     // if it is a real Timestamp, convert it directly to DateTime
     // SCENARIO 1: It is a Timestamp
     if (dateTimeToParse is Timestamp) {
+      print("TIMESTAMP EXECUTEDDDDDDDDDDDDDDDDDDDDDDDDDDDD");
+      print("DATETIME format: ${DateTime.now().toString()}");
       return dateTimeToParse.toDate();
     }
     // if it is a String representation of a Timestamp, convert it to DateTime

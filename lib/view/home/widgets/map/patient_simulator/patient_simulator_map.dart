@@ -36,6 +36,9 @@ class _PatientSimulatorState extends State<PatientSimulator> {
   // for triggering the save
   DateTime? lastSaveTime;
 
+  // Store reference to current annotation
+  mp.PointAnnotation? currentAnnotation;
+
   @override
   void initState() {
     super.initState();
@@ -270,7 +273,7 @@ class _PatientSimulatorState extends State<PatientSimulator> {
             */
 
             mp.PointAnnotationOptions pointAnnotationOptions =
-                myPointAnnotationOptions(
+                await myPointAnnotationOptions(
                   imageData: imageData,
                   name: "Hori Zontal",
                   textSize: 12.5,
@@ -282,8 +285,18 @@ class _PatientSimulatorState extends State<PatientSimulator> {
                   ),
                 );
 
+            // Remove the old annotation before adding a new one
+            if (currentAnnotation != null) {
+              pointAnnotationManager?.delete(currentAnnotation!);
+            }
+
             // add the marker to the map
-            pointAnnotationManager?.create(pointAnnotationOptions);
+            final newAnnotation = await pointAnnotationManager?.create(
+              pointAnnotationOptions,
+            );
+            if (newAnnotation != null) {
+              currentAnnotation = newAnnotation;
+            }
             // pointAnnotationManager?.createMulti(List<mp.PointAnnotation>);
 
             // setting tap events to the marker

@@ -36,6 +36,24 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
   TextEditingController notableBehaviorController = TextEditingController();
   TextEditingController assignedCaregiverController = TextEditingController();
 
+  // // newly added
+  // String assignedCaregiverName = "";
+  // String assignedCaregiverID = "";
+  // Future<void> getAssignedCaregiverName() async {
+  //   try {
+  //     MyPersonalInfoRepository.getSpecificPersonalInfo(
+  //       userID: assignedCaregiverController.text,
+  //     ).then((personalInfo) {
+  //       setState(() {
+  //         assignedCaregiverName = personalInfo.name;
+  //       });
+  //     });
+  //   } catch (e) {
+  //     print("Error on getAssignedCaregiverName: $e");
+  //     rethrow;
+  //   }
+  // }
+
   ScrollController scrollController = ScrollController();
 
   String pictureValue = "";
@@ -289,12 +307,12 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
               isReadOnly: otherInfoIsReadOnly,
               prefixIcon: Icons.contact_mail_outlined,
             ),
-            informationRow(
-              labelText: "Assigned Caregiver",
-              textController: assignedCaregiverController,
-              isReadOnly: otherInfoIsReadOnly,
-              prefixIcon: Icons.assignment_ind_outlined,
-            ),
+            // informationRow(
+            //   labelText: "Assigned Caregiver",
+            //   textController: assignedCaregiverController,
+            //   isReadOnly: otherInfoIsReadOnly,
+            //   prefixIcon: Icons.assignment_ind_outlined,
+            // ),
             informationRow(
               labelText: "Registed On",
               textController: TextEditingController()
@@ -632,8 +650,8 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
                   showMyAnimatedSnackBar(
                     // ignore: use_build_context_synchronously
                     context: context,
-                    borderColor: Colors.blue.shade300,
-                    bgColor: Colors.blue.shade100,
+                    borderColor: Colors.white,
+                    bgColor: Colors.white60,
                     dataToDisplay: "Completed!",
                   );
                   // ignore: use_build_context_synchronously
