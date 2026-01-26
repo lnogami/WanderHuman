@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:provider/provider.dart';
+import 'package:wanderhuman_app/helper/history_reposity.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
+import 'package:wanderhuman_app/view-model/my_mapbox_ref_provider.dart';
 import 'package:wanderhuman_app/view/components/image_displayer.dart';
 import 'package:wanderhuman_app/view/components/image_picker.dart';
 import 'package:wanderhuman_app/view/components/lines.dart';
 import 'package:wanderhuman_app/view/components/tooltip.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/map_functions/fly_to.dart';
 
 class HomePatientListDropDown extends StatefulWidget {
   const HomePatientListDropDown({super.key});
@@ -19,6 +24,16 @@ class HomePatientListDropDown extends StatefulWidget {
 class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
   //is
   bool isExpanded = false;
+  // this will contain the mapbox controller reference
+  late MapboxMap _mapControllerRef;
+  // not yet implemented
+  // // this will contain the History og patients
+  // // NOTE: History is just temporary, this must be change to Realtime Location if okay na ang device
+  // List patientsLocation = [];
+  // Future<void> getPatientsLocation() async{
+
+  //   // MyHistoryReposity
+  // }
 
   // will return all the patients in the PersonalInfo in the database (PersonalInfo)
   Future<List<PersonalInfo>> getPatientList() async {
@@ -35,7 +50,20 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
   }
 
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // first store the value of the provider in a variable
+    final mapboxProvider = context.watch<MyMapboxRefProvider>();
+    // this condition will prevent a few second error
+    if (mapboxProvider.getMapboxMapController != null) {
+      // then, call the getter to assign it to the mapbox controller reference
+      _mapControllerRef = mapboxProvider.getMapboxMapController!;
+    }
+
     return MyCustTooltip(
       message: "Tap to exapand/collapse patient list",
       child: GestureDetector(
@@ -48,15 +76,26 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
         child: Container(
           width: MyDimensionAdapter.getWidth(context) * 0.12,
           decoration: BoxDecoration(
-            color: (isExpanded) ? Colors.white70 : Colors.white54,
+            color: (isExpanded) ? Colors.white60 : Colors.white54,
             borderRadius: BorderRadius.all(Radius.circular(7)),
           ),
           child: Column(
             children: [
               // Dropdown Icon
               (isExpanded)
-                  ? Icon(Icons.keyboard_arrow_up_rounded, size: 24)
-                  : Icon(Icons.keyboard_arrow_down_rounded, size: 24),
+                  // ? Icon(Icons.keyboard_arrow_up_rounded, size: 24)
+                  // : Icon(Icons.keyboard_arrow_down_rounded, size: 24),
+                  ? Icon(
+                      Icons.search_rounded,
+                      size: 24,
+                      color: Colors.blue.shade600,
+                      // shadows: [Shadow(color: Colors.black12, blurRadius: 4)],
+                    )
+                  : Icon(
+                      Icons.search_rounded,
+                      size: 24,
+                      color: Colors.grey.shade700,
+                    ),
               // Horizontal Line
               if (isExpanded)
                 MyLine(
@@ -72,7 +111,7 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
                     ? MyDimensionAdapter.getHeight(context) * 0.65
                     : 0,
                 decoration: BoxDecoration(
-                  color: Colors.white30,
+                  // color: Colors.white30,
                   borderRadius: BorderRadius.all(Radius.circular(7)),
                 ),
                 alignment: AlignmentGeometry.topCenter,
@@ -115,9 +154,15 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
     if (firstName.length > 6) firstName = firstName.substring(0, 10);
 
     return GestureDetector(
-      onTap: () {},
+      onTap: () {
+        myMapFlyTo(
+          mapboxController: _mapControllerRef,
+          position: Position(125.7989268, 7.4233187),
+          patientID: personalInfo.userID,
+        );
+      },
       child: Container(
-        padding: EdgeInsets.fromLTRB(2, 5, 2, 0),
+        padding: EdgeInsets.fromLTRB(2, 7, 2, 0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -132,7 +177,11 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
                 ),
               ),
             ),
-            MyTextFormatter.p(text: firstName, fontsize: kDefaultFontSize - 4),
+            MyTextFormatter.p(
+              text: firstName,
+              fontsize: kDefaultFontSize - 4,
+              fontWeight: FontWeight.w500,
+            ),
           ],
         ),
       ),

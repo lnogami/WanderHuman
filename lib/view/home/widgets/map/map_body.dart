@@ -5,8 +5,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart' as gl;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mp;
+import 'package:provider/provider.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
+import 'package:wanderhuman_app/view-model/my_mapbox_ref_provider.dart';
 import 'package:wanderhuman_app/view/components/info_dialogue.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/home/home.dart';
@@ -101,7 +103,7 @@ class _MapBodyState extends State<MapBody> {
     required BuildContext context,
     required mp.StyleLoadedEventData? event,
   }) async {
-    // this works with MapboxStyles.STANDARD as it is dynamic (does not work with SATELLITE_STREETS)
+    // this works with MapboxStyles.STANDARD as it is dynamic (NOTE: this does not work with SATELLITE_STREETS)
     mapboxMapController!.style.setStyleImportConfigProperty(
       "basemap",
       "lightPreset",
@@ -116,10 +118,20 @@ class _MapBodyState extends State<MapBody> {
 
   /// this is the entry point of mapbox's map
   void _onMapCreated(mp.MapboxMap controller) async {
+    // setState is not really necessary here because this method is immediately called when this Widget is being built (its like in initState)
     setState(() {
       mapboxMapController = controller;
     });
 
+    // using addPostFrameCallback ensures it doesn't conflict with the build cycle
+    // it will wait until the current fram finishes rendering
+    // though its not really neccessary here (just like the setState above)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // store the controller globally (State Management) to make it accessible anywhere
+      context.read<MyMapboxRefProvider>().setMapboxMapController(controller);
+    });
+
+    // manages point annotations
     pointAnnotationManager = await mapboxMapController?.annotations
         .createPointAnnotationManager();
 

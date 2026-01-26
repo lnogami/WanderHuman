@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
-import 'package:wanderhuman_app/view/home/widgets/cust_dropdown_patient_list.dart';
+import 'package:wanderhuman_app/view/home/widgets/home_patient_list_dropdown.dart';
 import 'package:wanderhuman_app/view/home_appbar/home_appbar.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_body.dart';
 
