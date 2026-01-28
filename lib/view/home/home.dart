@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
+import 'package:wanderhuman_app/view/home/widgets/home_emergency_contacts.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_patient_list_dropdown.dart';
 import 'package:wanderhuman_app/view/home_appbar/home_appbar.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_body.dart';
@@ -45,12 +46,22 @@ class _HomePageState extends State<HomePage> {
                 // child: MyMapBody(),
               ),
             ),
+
+            // Emergency Contacts
+            Positioned(
+              top: MyDimensionAdapter.getHeight(context) * 0.12,
+              left: 18,
+              child: MyHomeEmergencyContactsList(),
+            ),
+
             // Dropdown
             Positioned(
-              top: MyDimensionAdapter.getHeight(context) * 0.18,
+              // top: MyDimensionAdapter.getHeight(context) * 0.18,
+              top: MyDimensionAdapter.getHeight(context) * 0.12,
               right: 18,
               child: HomePatientListDropDown(),
             ),
+
             // Appbar
             Positioned(top: 20, child: HomeAppBar()),
           ],

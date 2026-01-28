@@ -78,7 +78,7 @@ class MyRealtimeLocationReposity {
         .where("patientID", isEqualTo: patientID)
         .get();
 
-    // because QuerySnapshot returns a DocumentSnapshot, call .data() to get a generic Object and convert it to Map to use it accordinglyhe Map
+    // because QuerySnapshot returns a DocumentSnapshot, call .data() to get a generic Object and convert it to Map to use it accordingly
     final data = querySnapshot.docs.first.data() as Map<String, dynamic>;
 
     // finally, return the data as a RealtimeLocationModel object

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/components/option_container.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/patient_simulator/patient_simulator_container.dart';

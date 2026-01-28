@@ -180,7 +180,8 @@ class _MapBodyState extends State<MapBody> {
 
     // the compass icon in the map that only appears if the map is tilted
     mapboxMapController!.compass.updateSettings(
-      mp.CompassSettings(marginTop: 80, marginRight: 15, opacity: 0.70),
+      // mp.CompassSettings(marginTop: 80, marginRight: 15, opacity: 0.70),
+      mp.CompassSettings(marginTop: 90, marginRight: 70, opacity: 0.60),
     );
 
     //// original code of the new method getLocationServiceStatus()
@@ -462,12 +463,6 @@ class _MapBodyState extends State<MapBody> {
               // ),
             );
 
-            // load image as the marker
-            final Uint8List imageData = await imageToIconLoader(
-              // "assets/icons/isagi.jpg",
-              "assets/icons/pin.png",
-            );
-
             /* NOTE: this was transferred to a separate file
             ///// final Uint8List imageData = await converter();
             // define markers
@@ -498,21 +493,27 @@ class _MapBodyState extends State<MapBody> {
             // );
             */
 
-            mp.PointAnnotationOptions pointAnnotationOptions =
-                await myPointAnnotationOptions(
-                  imageData: imageData,
-                  name: "Hori Zontal",
-                  textSize: 12.5,
-                  myPosition: mp.Position(
-                    // THIS IS THE PATIENTS CURRENT COORDINATES
-                    // temporary coordinates
-                    myPosition!.longitude,
-                    myPosition!.latitude,
-                  ),
-                );
+            // temprary commented out sa ni
+            // load image as the marker
+            // final Uint8List imageData = await imageToIconLoader(
+            //   // "assets/icons/isagi.jpg",
+            //   "assets/icons/pin.png",
+            // );
+            // mp.PointAnnotationOptions pointAnnotationOptions =
+            //     await myPointAnnotationOptions(
+            //       imageData: imageData,
+            //       name: "Hori Zontal",
+            //       textSize: 12.5,
+            //       myPosition: mp.Position(
+            //         // THIS IS THE PATIENTS CURRENT COORDINATES
+            //         // temporary coordinates
+            //         myPosition!.longitude,
+            //         myPosition!.latitude,
+            //       ),
+            //     );
+            // // add the marker to the map
+            // pointAnnotationManager?.create(pointAnnotationOptions);
 
-            // add the marker to the map
-            pointAnnotationManager?.create(pointAnnotationOptions);
             // pointAnnotationManager?.createMulti(List<mp.PointAnnotation>);
 
             // // this was move to listenToPatients method
