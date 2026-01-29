@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
-import 'package:wanderhuman_app/view/home/widgets/home_emergency_contacts.dart';
+import 'package:wanderhuman_app/view/home/widgets/home_emergency_contacts_button.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_patient_list_dropdown.dart';
 import 'package:wanderhuman_app/view/home_appbar/home_appbar.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_body.dart';
@@ -51,7 +51,7 @@ class _HomePageState extends State<HomePage> {
             Positioned(
               top: MyDimensionAdapter.getHeight(context) * 0.12,
               left: 18,
-              child: MyHomeEmergencyContactsList(),
+              child: MyHomeEmergencyContactsButton(),
             ),
 
             // Dropdown

@@ -7,6 +7,7 @@ class MyCustTooltip extends StatelessWidget {
   final double heightConstraints;
   final double widthPercentage;
   final int duration;
+  final TooltipTriggerMode triggerMode;
 
   ///##### A custom tooltip widget with predefined styling. This widget helps the user know what a component does by showing [message] information/help about a certain component/widget.
   const MyCustTooltip({
@@ -16,11 +17,13 @@ class MyCustTooltip extends StatelessWidget {
     this.duration = 1500,
     this.widthPercentage = 0.9,
     this.heightConstraints = 50,
+    this.triggerMode = TooltipTriggerMode.longPress,
   });
 
   @override
   Widget build(BuildContext context) {
     return Tooltip(
+      triggerMode: triggerMode,
       message: message,
       showDuration: Duration(milliseconds: duration),
       constraints: BoxConstraints.expand(
