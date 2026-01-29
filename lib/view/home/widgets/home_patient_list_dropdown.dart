@@ -152,8 +152,14 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
   GestureDetector individualPatientIcon({required PersonalInfo personalInfo}) {
     // only get the first name from the full name
     String firstName = personalInfo.name.split(" ")[0];
-    // if first name is too long, only get the 6 characters
-    if (firstName.length > 6) firstName = firstName.substring(0, 10);
+    if (firstName.length > 6 && firstName.length <= 10) {
+      firstName = firstName.substring(0, 7);
+    } else if (firstName.length > 10) {
+      firstName = firstName.substring(0, 8);
+    }
+    // else if (firstName.length > 8) {
+    //   firstName = firstName.substring(0, 8);
+    // }
 
     return GestureDetector(
       onTap: () {

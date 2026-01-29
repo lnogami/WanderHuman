@@ -59,6 +59,9 @@ class _MedicationState extends State<Medication> {
   // for User Experience enhancer
   IconData icon = Icons.person_outline_rounded;
 
+  // timer
+  Timer? timer;
+
   // database connector call
   Future<List<PersonalInfo>> getPatient() async {
     List<PersonalInfo> patients = [];
@@ -152,6 +155,31 @@ class _MedicationState extends State<Medication> {
       diagnosisController.addListener(_checkForChanges);
       treatmentController.addListener(_checkForChanges);
     }
+
+    // Initialize timer only once when widget is created
+    _initializeTimer();
+  }
+
+  void _initializeTimer() {
+    int seconds = 5;
+    timer = Timer.periodic(Duration(seconds: seconds), (timer) {
+      if (MyDateFormatter.formatDate(
+            dateTimeInString: dateTime,
+            formatOptions: 6,
+          ) !=
+          MyDateFormatter.formatDate(
+            dateTimeInString: DateTime.now(),
+            formatOptions: 6,
+          )) {
+        if (mounted) {
+          setState(() {
+            seconds = 60;
+            dateTime = DateTime.now().toString();
+          });
+        }
+        print("Timeeeeeeee: $dateTime");
+      }
+    });
   }
 
   @override
@@ -159,8 +187,11 @@ class _MedicationState extends State<Medication> {
     super.dispose();
     diagnosisController.dispose();
     treatmentController.dispose();
+    diagnosisController.removeListener(_checkForChanges);
+    treatmentController.removeListener(_checkForChanges);
     patientsNames.clear();
     selectedNameValue = "";
+    timer?.cancel();
   }
 
   @override
@@ -572,25 +603,6 @@ class _MedicationState extends State<Medication> {
   }
 
   Container dateTimeTimer() {
-    int seconds = 5;
-    Timer.periodic(Duration(seconds: seconds), (timer) {
-      if (MyDateFormatter.formatDate(
-            dateTimeInString: dateTime,
-            formatOptions: 6,
-          ) !=
-          MyDateFormatter.formatDate(
-            dateTimeInString: DateTime.now(),
-            formatOptions: 6,
-          )) {
-        if (mounted) {
-          setState(() {
-            seconds = 60;
-            dateTime = DateTime.now().toString();
-          });
-        }
-        print("Timeeeeeeee: $dateTime");
-      }
-    });
     return Container(
       width: MyDimensionAdapter.getWidth(context) * 0.85,
       margin: EdgeInsets.only(bottom: 30),
@@ -770,7 +782,7 @@ class _MedicationState extends State<Medication> {
                               medic:
                                   FirebaseAuth.instance.currentUser!.uid, // NA
                               fromDate: fromDate,
-                              untilDate: untilDate,
+                              untilDate: DateTime.now().toString(),
                               isNowOkay: isNowOkay,
                               createdAt:
                                   widget.medicationModel!.createdAt, // NA

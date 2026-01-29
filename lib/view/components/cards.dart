@@ -7,6 +7,7 @@ import 'package:wanderhuman_app/view/components/image_picker.dart';
 
 class MyCardInfoDisplayer extends StatelessWidget {
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
   final String profilePicture;
   // acts as the title of the card
   final String name;
@@ -18,6 +19,7 @@ class MyCardInfoDisplayer extends StatelessWidget {
   const MyCardInfoDisplayer({
     super.key,
     this.onTap,
+    this.onLongPress,
     required this.name,
     required this.role,
     required this.contactNumber,
@@ -29,6 +31,7 @@ class MyCardInfoDisplayer extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap ?? () {},
+      onLongPress: onLongPress ?? () {},
       child: Container(
         width: MyDimensionAdapter.getWidth(context) * 0.85,
         height: MyDimensionAdapter.getHeight(context) * 0.145,

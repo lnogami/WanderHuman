@@ -85,4 +85,13 @@ class MyMedicalRepository {
       throw Exception();
     }
   }
+
+  static Future<void> deleteRecord({required String recordID}) async {
+    try {
+      await _medicalCollectionReference.doc(recordID).delete();
+    } catch (e) {
+      print("ERROR while Deleting Medical Recordddddd: ${e.toString()}");
+      throw Exception();
+    }
+  }
 }

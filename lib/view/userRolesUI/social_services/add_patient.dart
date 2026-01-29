@@ -14,9 +14,12 @@ import 'package:wanderhuman_app/view/components/date_picker.dart';
 import 'package:wanderhuman_app/view/components/image_displayer.dart';
 import 'package:wanderhuman_app/view/components/image_picker.dart';
 import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
+import 'package:wanderhuman_app/view/components/page_navigator.dart';
+import 'package:wanderhuman_app/view/userRolesUI/social_services/manage_patient.dart';
 
 class AddPatientForm extends StatefulWidget {
-  const AddPatientForm({super.key});
+  final bool isFromManagePatientPage;
+  const AddPatientForm({super.key, this.isFromManagePatientPage = false});
 
   @override
   State<AddPatientForm> createState() => _AddPatientFormState();
@@ -32,6 +35,7 @@ class _AddPatientFormState extends State<AddPatientForm> {
 
   // FORM Value
   String nameValue = "";
+  String deviceID = "";
   String ageValue = "";
   String sexValue = "";
   String birthdateValue = "";
@@ -130,8 +134,8 @@ class _AddPatientFormState extends State<AddPatientForm> {
           SizedBox(height: 20),
           MyCustomizedTextFormField(
             bottomMargin: 0,
-            label: "Name",
-            hintText: "Enter Full Name",
+            label: "Full Name",
+            hintText: "Enter Full Name  (ex. Steven P. Jobs)",
             allowedTextInputsOptions: 2,
             keyboardType: TextInputType.name,
             validator: (value) {
@@ -140,6 +144,22 @@ class _AddPatientFormState extends State<AddPatientForm> {
               }
               setState(() {
                 nameValue = value;
+              });
+              return null;
+            },
+          ),
+          MyCustomizedTextFormField(
+            bottomMargin: 0,
+            label: "Device ID",
+            hintText: "Enter the appropriate device ID",
+            allowedTextInputsOptions: 2,
+            keyboardType: TextInputType.name,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return "Input valid device ID";
+              }
+              setState(() {
+                deviceID = value;
               });
               return null;
             },
@@ -291,9 +311,8 @@ class _AddPatientFormState extends State<AddPatientForm> {
                     birthdateValue = date.toString();
                   });
                 });
-                // setState(() {
-                //   birthdateValue = ageValue;
-                // });
+                // just to remove the focus of focused text field
+                FocusManager.instance.primaryFocus?.unfocus();
               },
             ),
           ),
@@ -378,29 +397,39 @@ class _AddPatientFormState extends State<AddPatientForm> {
                   setState(() {
                     sexValue = "male";
                   });
+                  // just to remove the focus of focused text field
+                  FocusManager.instance.primaryFocus?.unfocus();
                 },
                 child: Container(
                   width: buttonWidth,
                   height: buttonHeight,
                   decoration: BoxDecoration(
                     color: (sexValue == "male")
-                        ? Colors.blue.shade100
+                        ? Colors.blue.shade50
                         : Colors.transparent,
 
                     border: BoxBorder.all(
                       color: (sexValue == "male")
-                          ? Colors.blue.shade400
+                          ? Colors.blue.shade200
                           : MyColorPalette.borderColor,
+                      width: (sexValue == "male") ? 2 : 1,
                     ),
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(10),
                       bottomLeft: Radius.circular(10),
                     ),
                   ),
-                  child: Center(child: Text("MALE")),
+                  child: Center(
+                    child: MyTextFormatter.p(
+                      text: "MALE",
+                      fontWeight: (sexValue == "male")
+                          ? FontWeight.bold
+                          : FontWeight.w500,
+                      color: Colors.grey.shade800,
+                    ),
+                  ),
                 ),
               ),
-
               GestureDetector(
                 onTap: () {
                   setState(() {
@@ -412,21 +441,58 @@ class _AddPatientFormState extends State<AddPatientForm> {
                   height: buttonHeight,
                   decoration: BoxDecoration(
                     color: (sexValue == "female")
-                        ? Colors.blue.shade100
+                        ? Colors.blue.shade50
                         : Colors.transparent,
+
                     border: BoxBorder.all(
                       color: (sexValue == "female")
-                          ? Colors.blue.shade400
+                          ? Colors.blue.shade200
                           : MyColorPalette.borderColor,
+                      width: (sexValue == "female") ? 2 : 1,
                     ),
                     borderRadius: BorderRadius.only(
                       topRight: Radius.circular(10),
                       bottomRight: Radius.circular(10),
                     ),
                   ),
-                  child: Center(child: Text("FEMALE")),
+                  child: Center(
+                    child: MyTextFormatter.p(
+                      text: "FEMALE",
+                      fontWeight: (sexValue == "female")
+                          ? FontWeight.bold
+                          : FontWeight.w500,
+                      color: Colors.grey.shade800,
+                    ),
+                  ),
                 ),
               ),
+
+              // GestureDetector(
+              //   onTap: () {
+              //     setState(() {
+              //       sexValue = "female";
+              //     });
+              //   },
+              //   child: Container(
+              //     width: buttonWidth,
+              //     height: buttonHeight,
+              //     decoration: BoxDecoration(
+              //       color: (sexValue == "female")
+              //           ? Colors.blue.shade100
+              //           : Colors.transparent,
+              //       border: BoxBorder.all(
+              //         color: (sexValue == "female")
+              //             ? Colors.blue.shade400
+              //             : MyColorPalette.borderColor,
+              //       ),
+              //       borderRadius: BorderRadius.only(
+              //         topRight: Radius.circular(10),
+              //         bottomRight: Radius.circular(10),
+              //       ),
+              //     ),
+              //     child: Center(child: Text("FEMALE")),
+              //   ),
+              // ),
             ],
           ),
         ],
@@ -451,7 +517,7 @@ class _AddPatientFormState extends State<AddPatientForm> {
             buttonTextSpacing: 1.2,
             buttonWidth: MyDimensionAdapter.getWidth(context) * 0.40,
             onTap: () {
-              if (_formKey.currentState!.validate()) {
+              if (_formKey.currentState!.validate() && pictureValue != "") {
                 // this method accepts Patients object so maong naay Patients diri
                 MyPersonalInfoRepository.addPatient(
                   PersonalInfo(
@@ -474,28 +540,27 @@ class _AddPatientFormState extends State<AddPatientForm> {
                     registeredBy: FirebaseAuth.instance.currentUser?.uid ?? "",
                     asignedCaregiver:
                         FirebaseAuth.instance.currentUser?.uid ?? "",
-                    deviceID: "12345", // later na lang ni
+                    deviceID: deviceID,
                   ),
                 );
                 // this is just a sample display of the inputted data (deletable)
                 showMyAnimatedSnackBar(
                   context: context,
-                  dataToDisplay:
-                      """$nameValue \n 
-                      $ageValue \n 
-                      $sexValue \n 
-                      $birthdateValue \n 
-                      $contactNumberValue \n 
-                      $addressValue \n 
-                      $notableBehaviorValue \n 
-                      $pictureValue \n 
-                      $createdAtValue
-                       
-                      SUCCESSFULLY ADDED!""",
-                  //${MyFirebaseServices.getAllUserID()}
+                  dataToDisplay: "The new record was successfully added",
+                  bgColor: Colors.white,
                 );
 
                 Navigator.pop(context);
+                // this only works if this page is access from ManagePatient page
+                if (widget.isFromManagePatientPage) {
+                  Navigator.pop(context);
+                  MyNavigator.goTo(context, PatientRecords());
+                }
+              } else {
+                showMyAnimatedSnackBar(
+                  context: context,
+                  dataToDisplay: "Please fill out all the required fields.",
+                );
               }
             },
           ),

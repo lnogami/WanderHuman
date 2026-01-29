@@ -29,6 +29,7 @@ class ViewPatientForm extends StatefulWidget {
 class _AddViewPatientFormState extends State<ViewPatientForm> {
   bool otherInfoIsReadOnly = true;
   TextEditingController nameController = TextEditingController();
+  TextEditingController deviceIDController = TextEditingController();
   TextEditingController contactNumController = TextEditingController();
   TextEditingController ageController = TextEditingController();
   TextEditingController addressController = TextEditingController();
@@ -107,6 +108,7 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
 
     setState(() {
       nameController.text = widget.patientPersonalInfo.name;
+      deviceIDController.text = widget.patientPersonalInfo.deviceID;
       contactNumController.text = widget.patientPersonalInfo.contactNumber;
       ageController.text = widget.patientPersonalInfo.age;
       addressController.text = widget.patientPersonalInfo.address;
@@ -123,6 +125,7 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
   void dispose() {
     super.dispose();
     nameController.dispose();
+    deviceIDController.dispose();
     contactNumController.dispose();
     ageController.dispose();
     addressController.dispose();
@@ -137,16 +140,25 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
     return Scaffold(
       backgroundColor: MyColorPalette.formColor,
       body: SafeArea(
-        child: SingleChildScrollView(
-          scrollDirection: Axis.vertical,
-          // this is the main body of the Form
-          child: Container(
-            // padding: EdgeInsets.all(20),
-            width: MyDimensionAdapter.getWidth(context),
-            // no specified height since sulod man sya sa SingleChildScrollView
-            padding: EdgeInsets.only(bottom: 30),
-            // decoration: const BoxDecoration(color: MyColorPalette.formColor),
-            child: formSpace(context),
+        child: RawScrollbar(
+          thumbColor: Colors.blue.shade300,
+          padding: EdgeInsets.only(right: 0, top: (kDefaultFontSize * 4) + 10),
+          thumbVisibility: true,
+          trackVisibility: true,
+          interactive: false, // prevents accidental touch scrolling
+          thickness: 5,
+          radius: Radius.circular(7),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            // this is the main body of the Form
+            child: Container(
+              // padding: EdgeInsets.all(20),
+              width: MyDimensionAdapter.getWidth(context),
+              // no specified height since sulod man sya sa SingleChildScrollView
+              padding: EdgeInsets.only(bottom: 30),
+              // decoration: const BoxDecoration(color: MyColorPalette.formColor),
+              child: formSpace(context),
+            ),
           ),
         ),
       ),
@@ -250,6 +262,13 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
             informationRow(
               labelText: "Full Name",
               textController: nameController,
+              isReadOnly: otherInfoIsReadOnly,
+              prefixIcon: Icons.person_outline_rounded,
+            ),
+
+            informationRow(
+              labelText: "Device ID",
+              textController: deviceIDController,
               isReadOnly: otherInfoIsReadOnly,
               prefixIcon: Icons.person_outline_rounded,
             ),
@@ -372,11 +391,13 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
             width: MyDimensionAdapter.getWidth(context),
             height: MyDimensionAdapter.getHeight(context) * 0.45,
             color: Colors.green,
-            child: Scrollbar(
-              interactive: true,
+            child: RawScrollbar(
+              thumbColor: Colors.blue.shade300,
+              padding: EdgeInsets.only(right: 0),
               thumbVisibility: true,
               trackVisibility: true,
-              controller: scrollController,
+              thickness: 4,
+              radius: Radius.circular(7),
               child: ListView.builder(
                 controller: scrollController,
                 dragStartBehavior: DragStartBehavior.down,
@@ -627,6 +648,7 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
                       userID: widget.patientPersonalInfo.userID,
                       userType: widget.patientPersonalInfo.userType,
                       name: nameController.text, //
+                      deviceID: deviceIDController.text,
                       age: widget.patientPersonalInfo.age, //
                       sex: widget.patientPersonalInfo.sex,
                       birthdate: widget.patientPersonalInfo.birthdate,
@@ -639,7 +661,6 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
                       registeredBy:
                           "${widget.patientPersonalInfo.registeredBy} --> (Updated by) ${FirebaseAuth.instance.currentUser!.uid}",
                       asignedCaregiver: assignedCaregiverController.text,
-                      deviceID: widget.patientPersonalInfo.deviceID,
                       email: emailAddController.text,
                     ),
                   );

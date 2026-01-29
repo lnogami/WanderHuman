@@ -315,4 +315,13 @@ class MyPersonalInfoRepository {
       return false;
     }
   }
+
+  static Future<void> deletePersonalInfo({required String userID}) async {
+    try {
+      await _personalInfoCollectionReference.doc(userID).delete();
+    } catch (e) {
+      print("❌❌❌ Error deleting personal info: $e");
+      throw Exception();
+    }
+  }
 }

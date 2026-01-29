@@ -11,6 +11,7 @@ import 'package:wanderhuman_app/view/components/image_picker.dart';
 /// This widget if for other formation of Card (used for Medical role)
 class MyCardInfoDisplayer2 extends StatefulWidget {
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
   final String? profilePicture;
   // acts as the title of the card
   final String name;
@@ -25,6 +26,7 @@ class MyCardInfoDisplayer2 extends StatefulWidget {
   const MyCardInfoDisplayer2({
     super.key,
     this.onTap,
+    this.onLongPress,
     required this.name,
     required this.diagnosis,
     required this.treatment,
@@ -62,6 +64,7 @@ class _MyCardInfoDisplayer2 extends State<MyCardInfoDisplayer2> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: widget.onTap ?? () {},
+      onLongPress: widget.onLongPress ?? () {},
       child: Container(
         width: MyDimensionAdapter.getWidth(context) * 0.85,
         height: MyDimensionAdapter.getHeight(context) * 0.2,
@@ -140,7 +143,7 @@ class _MyCardInfoDisplayer2 extends State<MyCardInfoDisplayer2> {
               Row(
                 children: [
                   SizedBox(
-                    width: MyDimensionAdapter.getWidth(context) * 0.385,
+                    width: MyDimensionAdapter.getWidth(context) * 0.365,
                     // color: Colors.amber,
                     child: MyTextFormatter.h3(
                       text: widget.name,

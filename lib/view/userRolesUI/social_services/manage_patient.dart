@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
+import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
 import 'package:wanderhuman_app/view/components/appbar.dart';
 import 'package:wanderhuman_app/view/components/cards.dart';
+import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/userRolesUI/social_services/add_patient.dart';
 import 'package:wanderhuman_app/view/userRolesUI/social_services/view_patient_form.dart';
@@ -33,6 +35,7 @@ class PatientRecords extends StatelessWidget {
       body: Stack(
         alignment: Alignment.topCenter,
         children: [
+          // Body
           FutureBuilder(
             future: getPatient(),
             builder: (context, snapshot) {
@@ -57,12 +60,35 @@ class PatientRecords extends StatelessWidget {
                         contactNumber: snapshot.data![index].contactNumber,
                         emailAdd: snapshot.data![index].email,
                         onTap: () {
-                          Navigator.pop(context);
+                          // Navigator.pop(context);
                           MyNavigator.goTo(
                             context,
                             ViewPatientForm(
                               patientPersonalInfo: snapshot.data![index],
                             ),
+                          );
+                        },
+                        onLongPress: () {
+                          myAlertDialogue(
+                            context: context,
+                            alertTitle: "Confirm To Delete Record",
+                            alertContent:
+                                "\nAre you sure you want to delete ${snapshot.data![index].name}'s record?",
+                            onApprovalButtonText: "Yes, delete it",
+                            onApprovalPressed: () {
+                              MyPersonalInfoRepository.deletePersonalInfo(
+                                userID: snapshot.data![index].userID,
+                              );
+                              Navigator.pop(context);
+                              Navigator.pop(context);
+                              MyNavigator.goTo(context, PatientRecords());
+
+                              showMyAnimatedSnackBar(
+                                context: context,
+                                dataToDisplay:
+                                    "Successfully deleted ${snapshot.data![index].name}'s record.}",
+                              );
+                            },
                           );
                         },
                       );
@@ -75,6 +101,7 @@ class PatientRecords extends StatelessWidget {
             },
           ),
 
+          // Appbar
           Positioned(
             // top: kToolbarHeight * 0.7,
             child: SafeArea(
@@ -93,6 +120,7 @@ class PatientRecords extends StatelessWidget {
                         context,
                         AddPatientForm(
                           // bufferedpatientNames: await getPatient()
+                          isFromManagePatientPage: true,
                         ),
                       );
                     },
