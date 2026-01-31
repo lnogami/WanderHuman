@@ -62,6 +62,8 @@ Future<bool> savePatientLocation({
           currentLocationLat: currentPositon.lat.toString(), // place holder
           timeStamp: lastSaved.toString(), // place holder
           deviceBatteryPercentage: "100", // place holder
+          bPM: "100",
+          requestBPM: "100",
         ),
       );
       showMyAnimatedSnackBar(

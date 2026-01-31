@@ -27,7 +27,7 @@ Future<PointAnnotationOptions> myPointAnnotationOptions({
     textSize: MySizes.mapTextFieldSize,
     textColor: Colors.white.toARGB32(),
     textOcclusionOpacity: 1,
-    isDraggable: true,
+    isDraggable: false,
     textAnchor: TextAnchor.BOTTOM,
     textOffset: [0, -1.2],
     geometry: Point(coordinates: myPosition),

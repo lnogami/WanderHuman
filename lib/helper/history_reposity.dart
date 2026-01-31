@@ -89,6 +89,8 @@ class MyHistoryReposity {
         "currentlyIn": patient.currentlyIn,
         "timeStamp": patient.timeStamp,
         "deviceBatteryPercentage": patient.deviceBatteryPercentage,
+        "bPM": patient.bPM,
+        "requestBPM": patient.requestBPM,
       });
     } on FirebaseException catch (e) {
       // ignore: avoid_print
@@ -144,6 +146,8 @@ class MyHistoryReposity {
                 timeStamp: timeStamp.toString(),
                 deviceBatteryPercentage:
                     doc["deviceBatteryPercentage"] ?? "No Data Retrieved",
+                bPM: doc["bPM"] ?? "No Data Retrieved",
+                requestBPM: doc["requestBPM"] ?? "No Data Retrieved",
               ),
             );
           }
@@ -170,14 +174,16 @@ class MyHistoryReposity {
 
     // finally, return the data as a HistoryModel object
     return HistoryModel(
-      deviceID: data["deviceID"],
-      patientID: data["patientID"],
-      isInSafeZone: data["isInSafeZone"],
-      currentlyIn: data["currentlyIn"],
-      currentLocationLng: data["currentLocationLng"],
-      currentLocationLat: data["currentLocationLat"],
-      timeStamp: data["timeStamp"],
-      deviceBatteryPercentage: data["deviceBatteryPercentage"],
+      deviceID: data["deviceID"] ?? "",
+      patientID: data["patientID"] ?? "",
+      isInSafeZone: data["isInSafeZone"] ?? "",
+      currentlyIn: data["currentlyIn"] ?? "",
+      currentLocationLng: data["currentLocationLng"] ?? "",
+      currentLocationLat: data["currentLocationLat"] ?? "",
+      timeStamp: data["timeStamp"] ?? "",
+      deviceBatteryPercentage: data["deviceBatteryPercentage"] ?? "",
+      bPM: data["bPM"] ?? "",
+      requestBPM: data["requestBPM"] ?? "",
     );
   }
 }

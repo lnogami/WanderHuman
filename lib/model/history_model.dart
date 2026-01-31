@@ -49,6 +49,8 @@ class HistoryModel {
   String currentLocationLat;
   String timeStamp;
   String deviceBatteryPercentage;
+  String bPM;
+  String requestBPM;
 
   HistoryModel({
     required this.deviceID,
@@ -59,6 +61,8 @@ class HistoryModel {
     required this.currentLocationLat,
     required this.timeStamp,
     required this.deviceBatteryPercentage,
+    required this.bPM,
+    required this.requestBPM,
   });
 
   factory HistoryModel.fromFirestore(Map<String, dynamic> data) {
@@ -74,8 +78,10 @@ class HistoryModel {
           dateTimeInString: data['timeStamp'].toString(),
         ),
         deviceBatteryPercentage: data['deviceBatteryPercentage'] ?? "",
+        bPM: data['bPM'] ?? "",
+        requestBPM: data['requestBPM'] ?? "",
       );
-    } on Exception catch (e) {
+    } catch (e) {
       print(
         "AN ERROR OCCUREDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD WHILE EXECUTING HistoryModel.fromFirestore: $e",
       );

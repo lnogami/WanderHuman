@@ -1,14 +1,21 @@
 import 'dart:async';
+import 'dart:developer';
+import 'package:battery_plus/battery_plus.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart' as gl;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mp;
 import 'package:provider/provider.dart';
+import 'package:wanderhuman_app/helper/history_reposity.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
+import 'package:wanderhuman_app/helper/realtime_location_repository.dart';
 import 'package:wanderhuman_app/model/history_model.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
+import 'package:wanderhuman_app/model/realtime_location_model.dart';
+import 'package:wanderhuman_app/utilities/properties/date_formatter.dart';
 import 'package:wanderhuman_app/view-model/my_mapbox_ref_provider.dart';
 import 'package:wanderhuman_app/view/components/image_picker.dart';
 import 'package:wanderhuman_app/view/components/info_dialogue.dart';
@@ -26,6 +33,16 @@ class MapBody extends StatefulWidget {
 }
 
 class _MapBodyState extends State<MapBody> {
+  // For app user specific
+  // this will be used as a deviceID for app users, unlike the patient that have the specific device
+  String appUserID = FirebaseAuth.instance.currentUser!.uid;
+  late PersonalInfo personalInfo;
+  Future<void> getPersonalInfo() async {
+    personalInfo = await MyPersonalInfoRepository.getSpecificPersonalInfo(
+      userID: appUserID,
+    );
+  }
+
   // controller for the map
   mp.MapboxMap? mapboxMapController;
   // point annotation manager
@@ -73,9 +90,11 @@ class _MapBodyState extends State<MapBody> {
   @override
   void initState() {
     super.initState();
+    getPersonalInfo();
     setupMapboxAccessToken();
     checkAndRequestLocationPermission();
     checkLocationServiceStatus();
+    updatePatient();
   }
 
   @override
@@ -383,6 +402,7 @@ class _MapBodyState extends State<MapBody> {
   //------------------------------------------------------------------------------
 
   /// This will ask for persmission to the user to allow the app to access location services.
+  /// This method is for the app users (not for patients, since the device will provide their location data)
   Future<void> checkAndRequestLocationPermission() async {
     bool serviceEnabled = await gl.Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
@@ -463,6 +483,8 @@ class _MapBodyState extends State<MapBody> {
               // ),
             );
 
+            updateUserLocation(position);
+
             /* NOTE: this was transferred to a separate file
             ///// final Uint8List imageData = await converter();
             // define markers
@@ -497,25 +519,26 @@ class _MapBodyState extends State<MapBody> {
             // load image as the marker
             // final Uint8List imageData = await imageToIconLoader(
             //   // "assets/icons/isagi.jpg",
-            //   "assets/icons/pin.png",
+            //   personalInfo.picture,
             // );
-            // mp.PointAnnotationOptions pointAnnotationOptions =
-            //     await myPointAnnotationOptions(
-            //       imageData: imageData,
-            //       name: "Hori Zontal",
-            //       textSize: 12.5,
-            //       myPosition: mp.Position(
-            //         // THIS IS THE PATIENTS CURRENT COORDINATES
-            //         // temporary coordinates
-            //         myPosition!.longitude,
-            //         myPosition!.latitude,
-            //       ),
-            //     );
-            // // add the marker to the map
-            // pointAnnotationManager?.create(pointAnnotationOptions);
+            mp.PointAnnotationOptions pointAnnotationOptions =
+                await myPointAnnotationOptions(
+                  imageData: MyImageProcessor.decodeStringToUint8List(
+                    personalInfo.picture,
+                  ),
+                  name: "Hori Zontal",
+                  textSize: 12.5,
+                  myPosition: mp.Position(
+                    // THIS IS THE PATIENTS CURRENT COORDINATES
+                    // temporary coordinates
+                    myPosition!.longitude,
+                    myPosition!.latitude,
+                  ),
+                );
+            // add the marker to the map
+            pointAnnotationManager?.create(pointAnnotationOptions);
 
             // pointAnnotationManager?.createMulti(List<mp.PointAnnotation>);
-
             // // this was move to listenToPatients method
             // // setting tap events to the marker
             // pointAnnotationManager?.tapEvents(
@@ -530,6 +553,67 @@ class _MapBodyState extends State<MapBody> {
             // );
           }
         });
+  }
+
+  // this will update the location data of only the staff, the patients' location data will be hanlded by the device
+  Future<void> updateUserLocation(gl.Position position) async {
+    try {
+      return MyRealtimeLocationReposity.updateLocation(
+        deviceID: appUserID,
+        realtimeData: MyRealtimeLocationModel(
+          deviceID: appUserID,
+          patientID: appUserID,
+          isInSafeZone: true,
+          currentlyIn: "NOT APPLICABLE",
+          currentLocationLng: position.longitude.toString(),
+          currentLocationLat: position.latitude.toString(),
+          timeStamp: MyDateFormatter.formatDate(
+            dateTimeInString: DateTime.now(),
+            formatOptions: 8,
+          ),
+          deviceBatteryPercentage: await Battery().batteryLevel,
+          bPM: "NOT APPLICABLE",
+          requestBPM: false,
+        ),
+      );
+    } catch (e, stackTrace) {
+      log("ERROR WHILE UPDATING USER LOCATION in MapBody: $e. AT $stackTrace");
+    }
+  }
+
+  // for transfering the firebase data to realtime database only (deletable)
+  Future<void> updatePatient() async {
+    try {
+      List<PersonalInfo> persons =
+          await MyPersonalInfoRepository.getAllPersonalInfoRecords(
+            fieldName: "userType",
+            valueToLookFor: "Patient",
+          );
+      for (var person in persons) {
+        HistoryModel historyModel =
+            await MyHistoryReposity.getSpecificPatientHistory(person.userID);
+        MyRealtimeLocationReposity.updateLocation(
+          deviceID: person.userID,
+          realtimeData: MyRealtimeLocationModel(
+            deviceID: person.userID,
+            patientID: person.userID,
+            isInSafeZone: true,
+            currentlyIn: "NOT APPLICABLE",
+            currentLocationLng: historyModel.currentLocationLng,
+            currentLocationLat: historyModel.currentLocationLat,
+            timeStamp: MyDateFormatter.formatDate(
+              dateTimeInString: DateTime.now(),
+              formatOptions: 8,
+            ),
+            deviceBatteryPercentage: await Battery().batteryLevel,
+            bPM: "NOT APPLICABLE",
+            requestBPM: false,
+          ),
+        );
+      }
+    } catch (e, stackTrace) {
+      log("ERROR WHILE UPDATING USER LOCATION in MapBody: $e. AT $stackTrace");
+    }
   }
 
   //// // this is a helper function to convert the image to Uint8List

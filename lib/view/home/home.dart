@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:wanderhuman_app/helper/realtime_temporary_test.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
+import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_emergency_contacts_button.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_patient_list_dropdown.dart';
 import 'package:wanderhuman_app/view/home_appbar/home_appbar.dart';
@@ -52,6 +54,22 @@ class _HomePageState extends State<HomePage> {
               top: MyDimensionAdapter.getHeight(context) * 0.12,
               left: 18,
               child: MyHomeEmergencyContactsButton(),
+            ),
+
+            // Temporary for testing realtime database only (deletable)
+            Positioned(
+              top: MyDimensionAdapter.getHeight(context) * 0.2,
+              left: 18,
+              child: IconButton(
+                onPressed: () {
+                  MyNavigator.goTo(context, RealtimeTemporaryTest());
+                },
+                icon: Icon(
+                  Icons.data_saver_on_rounded,
+                  color: Colors.amber,
+                  size: 32,
+                ),
+              ),
             ),
 
             // Dropdown
