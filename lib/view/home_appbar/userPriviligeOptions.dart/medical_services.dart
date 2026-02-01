@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/components/option_container.dart';
 import 'package:wanderhuman_app/view/userRolesUI/medical_services/medication.dart';
@@ -13,33 +12,30 @@ class MedicalPrivilege extends StatelessWidget {
     return Container(
       child: Column(
         children: [
-          // Medical Service exclusive options
-          (MyPersonalInfoRepository.getUserType() == "Medical Service")
-              ? Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    SizedBox(height: 10),
-                    optionsContainer(
-                      context,
-                      Icons.folder_copy_outlined,
-                      "Med History",
-                      onTap: () {
-                        MyNavigator.goTo(context, MedicalHistory());
-                      },
-                    ),
-                    SizedBox(height: 10),
-                    optionsContainer(
-                      context,
-                      Icons.medication_outlined,
-                      "Medication",
-                      onTap: () {
-                        MyNavigator.goTo(context, Medication());
-                      },
-                    ),
-                    SizedBox(height: 10),
-                  ],
-                )
-              : SizedBox(height: 0),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              SizedBox(height: 10),
+              optionsContainer(
+                context,
+                Icons.folder_copy_outlined,
+                "Med History",
+                onTap: () {
+                  MyNavigator.goTo(context, MedicalHistory());
+                },
+              ),
+              SizedBox(height: 10),
+              optionsContainer(
+                context,
+                Icons.medication_outlined,
+                "Medication",
+                onTap: () {
+                  MyNavigator.goTo(context, Medication());
+                },
+              ),
+              SizedBox(height: 10),
+            ],
+          ),
         ],
       ),
     );

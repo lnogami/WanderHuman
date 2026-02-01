@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -11,44 +12,41 @@ class HomeAppBarProvider extends ChangeNotifier {
   // Widget cachedImageWidget = MyImageDisplayer();
   // String _cachedImageString = "";
   Uint8List? _cachedImageString;
-  // to contain the fetched user name
-  String _userName = "...";
+  PersonalInfo? _loggedInUserData;
 
+  PersonalInfo get loggedInUserData => _loggedInUserData!;
+  String get userName => _loggedInUserData?.name ?? "...";
   Uint8List? get cachedImageString => _cachedImageString;
-  String get userName => _userName;
 
-  // /// if Expanded, then Collaps, otherwise reverse.
-  // void toggleAppBar() {
-  //   isExpanded = !isExpanded;
-  //   notifyListeners(); // this is just like a setState() but for providers
-  // }
-
-  /// Fetches BOTH the Name and the Profile Picture string at once.
-  /// Call this in initState of your Home screen.
-  Future<void> initUserData({required PersonalInfo loggedInUserData}) async {
+  /// Fetches the personal data of the current logged in user.
+  Future<void> initUserData(PersonalInfo currentlyLoggedInUserData) async {
     try {
-      // final String uid = FirebaseAuth.instance.currentUser!.uid;
-      // // Fetch the full object once to save reads
-      // PersonalInfo info =
-      //     await MyPersonalInfoRepository.getSpecificPersonalInfo(userID: uid);
-
-      _userName = loggedInUserData.name;
+      _loggedInUserData = currentlyLoggedInUserData;
       _cachedImageString = await compute(
         base64Decode,
-        loggedInUserData.picture,
+        currentlyLoggedInUserData.picture,
       );
 
       notifyListeners(); // Updates both App Bar and Modal immediately
     } catch (e) {
-      print("Error fetching user data: $e");
+      log("Error fetching user data: $e");
     }
   }
 
-  // Future<PersonalInfo> getPersonalInfo() async {
-  //   try{
-  //     PersonalInfo loggedInUserData
-  //   }
-  // }
+  /// Call this when something changes in this current logged in user's data
+  Future<void> refreshLoggedInUserData() async {
+    try {
+      final String uid = FirebaseAuth.instance.currentUser!.uid;
+      PersonalInfo info =
+          await MyPersonalInfoRepository.getSpecificPersonalInfo(userID: uid);
+
+      _loggedInUserData = info;
+
+      notifyListeners();
+    } catch (e) {
+      log("Error refreshing picture: $e");
+    }
+  }
 
   /// Call this specifically after uploading a new picture
   Future<void> refreshProfilePicture({String? userID}) async {
@@ -62,16 +60,7 @@ class HomeAppBarProvider extends ChangeNotifier {
       _cachedImageString = await compute(base64Decode, info.picture.toString());
       notifyListeners();
     } catch (e) {
-      print("Error refreshing picture: $e");
+      log("Error refreshing picture: $e");
     }
   }
 }
-
-// String profilePictureBase64String()  {
-
-//   return MyPersonalInfoRepository.getSpecificPersonalInfo(userID: FirebaseAuth.instance.currentUser!.uid)
-//       .then((personalInfo) {
-//       return personalInfo.picture;
-//   });
-
-// }

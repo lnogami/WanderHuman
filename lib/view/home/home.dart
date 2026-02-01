@@ -1,8 +1,13 @@
+import 'dart:developer';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/helper/realtime_temporary_test.dart';
+import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
+import 'package:wanderhuman_app/view-model/home_appbar_provider.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_emergency_contacts_button.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_patient_list_dropdown.dart';
@@ -17,19 +22,38 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  bool isLoading = true;
+
+  // this will initialize the logged in user's personal info in the HomeAppBarProvider
+  Future<void> initUserData() async {
+    try {
+      final String uid = FirebaseAuth.instance.currentUser!.uid;
+      // Fetch the full object once to save reads
+      PersonalInfo currentlyLoggedInUserData =
+          await MyPersonalInfoRepository.getSpecificPersonalInfo(userID: uid);
+
+      // using addPostFrameCallback ensures it doesn't conflict with the build cycle
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<HomeAppBarProvider>().initUserData(
+          currentlyLoggedInUserData,
+        );
+        setState(() {
+          isLoading = false;
+        });
+      });
+    } catch (e, stackTrace) {
+      log("ERROR FETCHING DATAAAAAA: $e. AT $stackTrace");
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    // //pang full screen ra ni
-    // SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-
-    // // this will prevent the screen from sleeping.
-    // WakelockPlus.enable();
+    initUserData();
   }
 
   @override
   void dispose() {
-    // WakelockPlus.disable();
     super.dispose();
   }
 
@@ -37,18 +61,9 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: FutureBuilder(
-          // this will provide the details of the currently logged in user to other widgets
-          future: MyPersonalInfoRepository.getSpecificPersonalInfo(
-            userID: FirebaseAuth.instance.currentUser!.uid,
-          ),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text(snapshot.error.toString()));
-            } else {
-              return Stack(
+        child: (isLoading)
+            ? Center(child: CircularProgressIndicator())
+            : Stack(
                 alignment: Alignment.topCenter,
                 children: [
                   // Map body
@@ -57,7 +72,11 @@ class _HomePageState extends State<HomePage> {
                     child: SizedBox(
                       width: MyDimensionAdapter.getWidth(context),
                       height: MyDimensionAdapter.getHeight(context),
-                      child: MapBody(loggedInUserData: snapshot.data!),
+                      child: MapBody(
+                        loggedInUserData: context
+                            .watch<HomeAppBarProvider>()
+                            .loggedInUserData,
+                      ),
                       // child: MyMapBody(),
                     ),
                   ),
@@ -96,13 +115,14 @@ class _HomePageState extends State<HomePage> {
                   // Appbar
                   Positioned(
                     top: 20,
-                    child: HomeAppBar(loggedInUserData: snapshot.data!),
+                    child: HomeAppBar(
+                      loggedInUserData: context
+                          .watch<HomeAppBarProvider>()
+                          .loggedInUserData,
+                    ),
                   ),
                 ],
-              );
-            }
-          },
-        ),
+              ),
       ),
     );
   }

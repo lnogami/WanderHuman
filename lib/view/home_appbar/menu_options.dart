@@ -4,6 +4,7 @@ import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/universal_sizes.dart';
 import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
+import 'package:wanderhuman_app/view/home_appbar/home_appbar_dynamic_panel.dart';
 import 'package:wanderhuman_app/view/home_appbar/user_role_previlige.dart';
 import 'package:wanderhuman_app/view/components/option_container.dart';
 import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
@@ -22,63 +23,26 @@ class MyMenuOptions extends StatefulWidget {
 }
 
 class _MyMenuOptionsState extends State<MyMenuOptions> {
-  // the space between User Role and the role previlige options in the menu.
-  double? _horizontalSpace;
-
-  double getHorizontalSpace() {
-    switch (widget.loggedInUserData.userType.toUpperCase()) {
-      case "ADMIN":
-        return 10; // as of Dec,18,25, not yet tested
-      case "SOCIAL SERVICE":
-        return 10; // already tested
-      case "MEDICAL SERVICE":
-        return 15;
-      case "PSYCHOLOGICAL SERVICE":
-        return 15;
-      case "HOME LIFE":
-        return 15;
-      case "PSD":
-        return 15;
-      default:
-        return 0;
-    }
-  }
-
-  // String _userType = "";
-  // Future<void> getUserType() async {
-  //   _userType = await MyPersonalInfoRepository.getSpecificPersonalInfo(
-  //     userID: FirebaseAuth.instance.currentUser!.uid,
-  //   ).then((personalInfo) => personalInfo.userType);
-  // }
-
   @override
   void initState() {
     super.initState();
-
-    setState(() {
-      // getUserType(); // to initialize userType
-      _horizontalSpace = getHorizontalSpace();
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
       duration: Duration(
-        milliseconds:
-            (widget.loggedInUserData.userType.toUpperCase() == "ADMIN")
-            ? 200
-            : 180,
+        milliseconds: 200,
+        // (widget.loggedInUserData.userType.toUpperCase() == "ADMIN")
+        // ? 200
+        // : 180,
       ),
       // color: Colors.amber,
       width: MyDimensionAdapter.getWidth(context) - 60,
       height: (widget.isVisible)
-          // nested conditional operator haha
-          ? (widget.loggedInUserData.userType.toUpperCase() == "ADMIN")
-                // ? 220
-                // : 150
-                ? 150
-                : 150
+          ? MyDynamicAppbarHeight.expandingInnerPanelHeight(
+              widget.loggedInUserData.userType,
+            )
           : 0,
       child: SingleChildScrollView(
         child: Column(
@@ -97,18 +61,13 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
 
             // displays user type
             toDisplayUserType(),
-
-            // this is only for spacing purposes only, might be adjustable base on how many user previlige options there are for each user Roles.
-            SizedBox(
-              // height: (MyFirebaseServices.getUserType() == "admin") ? 15 : 2,
-              height: (_horizontalSpace == 0) ? 10 : _horizontalSpace,
-            ),
+            SizedBox(height: 10),
 
             // Determine user role privilege options to display
             MyUserRolePrevilige(userType: widget.loggedInUserData.userType),
-
             SizedBox(height: MySizes.buttonsHorizontalGap),
 
+            // Common options (not role exclusive options)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -215,7 +174,7 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
       children: [
         Text(
           // for grammatical purposes
-          (widget.loggedInUserData.userType == "ADMIN")
+          (widget.loggedInUserData.userType.toUpperCase() == "ADMIN")
               ? "You are an "
               : "You are a ",
           // ? "Your role is an "
