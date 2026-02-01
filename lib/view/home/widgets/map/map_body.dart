@@ -1,18 +1,15 @@
 import 'dart:async';
 import 'dart:developer';
 import 'package:battery_plus/battery_plus.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart' as gl;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mp;
 import 'package:provider/provider.dart';
-import 'package:wanderhuman_app/helper/history_reposity.dart';
-import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/helper/realtime_location_repository.dart';
-import 'package:wanderhuman_app/model/history_model.dart';
+// import 'package:wanderhuman_app/model/history_model.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/model/realtime_location_model.dart';
 import 'package:wanderhuman_app/utilities/properties/date_formatter.dart';
@@ -21,27 +18,34 @@ import 'package:wanderhuman_app/view/components/image_picker.dart';
 import 'package:wanderhuman_app/view/components/info_dialogue.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/home/home.dart';
-import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/bottom_modal_sheet_for_patient.dart';
+// import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/bottom_modal_sheet_for_patient.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/map_functions/listen_to_patients.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/point_annotation_options.dart';
 import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 
 class MapBody extends StatefulWidget {
-  const MapBody({super.key});
+  /// This will contain the data of the logged in user for efficient usage in every other components.
+  final PersonalInfo loggedInUserData;
+  const MapBody({super.key, required this.loggedInUserData});
 
   @override
   State<MapBody> createState() => _MapBodyState();
 }
 
 class _MapBodyState extends State<MapBody> {
-  // For app user specific
-  // this will be used as a deviceID for app users, unlike the patient that have the specific device
-  String appUserID = FirebaseAuth.instance.currentUser!.uid;
-  late PersonalInfo personalInfo;
-  Future<void> getPersonalInfo() async {
-    personalInfo = await MyPersonalInfoRepository.getSpecificPersonalInfo(
-      userID: appUserID,
-    );
-  }
+  // // For app user specific
+  // // this will be used as a deviceID for app users, unlike the patient that have the specific device
+  // String appUserID = FirebaseAuth.instance.currentUser!.uid;
+  // late PersonalInfo personalInfo;
+  // Future<void> getPersonalInfo() async {
+  //   final tempPerson = await MyPersonalInfoRepository.getSpecificPersonalInfo(
+  //     userID: appUserID,
+  //   );
+
+  //   setState(() {
+  //     personalInfo = tempPerson;
+  //   });
+  // }
 
   // controller for the map
   mp.MapboxMap? mapboxMapController;
@@ -90,11 +94,11 @@ class _MapBodyState extends State<MapBody> {
   @override
   void initState() {
     super.initState();
-    getPersonalInfo();
+    // getPersonalInfo(); //(deletable)
     setupMapboxAccessToken();
     checkAndRequestLocationPermission();
     checkLocationServiceStatus();
-    updatePatient();
+    // updatePatient(); // for tranfering firestore dummy data to realtime database only (deletable)
   }
 
   @override
@@ -207,8 +211,15 @@ class _MapBodyState extends State<MapBody> {
     // bool isLocationServiceEnabled =
     //     await gl.Geolocator.isLocationServiceEnabled();
 
-    // Start listening to Firebase users
-    listenToPatients();
+    // // Start listening to Firebase users
+    // listenToPatients();
+
+    listenToPatients(
+      annotationData: annotationData,
+      userAnnotations: userAnnotations,
+      pointAnnotationManager: pointAnnotationManager,
+      context: context,
+    );
   }
 
   /// Add this to your state variables
@@ -216,193 +227,193 @@ class _MapBodyState extends State<MapBody> {
   Map<String, Map<String, dynamic>> annotationData = {};
 
   /// Listen to Firestore collection in real-time
-  void listenToPatients() async {
-    // History is just a placeholder,    "RealTime" is the collection here.
-    FirebaseFirestore.instance.collection("History").snapshots().listen((
-      snapshot,
-    ) async {
-      try {
-        // showMyAnimatedSnackBar(
-        //   context: context,
-        //   dataToDisplay: personsList.length.toString(),
-        // );
-
-        int n = 0; // (deletable) for debugging purposes only
-
-        // // iterate every document in History collection
-        // for (var doc in snapshot.docs) {
-        //   var data = doc.data();
-        //   n++;
-
-        //   // Extract coordinates   // naka list man gud ni maong ingani [""][0]   naka List ni sya pag save sa firestore kay Position object man gud ang gisend, naconvert sya into array pag abot sa firestore
-        //   double lng = data["currentLocation"][0] ?? "NULL lng";
-        //   double lat = data["currentLocation"][1] ?? "NULL lat";
-
-        //   // to get user name
-        //   String name = MyPersonalInfoRepository.getSpecificUserName(
-        //     personsList: personsList,
-        //     userIDToLookFor: data["patientID"],
-        //   );
-
-        //   // to get personal info based on patient's ID
-        //   PersonalInfo personalInfo =
-        //       await MyPersonalInfoRepository.getSpecificPersonalInfo(
-        //         userID: data["patientID"],
-        //       );
-
-        //   // Store the data associated with this document
-        //   annotationData[doc.id] = {
-        //     'name': name,
-        //     'patientID': data["patientID"],
-        //     'number': n, //for debugging purposes only, might delete later on
-        //     'lng': lng,
-        //     'lat': lat,
-        //     'currentlyIn': data["currentlyIn"],
-        //     'isInSafeZone': data["isInSafeZone"],
-        //     'timeStamp': data["timeStamp"],
-        //     'deviceBatteryPercentage': data["deviceBatteryPercentage"],
-        //     //
-        //     'age': personalInfo.age,
-        //     'sex': personalInfo.sex,
-        //     'contactInfo': personalInfo.contactNumber,
-        //     'address': personalInfo.address,
-        //     'notableBehavior': personalInfo.notableBehavior,
-        //   };
-
-        // newer version of the code above this line
-        // iterate every document in History collection
-        for (var doc in snapshot.docs) {
-          var data = doc.data();
-          // I just converted the data into an object so that it is readable for me
-          HistoryModel historyModel = HistoryModel.fromFirestore(data);
-          n++;
-
-          // // Extract coordinates   // naka list man gud ni maong ingani [""][0]   naka List ni sya pag save sa firestore kay Position object man gud ang gisend, naconvert sya into array pag abot sa firestore
-          // double lng = data["currentLocation"][0] ?? "NULL lng";
-          // double lat = data["currentLocation"][1] ?? "NULL lat";
-          // (to be used when the current data in the database is replaced with updated ones)
-          double lng = double.parse(historyModel.currentLocationLng);
-          double lat = double.parse(historyModel.currentLocationLat);
-
-          // to get personal info based on patient's ID
-          PersonalInfo personalInfo =
-              await MyPersonalInfoRepository.getSpecificPersonalInfo(
-                userID: historyModel.patientID,
-              );
-          String name = personalInfo.name;
-
-          // Store the data associated with this document
-          annotationData[doc.id] = {
-            'name': name,
-            'patientID': historyModel.patientID,
-            'number': n, //for debugging purposes only, might delete later on
-            'lng': lng,
-            'lat': lat,
-            'currentlyIn': historyModel.currentlyIn,
-            'isInSafeZone': historyModel.isInSafeZone,
-            'timeStamp': historyModel.timeStamp,
-            'deviceBatteryPercentage': historyModel.deviceBatteryPercentage
-                .toString(),
-            //
-            'age': personalInfo.age,
-            'sex': personalInfo.sex,
-            'contactInfo': personalInfo.contactNumber,
-            'address': personalInfo.address,
-            'notableBehavior': personalInfo.notableBehavior,
-          };
-
-          // // (deletable) pang debug ra ni
-          // if (name == "Coach Anzai") {
-          //   showMyAnimatedSnackBar(
-          //     context: context,
-          //     dataToDisplay: "$n). $name: ${doc.data().toString()}",
-          //   );
-          // }
-
-          // // load image as the marker (temporary)
-          // final Uint8List imageData = await imageToIconLoader(
-          //   // "assets/icons/isagi.jpg",
-          //   "assets/icons/pin.png",
-          // );
-          // load image as the marker (temporary)
-          final Uint8List patientIcon =
-              MyImageProcessor.decodeStringToUint8List(personalInfo.picture);
-
-          // If the user already has an annotation, update its position
-          if (userAnnotations.containsKey(doc.id)) {
-            // remove old annotation
-            pointAnnotationManager?.delete(userAnnotations[doc.id]!);
-            // create new annotation at the updated location
-            var newAnnotation = await pointAnnotationManager?.create(
-              await myPointAnnotationOptions(
-                name: name,
-                myPosition: mp.Position(lng, lat),
-                imageData: patientIcon,
-              ),
-            );
-            // then add a new annotation to the map
-            userAnnotations[doc.id] = newAnnotation!;
-          } else {
-            // create new annation
-            var newAnnotation = await pointAnnotationManager?.create(
-              await myPointAnnotationOptions(
-                name: name,
-                myPosition: mp.Position(lng, lat),
-                imageData: patientIcon,
-              ),
-            );
-            // then add the new annotation to the map
-            userAnnotations[doc.id] = newAnnotation!;
-          }
-
-          // // setting tap events to the marker
-          // pointAnnotationManager?.tapEvents(
-          //   onTap: (mp.PointAnnotation tappedAnnotation) {
-          //     // bottomModalSheet(context);
-          //     print("NAMEEEEEEEEEEEEEEEEEEEEEEEE: $name");
-          //     showMyBottomNavigationSheet(context: context, name: "$name: $n");
-          //   },
-          // );
-
-          // set up tap events ONCE, outside the loop
-          pointAnnotationManager?.tapEvents(
-            onTap: (mp.PointAnnotation tappedAnnotation) {
-              // find which document this annotation belongs to
-              String? docId = userAnnotations.entries
-                  .firstWhere(
-                    (entry) => entry.value == tappedAnnotation,
-                    orElse: () => MapEntry('', tappedAnnotation),
-                  )
-                  .key;
-
-              if (docId.isNotEmpty && annotationData.containsKey(docId)) {
-                var data = annotationData[docId]!;
-                showMyBottomNavigationSheet(
-                  context: context,
-                  name: "${data['name']} : ${data['number']}",
-                  sex: data['sex'] ?? "NO DATA ACQUIRED",
-                  age: data['age'] ?? "NO DATA ACQUIRED",
-                  contactInfo: data['contactInfo'] ?? "NO DATA ACQUIRED",
-                  address: data['address'] ?? "NO DATA ACQUIRED",
-                  notableBehavior:
-                      data['notableBehavior'] ?? "NO DATA ACQUIRED",
-                );
-              }
-            },
-          );
-        }
-      } catch (e, stackTrace) {
-        // showMyAnimatedSnackBar(context: context, dataToDisplay: e.toString());
-        print("ERROR ON LISTENTOPATIENTS METHOD: ${e.toString()}");
-        print("ERROR ONNNNNNNNNNNNNNNNNNNNNNNN: $stackTrace");
-      }
-    });
-  }
+  // void listenToPatients() async {
+  //   // History is just a placeholder,    "RealTime" is the collection here.
+  //   FirebaseFirestore.instance.collection("History").snapshots().listen((
+  //     snapshot,
+  //   ) async {
+  //     try {
+  //       // showMyAnimatedSnackBar(
+  //       //   context: context,
+  //       //   dataToDisplay: personsList.length.toString(),
+  //       // );
+  //
+  //       int n = 0; // (deletable) for debugging purposes only
+  //
+  //       // // iterate every document in History collection
+  //       // for (var doc in snapshot.docs) {
+  //       //   var data = doc.data();
+  //       //   n++;
+  //
+  //       //   // Extract coordinates   // naka list man gud ni maong ingani [""][0]   naka List ni sya pag save sa firestore kay Position object man gud ang gisend, naconvert sya into array pag abot sa firestore
+  //       //   double lng = data["currentLocation"][0] ?? "NULL lng";
+  //       //   double lat = data["currentLocation"][1] ?? "NULL lat";
+  //
+  //       //   // to get user name
+  //       //   String name = MyPersonalInfoRepository.getSpecificUserName(
+  //       //     personsList: personsList,
+  //       //     userIDToLookFor: data["patientID"],
+  //       //   );
+  //
+  //       //   // to get personal info based on patient's ID
+  //       //   PersonalInfo personalInfo =
+  //       //       await MyPersonalInfoRepository.getSpecificPersonalInfo(
+  //       //         userID: data["patientID"],
+  //       //       );
+  //
+  //       //   // Store the data associated with this document
+  //       //   annotationData[doc.id] = {
+  //       //     'name': name,
+  //       //     'patientID': data["patientID"],
+  //       //     'number': n, //for debugging purposes only, might delete later on
+  //       //     'lng': lng,
+  //       //     'lat': lat,
+  //       //     'currentlyIn': data["currentlyIn"],
+  //       //     'isInSafeZone': data["isInSafeZone"],
+  //       //     'timeStamp': data["timeStamp"],
+  //       //     'deviceBatteryPercentage': data["deviceBatteryPercentage"],
+  //       //     //
+  //       //     'age': personalInfo.age,
+  //       //     'sex': personalInfo.sex,
+  //       //     'contactInfo': personalInfo.contactNumber,
+  //       //     'address': personalInfo.address,
+  //       //     'notableBehavior': personalInfo.notableBehavior,
+  //       //   };
+  //
+  //       // newer version of the code above this line
+  //       // iterate every document in History collection
+  //       for (var doc in snapshot.docs) {
+  //         var data = doc.data();
+  //         // I just converted the data into an object so that it is readable for me
+  //         HistoryModel historyModel = HistoryModel.fromFirestore(data);
+  //         n++;
+  //
+  //         // // Extract coordinates   // naka list man gud ni maong ingani [""][0]   naka List ni sya pag save sa firestore kay Position object man gud ang gisend, naconvert sya into array pag abot sa firestore
+  //         // double lng = data["currentLocation"][0] ?? "NULL lng";
+  //         // double lat = data["currentLocation"][1] ?? "NULL lat";
+  //         // (to be used when the current data in the database is replaced with updated ones)
+  //         double lng = double.parse(historyModel.currentLocationLng);
+  //         double lat = double.parse(historyModel.currentLocationLat);
+  //
+  //         // to get personal info based on patient's ID
+  //         PersonalInfo personalInfo =
+  //             await MyPersonalInfoRepository.getSpecificPersonalInfo(
+  //               userID: historyModel.patientID,
+  //             );
+  //         String name = personalInfo.name;
+  //
+  //         // Store the data associated with this document
+  //         annotationData[doc.id] = {
+  //           'name': name,
+  //           'patientID': historyModel.patientID,
+  //           'number': n, //for debugging purposes only, might delete later on
+  //           'lng': lng,
+  //           'lat': lat,
+  //           'currentlyIn': historyModel.currentlyIn,
+  //           'isInSafeZone': historyModel.isInSafeZone,
+  //           'timeStamp': historyModel.timeStamp,
+  //           'deviceBatteryPercentage': historyModel.deviceBatteryPercentage
+  //               .toString(),
+  //           //
+  //           'age': personalInfo.age,
+  //           'sex': personalInfo.sex,
+  //           'contactInfo': personalInfo.contactNumber,
+  //           'address': personalInfo.address,
+  //           'notableBehavior': personalInfo.notableBehavior,
+  //         };
+  //
+  //         // // (deletable) pang debug ra ni
+  //         // if (name == "Coach Anzai") {
+  //         //   showMyAnimatedSnackBar(
+  //         //     context: context,
+  //         //     dataToDisplay: "$n). $name: ${doc.data().toString()}",
+  //         //   );
+  //         // }
+  //
+  //         // // load image as the marker (temporary)
+  //         // final Uint8List imageData = await imageToIconLoader(
+  //         //   // "assets/icons/isagi.jpg",
+  //         //   "assets/icons/pin.png",
+  //         // );
+  //         // load image as the marker (temporary)
+  //         final Uint8List patientIcon =
+  //             MyImageProcessor.decodeStringToUint8List(personalInfo.picture);
+  //
+  //         // If the user already has an annotation, update its position
+  //         if (userAnnotations.containsKey(doc.id)) {
+  //           // remove old annotation
+  //           pointAnnotationManager?.delete(userAnnotations[doc.id]!);
+  //           // create new annotation at the updated location
+  //           var newAnnotation = await pointAnnotationManager?.create(
+  //             await myPointAnnotationOptions(
+  //               name: name,
+  //               myPosition: mp.Position(lng, lat),
+  //               imageData: patientIcon,
+  //             ),
+  //           );
+  //           // then add a new annotation to the map
+  //           userAnnotations[doc.id] = newAnnotation!;
+  //         } else {
+  //           // create new annation
+  //           var newAnnotation = await pointAnnotationManager?.create(
+  //             await myPointAnnotationOptions(
+  //               name: name,
+  //               myPosition: mp.Position(lng, lat),
+  //               imageData: patientIcon,
+  //             ),
+  //           );
+  //           // then add the new annotation to the map
+  //           userAnnotations[doc.id] = newAnnotation!;
+  //         }
+  //
+  //         // // setting tap events to the marker
+  //         // pointAnnotationManager?.tapEvents(
+  //         //   onTap: (mp.PointAnnotation tappedAnnotation) {
+  //         //     // bottomModalSheet(context);
+  //         //     print("NAMEEEEEEEEEEEEEEEEEEEEEEEE: $name");
+  //         //     showMyBottomNavigationSheet(context: context, name: "$name: $n");
+  //         //   },
+  //         // );
+  //
+  //         // set up tap events ONCE, outside the loop
+  //         pointAnnotationManager?.tapEvents(
+  //           onTap: (mp.PointAnnotation tappedAnnotation) {
+  //             // find which document this annotation belongs to
+  //             String? docId = userAnnotations.entries
+  //                 .firstWhere(
+  //                   (entry) => entry.value == tappedAnnotation,
+  //                   orElse: () => MapEntry('', tappedAnnotation),
+  //                 )
+  //                 .key;
+  //
+  //             if (docId.isNotEmpty && annotationData.containsKey(docId)) {
+  //               var data = annotationData[docId]!;
+  //               showMyBottomNavigationSheet(
+  //                 context: context,
+  //                 name: "${data['name']} : ${data['number']}",
+  //                 sex: data['sex'] ?? "NO DATA ACQUIRED",
+  //                 age: data['age'] ?? "NO DATA ACQUIRED",
+  //                 contactInfo: data['contactInfo'] ?? "NO DATA ACQUIRED",
+  //                 address: data['address'] ?? "NO DATA ACQUIRED",
+  //                 notableBehavior:
+  //                     data['notableBehavior'] ?? "NO DATA ACQUIRED",
+  //               );
+  //             }
+  //           },
+  //         );
+  //       }
+  //     } catch (e, stackTrace) {
+  //       // showMyAnimatedSnackBar(context: context, dataToDisplay: e.toString());
+  //       print("ERROR ON LISTENTOPATIENTS METHOD: ${e.toString()}");
+  //       print("ERROR ONNNNNNNNNNNNNNNNNNNNNNNN: $stackTrace");
+  //     }
+  //   });
+  // }
 
   //------------------------------------------------------------------------------
 
   /// This will ask for persmission to the user to allow the app to access location services.
-  /// This method is for the app users (not for patients, since the device will provide their location data)
+  /// This method is for the `app users` (not for patients, since the device will provide their location data)
   Future<void> checkAndRequestLocationPermission() async {
     bool serviceEnabled = await gl.Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
@@ -524,9 +535,9 @@ class _MapBodyState extends State<MapBody> {
             mp.PointAnnotationOptions pointAnnotationOptions =
                 await myPointAnnotationOptions(
                   imageData: MyImageProcessor.decodeStringToUint8List(
-                    personalInfo.picture,
+                    widget.loggedInUserData.picture,
                   ),
-                  name: "Hori Zontal",
+                  name: widget.loggedInUserData.name,
                   textSize: 12.5,
                   myPosition: mp.Position(
                     // THIS IS THE PATIENTS CURRENT COORDINATES
@@ -559,10 +570,10 @@ class _MapBodyState extends State<MapBody> {
   Future<void> updateUserLocation(gl.Position position) async {
     try {
       return MyRealtimeLocationReposity.updateLocation(
-        deviceID: appUserID,
+        deviceID: widget.loggedInUserData.userID,
         realtimeData: MyRealtimeLocationModel(
-          deviceID: appUserID,
-          patientID: appUserID,
+          deviceID: widget.loggedInUserData.userID,
+          patientID: widget.loggedInUserData.userID,
           isInSafeZone: true,
           currentlyIn: "NOT APPLICABLE",
           currentLocationLng: position.longitude.toString(),
@@ -581,40 +592,40 @@ class _MapBodyState extends State<MapBody> {
     }
   }
 
-  // for transfering the firebase data to realtime database only (deletable)
-  Future<void> updatePatient() async {
-    try {
-      List<PersonalInfo> persons =
-          await MyPersonalInfoRepository.getAllPersonalInfoRecords(
-            fieldName: "userType",
-            valueToLookFor: "Patient",
-          );
-      for (var person in persons) {
-        HistoryModel historyModel =
-            await MyHistoryReposity.getSpecificPatientHistory(person.userID);
-        MyRealtimeLocationReposity.updateLocation(
-          deviceID: person.userID,
-          realtimeData: MyRealtimeLocationModel(
-            deviceID: person.userID,
-            patientID: person.userID,
-            isInSafeZone: true,
-            currentlyIn: "NOT APPLICABLE",
-            currentLocationLng: historyModel.currentLocationLng,
-            currentLocationLat: historyModel.currentLocationLat,
-            timeStamp: MyDateFormatter.formatDate(
-              dateTimeInString: DateTime.now(),
-              formatOptions: 8,
-            ),
-            deviceBatteryPercentage: await Battery().batteryLevel,
-            bPM: "NOT APPLICABLE",
-            requestBPM: false,
-          ),
-        );
-      }
-    } catch (e, stackTrace) {
-      log("ERROR WHILE UPDATING USER LOCATION in MapBody: $e. AT $stackTrace");
-    }
-  }
+  // // for transfering the firebase data to realtime database only (deletable)
+  // Future<void> updatePatient() async {
+  //   try {
+  //     List<PersonalInfo> persons =
+  //         await MyPersonalInfoRepository.getAllPersonalInfoRecords(
+  //           fieldName: "userType",
+  //           valueToLookFor: "Patient",
+  //         );
+  //     for (var person in persons) {
+  //       HistoryModel historyModel =
+  //           await MyHistoryReposity.getSpecificPatientHistory(person.userID);
+  //       MyRealtimeLocationReposity.updateLocation(
+  //         deviceID: person.userID,
+  //         realtimeData: MyRealtimeLocationModel(
+  //           deviceID: person.userID,
+  //           patientID: person.userID,
+  //           isInSafeZone: true,
+  //           currentlyIn: "NOT APPLICABLE",
+  //           currentLocationLng: historyModel.currentLocationLng,
+  //           currentLocationLat: historyModel.currentLocationLat,
+  //           timeStamp: MyDateFormatter.formatDate(
+  //             dateTimeInString: DateTime.now(),
+  //             formatOptions: 8,
+  //           ),
+  //           deviceBatteryPercentage: await Battery().batteryLevel,
+  //           bPM: "NOT APPLICABLE",
+  //           requestBPM: false,
+  //         ),
+  //       );
+  //     }
+  //   } catch (e, stackTrace) {
+  //     log("ERROR WHILE UPDATING USER LOCATION in MapBody: $e. AT $stackTrace");
+  //   }
+  // }
 
   //// // this is a helper function to convert the image to Uint8List
   //// Future< Uint8List> converter() {

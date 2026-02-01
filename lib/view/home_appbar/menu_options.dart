@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:wanderhuman_app/helper/personal_info_repository.dart';
+import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/universal_sizes.dart';
 import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
@@ -10,7 +10,12 @@ import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 
 class MyMenuOptions extends StatefulWidget {
   final bool isVisible;
-  const MyMenuOptions({super.key, this.isVisible = false});
+  final PersonalInfo loggedInUserData;
+  const MyMenuOptions({
+    super.key,
+    this.isVisible = false,
+    required this.loggedInUserData,
+  });
 
   @override
   State<MyMenuOptions> createState() => _MyMenuOptionsState();
@@ -21,9 +26,9 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
   double? _horizontalSpace;
 
   double getHorizontalSpace() {
-    switch (_userType.toUpperCase()) {
+    switch (widget.loggedInUserData.userType.toUpperCase()) {
       case "ADMIN":
-        return 15; // as of Dec,18,25, not yet tested
+        return 10; // as of Dec,18,25, not yet tested
       case "SOCIAL SERVICE":
         return 10; // already tested
       case "MEDICAL SERVICE":
@@ -39,19 +44,19 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
     }
   }
 
-  String _userType = "";
-  Future<void> getUserType() async {
-    _userType = await MyPersonalInfoRepository.getSpecificPersonalInfo(
-      userID: FirebaseAuth.instance.currentUser!.uid,
-    ).then((personalInfo) => personalInfo.userType);
-  }
+  // String _userType = "";
+  // Future<void> getUserType() async {
+  //   _userType = await MyPersonalInfoRepository.getSpecificPersonalInfo(
+  //     userID: FirebaseAuth.instance.currentUser!.uid,
+  //   ).then((personalInfo) => personalInfo.userType);
+  // }
 
   @override
   void initState() {
     super.initState();
 
     setState(() {
-      getUserType(); // to initialize userType
+      // getUserType(); // to initialize userType
       _horizontalSpace = getHorizontalSpace();
     });
   }
@@ -61,7 +66,7 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
     return AnimatedContainer(
       duration: Duration(
         milliseconds:
-            (MyPersonalInfoRepository.getUserType().toUpperCase() == "ADMIN")
+            (widget.loggedInUserData.userType.toUpperCase() == "ADMIN")
             ? 200
             : 180,
       ),
@@ -69,7 +74,7 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
       width: MyDimensionAdapter.getWidth(context) - 60,
       height: (widget.isVisible)
           // nested conditional operator haha
-          ? (MyPersonalInfoRepository.getUserType().toUpperCase() == "ADMIN")
+          ? (widget.loggedInUserData.userType.toUpperCase() == "ADMIN")
                 // ? 220
                 // : 150
                 ? 150
@@ -100,10 +105,7 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
             ),
 
             // Determine user role privilege options to display
-            MyUserRolePrevilige(
-              // this getUserType was already containing a value from the HomePage
-              userType: _userType,
-            ),
+            MyUserRolePrevilige(userType: widget.loggedInUserData.userType),
 
             SizedBox(height: MySizes.buttonsHorizontalGap),
 
@@ -213,7 +215,7 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
       children: [
         Text(
           // for grammatical purposes
-          (MyPersonalInfoRepository.getUserType().toUpperCase() == "ADMIN")
+          (widget.loggedInUserData.userType == "ADMIN")
               ? "You are an "
               : "You are a ",
           // ? "Your role is an "
@@ -221,7 +223,7 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
           style: TextStyle(fontSize: 11, color: Colors.blueGrey),
         ),
         Text(
-          MyPersonalInfoRepository.getUserType().toUpperCase(),
+          widget.loggedInUserData.userType.toUpperCase(),
           style: TextStyle(
             fontSize: 11,
             // fontStyle: FontStyle.italic,

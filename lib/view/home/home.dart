@@ -1,4 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/helper/realtime_temporary_test.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
@@ -35,54 +37,71 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Stack(
-          alignment: Alignment.topCenter,
-          children: [
-            // Map body
-            Positioned(
-              // child: Container()
-              child: SizedBox(
-                width: MyDimensionAdapter.getWidth(context),
-                height: MyDimensionAdapter.getHeight(context),
-                child: MapBody(),
-                // child: MyMapBody(),
-              ),
-            ),
+        child: FutureBuilder(
+          // this will provide the details of the currently logged in user to other widgets
+          future: MyPersonalInfoRepository.getSpecificPersonalInfo(
+            userID: FirebaseAuth.instance.currentUser!.uid,
+          ),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text(snapshot.error.toString()));
+            } else {
+              return Stack(
+                alignment: Alignment.topCenter,
+                children: [
+                  // Map body
+                  Positioned(
+                    // child: Container()
+                    child: SizedBox(
+                      width: MyDimensionAdapter.getWidth(context),
+                      height: MyDimensionAdapter.getHeight(context),
+                      child: MapBody(loggedInUserData: snapshot.data!),
+                      // child: MyMapBody(),
+                    ),
+                  ),
 
-            // Emergency Contacts
-            Positioned(
-              top: MyDimensionAdapter.getHeight(context) * 0.12,
-              left: 18,
-              child: MyHomeEmergencyContactsButton(),
-            ),
+                  // Emergency Contacts
+                  Positioned(
+                    top: MyDimensionAdapter.getHeight(context) * 0.12,
+                    left: 18,
+                    child: MyHomeEmergencyContactsButton(),
+                  ),
 
-            // Temporary for testing realtime database only (deletable)
-            Positioned(
-              top: MyDimensionAdapter.getHeight(context) * 0.2,
-              left: 18,
-              child: IconButton(
-                onPressed: () {
-                  MyNavigator.goTo(context, RealtimeTemporaryTest());
-                },
-                icon: Icon(
-                  Icons.data_saver_on_rounded,
-                  color: Colors.amber,
-                  size: 32,
-                ),
-              ),
-            ),
+                  // Temporary for testing realtime database only (deletable)
+                  Positioned(
+                    top: MyDimensionAdapter.getHeight(context) * 0.2,
+                    left: 18,
+                    child: IconButton(
+                      onPressed: () {
+                        MyNavigator.goTo(context, RealtimeTemporaryTest());
+                      },
+                      icon: Icon(
+                        Icons.data_saver_on_rounded,
+                        color: Colors.amber,
+                        size: 32,
+                      ),
+                    ),
+                  ),
 
-            // Dropdown
-            Positioned(
-              // top: MyDimensionAdapter.getHeight(context) * 0.18,
-              top: MyDimensionAdapter.getHeight(context) * 0.12,
-              right: 18,
-              child: HomePatientListDropDown(),
-            ),
+                  // Dropdown
+                  Positioned(
+                    // top: MyDimensionAdapter.getHeight(context) * 0.18,
+                    top: MyDimensionAdapter.getHeight(context) * 0.12,
+                    right: 18,
+                    child: HomePatientListDropDown(),
+                  ),
 
-            // Appbar
-            Positioned(top: 20, child: HomeAppBar()),
-          ],
+                  // Appbar
+                  Positioned(
+                    top: 20,
+                    child: HomeAppBar(loggedInUserData: snapshot.data!),
+                  ),
+                ],
+              );
+            }
+          },
         ),
       ),
     );

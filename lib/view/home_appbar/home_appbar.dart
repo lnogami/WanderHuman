@@ -1,7 +1,5 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/view-model/home_appbar_provider.dart';
@@ -10,7 +8,9 @@ import 'package:wanderhuman_app/view/home_appbar/menu_options.dart';
 import 'package:wanderhuman_app/view/components/profile_picture_bottom_modal_sheet.dart';
 
 class HomeAppBar extends StatefulWidget {
-  const HomeAppBar({super.key});
+  /// This will contain the data of the logged in user for efficient usage in every other components.
+  final PersonalInfo loggedInUserData;
+  const HomeAppBar({super.key, required this.loggedInUserData});
 
   @override
   State<HomeAppBar> createState() => _HomeAppBarState();
@@ -22,40 +22,42 @@ class _HomeAppBarState extends State<HomeAppBar> {
   bool isExpanded = false;
   double borderRadius = 50;
 
-  // pang cache sa user (patient) list
-  List<PersonalInfo> usersList = [];
-  String userName = "User";
+  // // pang cache sa user (patient) list
+  // List<PersonalInfo> usersList = [];
+  // String userName = "User";
 
-  // fetches all the users from firestore through MyFirebaseServices
-  Future<void> fetchUsers() async {
-    usersList = await MyPersonalInfoRepository.getAllPersonalInfoRecords();
-  }
+  // // fetches all the users from firestore through MyFirebaseServices
+  // Future<void> fetchUsers() async {
+  //   usersList = await MyPersonalInfoRepository.getAllPersonalInfoRecords();
+  // }
 
-  // to get the current user's name and UPDATE the userName variable's state
-  Future<void> fetchAndSetUsername() async {
-    try {
-      await fetchUsers();
-      String name =
-          MyPersonalInfoRepository.getSpecificUserNameOfTheLoggedInAccount(
-            personsList: usersList,
-            userIDToLookFor: FirebaseAuth.instance.currentUser!.uid,
-          );
-      setState(() {
-        userName = name;
-      });
-    } catch (e) {
-      print("❌❌❌ Error fetching user name: $e");
-    }
-  }
+  // // to get the current user's name and UPDATE the userName variable's state
+  // Future<void> fetchAndSetUsername() async {
+  //   try {
+  //     await fetchUsers();
+  //     String name =
+  //         MyPersonalInfoRepository.getSpecificUserNameOfTheLoggedInAccount(
+  //           personsList: usersList,
+  //           userIDToLookFor: FirebaseAuth.instance.currentUser!.uid,
+  //         );
+  //     setState(() {
+  //       userName = name;
+  //     });
+  //   } catch (e) {
+  //     print("❌❌❌ Error fetching user name: $e");
+  //   }
+  // }
 
   @override
   void initState() {
     super.initState();
-    fetchAndSetUsername();
+    // fetchAndSetUsername(); //(deletable)
 
     // using addPostFrameCallback ensures it doesn't conflict with the build cycle
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<HomeAppBarProvider>().initUserData();
+      context.read<HomeAppBarProvider>().initUserData(
+        loggedInUserData: widget.loggedInUserData,
+      );
     });
   }
 
@@ -68,7 +70,7 @@ class _HomeAppBarState extends State<HomeAppBar> {
       width: MyDimensionAdapter.getWidth(context) * 0.80,
       height: (isExpanded)
           // might be back later (still deciding)
-          ? (MyPersonalInfoRepository.getUserType() == "admin")
+          ? (widget.loggedInUserData.userType == "admin")
                 // ? 290
                 // : 220
                 ? 220
@@ -93,7 +95,10 @@ class _HomeAppBarState extends State<HomeAppBar> {
               // the user avatar/pic/icon container
               GestureDetector(
                 onTap: () {
-                  showProfilePictureBottomModalSheet(context);
+                  showProfilePictureBottomModalSheet(
+                    context,
+                    currentLoggedInUserData: widget.loggedInUserData,
+                  );
                 },
                 child: CircleAvatar(
                   backgroundColor: Colors.blue[100],
@@ -107,7 +112,8 @@ class _HomeAppBarState extends State<HomeAppBar> {
               SizedBox(
                 width: MyDimensionAdapter.getWidth(context) * 0.50,
                 // this userName will be updated by setState
-                child: (userName == "...")
+                // child: (userName == "...")
+                child: (widget.loggedInUserData.name == "...")
                     ? CircularProgressIndicator()
                     : Text(
                         // "${dotenv.env['SAMPLE_TEXT']}",
@@ -145,7 +151,10 @@ class _HomeAppBarState extends State<HomeAppBar> {
             opacity: (isExpanded) ? 1.0 : 0.0,
             curve: Curves.easeInOut,
             duration: Duration(milliseconds: animationDuration),
-            child: MyMenuOptions(isVisible: isExpanded),
+            child: MyMenuOptions(
+              isVisible: isExpanded,
+              loggedInUserData: widget.loggedInUserData,
+            ),
           ),
         ],
       ),

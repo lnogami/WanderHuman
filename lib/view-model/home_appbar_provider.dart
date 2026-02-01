@@ -25,22 +25,30 @@ class HomeAppBarProvider extends ChangeNotifier {
 
   /// Fetches BOTH the Name and the Profile Picture string at once.
   /// Call this in initState of your Home screen.
-  Future<void> initUserData() async {
+  Future<void> initUserData({required PersonalInfo loggedInUserData}) async {
     try {
-      final String uid = FirebaseAuth.instance.currentUser!.uid;
+      // final String uid = FirebaseAuth.instance.currentUser!.uid;
+      // // Fetch the full object once to save reads
+      // PersonalInfo info =
+      //     await MyPersonalInfoRepository.getSpecificPersonalInfo(userID: uid);
 
-      // Fetch the full object once to save reads
-      PersonalInfo info =
-          await MyPersonalInfoRepository.getSpecificPersonalInfo(userID: uid);
-
-      _userName = info.name;
-      _cachedImageString = await compute(base64Decode, info.picture.toString());
+      _userName = loggedInUserData.name;
+      _cachedImageString = await compute(
+        base64Decode,
+        loggedInUserData.picture,
+      );
 
       notifyListeners(); // Updates both App Bar and Modal immediately
     } catch (e) {
       print("Error fetching user data: $e");
     }
   }
+
+  // Future<PersonalInfo> getPersonalInfo() async {
+  //   try{
+  //     PersonalInfo loggedInUserData
+  //   }
+  // }
 
   /// Call this specifically after uploading a new picture
   Future<void> refreshProfilePicture({String? userID}) async {
