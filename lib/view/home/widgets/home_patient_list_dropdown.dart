@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
+import 'package:wanderhuman_app/helper/realtime_location_repository.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
@@ -149,7 +150,7 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
   }
 
   /// Patient pictures that acts as a tappable icon.
-  GestureDetector individualPatientIcon({required PersonalInfo personalInfo}) {
+  FutureBuilder individualPatientIcon({required PersonalInfo personalInfo}) {
     // only get the first name from the full name
     String firstName = personalInfo.name.split(" ")[0];
     if (firstName.length > 6 && firstName.length <= 10) {
@@ -161,38 +162,51 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
     //   firstName = firstName.substring(0, 8);
     // }
 
-    return GestureDetector(
-      onTap: () {
-        myMapFlyTo(
-          mapboxController: _mapControllerRef,
-          position: Position(125.7989268, 7.4233187),
-          patientID: personalInfo.userID,
-        );
-      },
-      child: Container(
-        padding: EdgeInsets.fromLTRB(2, 7, 2, 0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // CircleAvatar(backgroundColor: Colors.blue,),
-            AspectRatio(
-              aspectRatio: 1 / 1,
-              child: CircleAvatar(
-                child: MyImageDisplayer(
-                  base64ImageString: MyImageProcessor.decodeStringToUint8List(
-                    personalInfo.picture,
+    return FutureBuilder(
+      future: MyRealtimeLocationReposity.getLocation(
+        deviceID: personalInfo.deviceID,
+      ),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        } else {
+          return GestureDetector(
+            onTap: () {
+              myMapFlyTo(
+                mapboxController: _mapControllerRef,
+                // position: Position(125.7989268, 7.4233187),
+                position: snapshot.data!,
+                patientID: personalInfo.userID,
+              );
+            },
+            child: Container(
+              padding: EdgeInsets.fromLTRB(2, 7, 2, 0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // CircleAvatar(backgroundColor: Colors.blue,),
+                  AspectRatio(
+                    aspectRatio: 1 / 1,
+                    child: CircleAvatar(
+                      child: MyImageDisplayer(
+                        base64ImageString:
+                            MyImageProcessor.decodeStringToUint8List(
+                              personalInfo.picture,
+                            ),
+                      ),
+                    ),
                   ),
-                ),
+                  MyTextFormatter.p(
+                    text: firstName,
+                    fontsize: kDefaultFontSize - 4,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ],
               ),
             ),
-            MyTextFormatter.p(
-              text: firstName,
-              fontsize: kDefaultFontSize - 4,
-              fontWeight: FontWeight.w500,
-            ),
-          ],
-        ),
-      ),
+          );
+        }
+      },
     );
   }
 }

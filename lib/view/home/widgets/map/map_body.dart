@@ -55,6 +55,9 @@ class _MapBodyState extends State<MapBody> {
   StreamSubscription? userPositionStream;
   // Keep track of existing annotations by Firestore document ID
   Map<String, mp.PointAnnotation> userAnnotations = {};
+  // Add this to your state variables
+  // The first Map is for ?, and the second Map is for ?
+  Map<String, Map<String, dynamic>> annotationData = {};
   // temporary
   gl.Position? myPosition;
 
@@ -214,17 +217,18 @@ class _MapBodyState extends State<MapBody> {
     // // Start listening to Firebase users
     // listenToPatients();
 
-    listenToPatients(
+    ListenToPatients.listenToPatients(
       annotationData: annotationData,
       userAnnotations: userAnnotations,
       pointAnnotationManager: pointAnnotationManager,
+      // ignore: use_build_context_synchronously
       context: context,
     );
   }
 
-  /// Add this to your state variables
-  /// The first Map is for ?, and the second Map is for ?
-  Map<String, Map<String, dynamic>> annotationData = {};
+  // /// Add this to your state variables
+  // /// The first Map is for ?, and the second Map is for ?
+  // Map<String, Map<String, dynamic>> annotationData = {};
 
   /// Listen to Firestore collection in real-time
   // void listenToPatients() async {

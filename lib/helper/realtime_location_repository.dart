@@ -106,7 +106,11 @@ import 'dart:developer';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mp;
+import 'package:wanderhuman_app/helper/personal_info_repository.dart';
+import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/model/realtime_location_model.dart';
 
 class MyRealtimeLocationReposity {
@@ -174,6 +178,46 @@ class MyRealtimeLocationReposity {
     }
   }
 
+  // // Getters
+  // /// Will listen to the realtime location of the patient based on its device (deviceID)
+  // static Stream<MyRealtimeLocationModel> getRealtimePatientLocationStream({
+  //   required String deviceID,
+  // }) {
+  //   try {
+  //     // the .child is like a doc, while .onValue is like .data in firestore
+  //     return _realtimeLocationRef.child(deviceID).onValue.map((event) {
+  //       if (event.snapshot.exists) {
+  //         Map<String, dynamic> data = Map<String, dynamic>.from(
+  //           event.snapshot.value as Map,
+  //         );
+  //         String patientID = data["patientID"];
+  //         log("PATIENT IDDDDDDDDDDDDDDDDDDDDDDDDD: $patientID");
+  //         return MyRealtimeLocationModel.fromMap(
+  //           deviceID: deviceID,
+  //           data: data,
+  //         );
+  //       }
+  //       return MyRealtimeLocationModel(
+  //         deviceID: deviceID,
+  //         patientID: "NO DATA FOUND",
+  //         isInSafeZone: false,
+  //         currentlyIn: "NO DATA FOUND",
+  //         currentLocationLng: "NO DATA FOUND",
+  //         currentLocationLat: "NO DATA FOUND",
+  //         timeStamp: "NO DATA FOUND",
+  //         deviceBatteryPercentage: 0,
+  //         bPM: "NO DATA FOUND",
+  //         requestBPM: false,
+  //       );
+  //     });
+  //   } catch (e, stackTrace) {
+  //     log(
+  //       "ERROR WHILE RETRIEVING REALTIME LOCATION OF PATIENT: $e. AT $stackTrace",
+  //     );
+  //     rethrow;
+  //   }
+  // }
+
   // Getters
   /// Will listen to the realtime location of the patient based on its device (deviceID)
   static Stream<MyRealtimeLocationModel> getRealtimePatientLocationStream({
@@ -188,6 +232,9 @@ class MyRealtimeLocationReposity {
           );
           String patientID = data["patientID"];
           log("PATIENT IDDDDDDDDDDDDDDDDDDDDDDDDD: $patientID");
+
+          print("LONG: ${data["currentLocationLng"]}");
+          print("LAT: ${data["currentLocationLat"]}");
 
           return MyRealtimeLocationModel.fromMap(
             deviceID: deviceID,
@@ -208,6 +255,30 @@ class MyRealtimeLocationReposity {
           requestBPM: false,
         );
       });
+    } catch (e, stackTrace) {
+      log(
+        "ERROR WHILE RETRIEVING REALTIME LOCATION OF PATIENT: $e. AT $stackTrace",
+      );
+      rethrow;
+    }
+  }
+
+  /// This will return a Position object. To access lng or lat, just call Postion.lng or Position.lat
+  static Future<mp.Position> getLocation({required String deviceID}) async {
+    try {
+      final snapshot = await _realtimeLocationRef.child(deviceID).get();
+      if (snapshot.exists) {
+        Map<String, dynamic> data = Map<String, dynamic>.from(
+          snapshot.value as Map,
+        );
+
+        return mp.Position(
+          double.tryParse(data["currentLocationLng"]) ?? 0.0,
+          double.tryParse(data["currentLocationLat"]) ?? 0.0,
+        );
+      }
+
+      return mp.Position(0, 0);
     } catch (e, stackTrace) {
       log(
         "ERROR WHILE RETRIEVING REALTIME LOCATION OF PATIENT: $e. AT $stackTrace",
