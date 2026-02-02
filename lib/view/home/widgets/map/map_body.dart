@@ -9,6 +9,7 @@ import 'package:geolocator/geolocator.dart' as gl;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mp;
 import 'package:provider/provider.dart';
 import 'package:wanderhuman_app/helper/realtime_location_repository.dart';
+import 'package:wanderhuman_app/main.dart';
 // import 'package:wanderhuman_app/model/history_model.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/model/realtime_location_model.dart';
@@ -32,7 +33,9 @@ class MapBody extends StatefulWidget {
   State<MapBody> createState() => _MapBodyState();
 }
 
-class _MapBodyState extends State<MapBody> {
+// RouteAware is an observer for route pages
+class _MapBodyState extends State<MapBody> with RouteAware {
+  // (deletable)
   // // For app user specific
   // // this will be used as a deviceID for app users, unlike the patient that have the specific device
   // String appUserID = FirebaseAuth.instance.currentUser!.uid;
@@ -41,7 +44,6 @@ class _MapBodyState extends State<MapBody> {
   //   final tempPerson = await MyPersonalInfoRepository.getSpecificPersonalInfo(
   //     userID: appUserID,
   //   );
-
   //   setState(() {
   //     personalInfo = tempPerson;
   //   });
@@ -105,10 +107,42 @@ class _MapBodyState extends State<MapBody> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Subscribe to the RouteObserver again if the widget is rebuilt
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
   void dispose() {
     // cancels the subscriptionStream to avoid memory leaks
     userPositionStream?.cancel();
+    // 3. Unsubscribe and Stop Listening when widget is destroyed
+    routeObserver.unsubscribe(this);
+    // this method will stop all the StreamSubscriptions to save resources
+    ListenToPatients.stopListening();
     super.dispose();
+  }
+
+  // --- VISIBILITY EVENTS ---
+  @override
+  void didPushNext() {
+    // 4. Called when a new screen covers this map
+    log("Notice: Map is covered by another page. Pausing streams...");
+    ListenToPatients.stopListening();
+  }
+
+  @override
+  void didPopNext() {
+    // 5. Called when the top screen is popped and map is visible again
+    log("Notice: Map is visible again. Resuming streams...");
+    // You need to call your start method here again!
+    ListenToPatients.listenToPatients(
+      annotationData: annotationData,
+      userAnnotations: userAnnotations,
+      pointAnnotationManager: pointAnnotationManager,
+      context: context,
+    );
   }
 
   @override
@@ -500,42 +534,6 @@ class _MapBodyState extends State<MapBody> {
 
             updateUserLocation(position);
 
-            /* NOTE: this was transferred to a separate file
-            ///// final Uint8List imageData = await converter();
-            // define markers
-            // mp.PointAnnotationOptions
-            // pointAnnotationOptions = mp.PointAnnotationOptions(
-            //   image: imageData,
-            //   ///// temporary (deletable)
-            //   ///// iconImage: "marker",
-            //   iconSize: 0.15,
-            //   // icon color is still static because I used a png image as marker
-            //   iconColor: Colors.blue.toARGB32(),
-            //   // THIS IS A PATIENT NAME
-            //   textField: "Hori Zontal",
-            //   textSize: 12.5,
-            //   textColor: Colors.blue.toARGB32(),
-            //   textOcclusionOpacity: 1,
-            //   isDraggable: true,
-            //   textAnchor: mp.TextAnchor.BOTTOM,
-            //   textOffset: [0, -1.2],
-            //   geometry: mp.Point(
-            //     coordinates: mp.Position(
-            //       // THIS IS THE PATIENTS CURRENT COORDINATES
-            //       // temporary coordinates
-            //       myPosition!.longitude,
-            //       myPosition!.latitude,
-            //     ),
-            //   ),
-            // );
-            */
-
-            // temprary commented out sa ni
-            // load image as the marker
-            // final Uint8List imageData = await imageToIconLoader(
-            //   // "assets/icons/isagi.jpg",
-            //   personalInfo.picture,
-            // );
             mp.PointAnnotationOptions pointAnnotationOptions =
                 await myPointAnnotationOptions(
                   imageData: MyImageProcessor.decodeStringToUint8List(

@@ -14,6 +14,12 @@ import 'package:wanderhuman_app/view/home/home.dart';
 import 'package:wanderhuman_app/view/login/login.dart';
 import 'package:wanderhuman_app/view/userRolesUI/no_role_yet_landing_page.dart';
 
+// The "spy" that watches the navigation stack. This will be a big help later on
+// in the map. This will detect if the map screen is not visible, so that we can
+// save resources, like canceling StreamSubscriptions
+final RouteObserver<ModalRoute<void>> routeObserver =
+    RouteObserver<ModalRoute<void>>();
+
 void main() async {
   // this will enure that other components are initialized first before running the whole app
   WidgetsFlutterBinding.ensureInitialized();
@@ -52,6 +58,7 @@ class MainApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => MyMapboxRefProvider()),
       ],
       child: MaterialApp(
+        navigatorObservers: [routeObserver], // registering the route observer
         debugShowCheckedModeBanner: false,
         color: MyColorPalette.formColor,
         theme: ThemeData(
