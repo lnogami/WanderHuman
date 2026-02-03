@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
@@ -26,43 +27,64 @@ class HomePatientListDropDown extends StatefulWidget {
 }
 
 class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
-  //is
+  // will determin if the dropdown is expanded or not
   bool isExpanded = false;
+  // will determin if the resources are loaded or not
+  bool isLoading = false;
   // this will contain the mapbox controller reference
   late MapboxMap _mapControllerRef;
+  // for coloring the selected individual
+  String selectedIndividualID = "";
+  // store all the patients and staffs
+  List<PersonalInfo> patientList = [];
+  //      id, position
+  Map<String, Position> patientLocations = {};
+  // decoded images buffer
+  Map<String, Uint8List> decodedImagesBuffer = {};
 
   // will return all the patients in the PersonalInfo in the database (PersonalInfo)
-  Future<List<PersonalInfo>> getPatientList() async {
-    // this is called in here to also fetch Realtime Location callction while getting the patient list
-
-    // List<PersonalInfo> patientList =
-    //     await MyPersonalInfoRepository.getAllPersonalInfoRecords(
-    //       fieldName: "userType",
-    //       valueToLookFor: "Patient",
-    //     );
-    // // sort the patients by name in ascending order
-    // patientList.sort((a, b) {
-    //   return a.name.compareTo(b.name);
-    // });
-    // return patientList;
-
+  Future<void> getActivePatientList() async {
     List<MyRealtimeActiveStatusModel> activeDevices =
         await MyRealtimeActiveStatusRepository.getAllDeviceIDWithActiveStatus();
+    // log("ALL ACTIVE DEVICESSSSSSSSSSSSSSSSSSSSSS: ${activeDevices.length}");
 
-    log("ALL ACTIVE DEVICESSSSSSSSSSSSSSSSSSSSSS: ${activeDevices.length}");
+    // storing the data in a temporary local variable is a preventive measure for multiple occurance of data
+    //that triggers when the dropdown is quickly clode while still loading then opening it again.
+    List<PersonalInfo> tempPatientList = [];
+    Map<String, Position> tempPatientLocations = {};
+    Map<String, Uint8List> tempDecodedImagesBuffer = {};
 
-    List<PersonalInfo> activePersons = [];
     for (var device in activeDevices) {
-      log("PERSON's IDDDDDDDDDDDDDDDD: ${device.userID}");
-      activePersons.add(
+      // log("PERSON's IDDDDDDDDDDDDDDDD: ${device.userID}");
+
+      var person = await MyPersonalInfoRepository.getSpecificPersonalInfo(
+        userID: device.userID,
+      );
+
+      // add the patient as an active person to the list
+      tempPatientList.add(
         await MyPersonalInfoRepository.getSpecificPersonalInfo(
           userID: device.userID,
         ),
       );
+      // store the coordinates of the patient in a map
+      tempPatientLocations[device.userID] =
+          await MyRealtimeLocationReposity.getLocation(deviceID: device.userID);
+      // store the decoded image in a temporary buffer
+      tempDecodedImagesBuffer[device.userID] =
+          MyImageProcessor.decodeStringToUint8List(person.picture);
     }
 
-    log("ALL ACTIVE PERSONSSSSSSSSSSSSSSSSSSSSS: $activePersons");
-    return activePersons;
+    log("ALL ACTIVE PERSONSSSSSSSSSSSSSSSSSSSSS: ${patientList.length}");
+
+    tempPatientList.sort((a, b) => a.name.compareTo(b.name));
+
+    setState(() {
+      patientList = tempPatientList;
+      patientLocations = tempPatientLocations;
+      decodedImagesBuffer = tempDecodedImagesBuffer;
+      isLoading = false;
+    });
   }
 
   @override
@@ -86,6 +108,15 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
         onTap: () {
           setState(() {
             isExpanded = !isExpanded;
+            if (isExpanded) {
+              isLoading = true;
+              getActivePatientList();
+            } else {
+              patientList.clear();
+              patientLocations.clear();
+              decodedImagesBuffer.clear();
+              selectedIndividualID = "";
+            }
           });
         },
         // Main Container
@@ -131,29 +162,16 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
                   borderRadius: BorderRadius.all(Radius.circular(7)),
                 ),
                 alignment: AlignmentGeometry.topCenter,
-                child: FutureBuilder(
-                  future: getPatientList(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return CircularProgressIndicator();
-                    } else if (!snapshot.hasData) {
-                      return MyTextFormatter.p(
-                        text: " No\n data",
-                        maxLines: 2,
-                        fontsize: kDefaultFontSize - 2,
-                      );
-                    } else {
-                      return ListView.builder(
-                        itemCount: snapshot.data!.length,
+                child: (isLoading)
+                    ? CircularProgressIndicator.adaptive()
+                    : ListView.builder(
+                        itemCount: patientList.length,
                         itemBuilder: (context, index) {
                           return individualPatientIcon(
-                            personalInfo: snapshot.data![index],
+                            personalInfo: patientList[index],
                           );
                         },
-                      );
-                    }
-                  },
-                ),
+                      ),
               ),
             ],
           ),
@@ -163,8 +181,9 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
   }
 
   /// Patient pictures that acts as a tappable icon.
-  FutureBuilder individualPatientIcon({required PersonalInfo personalInfo}) {
+  GestureDetector individualPatientIcon({required PersonalInfo personalInfo}) {
     bool isPatient = personalInfo.userType == "Patient";
+
     // only get the first name from the full name
     String firstName = personalInfo.name.split(" ")[0];
     if (firstName.length > 6 && firstName.length <= 10) {
@@ -172,56 +191,52 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
     } else if (firstName.length > 10) {
       firstName = firstName.substring(0, 8);
     }
-    // else if (firstName.length > 8) {
-    //   firstName = firstName.substring(0, 8);
-    // }
 
-    return FutureBuilder(
-      future: MyRealtimeLocationReposity.getLocation(
-        deviceID: personalInfo.deviceID,
-      ),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
-        } else {
-          return GestureDetector(
-            onTap: () {
-              myMapFlyTo(
-                mapboxController: _mapControllerRef,
-                // position: Position(125.7989268, 7.4233187),
-                position: snapshot.data!,
-                patientID: personalInfo.userID,
-              );
-            },
-            child: Container(
-              padding: EdgeInsets.fromLTRB(2, 7, 2, 0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // CircleAvatar(backgroundColor: Colors.blue,),
-                  AspectRatio(
-                    aspectRatio: 1 / 1,
-                    child: CircleAvatar(
-                      child: MyImageDisplayer(
-                        base64ImageString:
-                            MyImageProcessor.decodeStringToUint8List(
-                              personalInfo.picture,
-                            ),
-                      ),
-                    ),
-                  ),
-                  MyTextFormatter.p(
-                    text: firstName,
-                    fontsize: kDefaultFontSize - 4,
-                    fontWeight: (isPatient) ? FontWeight.w600 : FontWeight.w500,
-                    color: (isPatient) ? Colors.blue.shade700 : Colors.black,
-                  ),
-                ],
+    return GestureDetector(
+      onTap: () {
+        myMapFlyTo(
+          mapboxController: _mapControllerRef,
+          // position: Position(125.7989268, 7.4233187),
+          position: patientLocations[personalInfo.userID]!,
+          patientID: personalInfo.userID,
+        );
+
+        setState(() {
+          selectedIndividualID = personalInfo.userID;
+        });
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: (selectedIndividualID == personalInfo.userID)
+              ? Colors.blue.shade100
+              : Colors.transparent,
+          borderRadius: BorderRadius.all(Radius.circular(7)),
+        ),
+        padding: EdgeInsets.fromLTRB(2, 5, 2, 2),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // CircleAvatar(backgroundColor: Colors.blue,),
+            AspectRatio(
+              aspectRatio: 1 / 1,
+              child: CircleAvatar(
+                child: MyImageDisplayer(
+                  base64ImageString: decodedImagesBuffer[personalInfo.userID],
+                ),
               ),
             ),
-          );
-        }
-      },
+            MyTextFormatter.p(
+              text: firstName,
+              fontsize: kDefaultFontSize - 4,
+              fontWeight: (isPatient) ? FontWeight.w600 : FontWeight.w500,
+              color: (isPatient) ? Colors.blue.shade700 : Colors.black,
+            ),
+          ],
+        ),
+      ),
     );
+    //     }
+    //   },
+    // );
   }
 }
