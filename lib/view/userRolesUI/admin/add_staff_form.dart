@@ -993,7 +993,8 @@ class _AddStaffFormState extends State<AddStaffForm> {
                           ? FirebaseAuth.instance.currentUser!.uid
                           : staffPersonalInfo!.registeredBy, //
                       asignedCaregiver: staffPersonalInfo!.asignedCaregiver,
-                      deviceID: staffPersonalInfo!.deviceID,
+                      // for caregivers, deviceID will be the same as userID
+                      deviceID: staffPersonalInfo!.userID,
                       email: staffPersonalInfo!.email,
                     ),
                   );

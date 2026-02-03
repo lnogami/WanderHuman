@@ -4,9 +4,9 @@ import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/components/appbar.dart';
-import 'package:wanderhuman_app/view/components/cards.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/userRolesUI/admin/add_staff_form.dart';
+import 'package:wanderhuman_app/view/components/card_admin_social_service_role.dart';
 import 'package:wanderhuman_app/view/userRolesUI/admin/view_staff_form.dart';
 
 class ManageStaff extends StatelessWidget {
@@ -54,12 +54,8 @@ class ManageStaff extends StatelessWidget {
                   child: ListView.builder(
                     itemCount: snapshot.data!.length,
                     itemBuilder: (context, index) {
-                      return MyCardInfoDisplayer(
-                        profilePicture: snapshot.data![index].picture,
-                        name: snapshot.data![index].name,
-                        role: snapshot.data![index].userType,
-                        contactNumber: snapshot.data![index].contactNumber,
-                        emailAdd: snapshot.data![index].email,
+                      return MyAdminSocialServiceCardInfoDisplayer(
+                        personalInfo: snapshot.data![index],
                         onTap: () {
                           MyNavigator.goTo(
                             context,

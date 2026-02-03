@@ -4,7 +4,7 @@ import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
 import 'package:wanderhuman_app/view/components/appbar.dart';
-import 'package:wanderhuman_app/view/components/cards.dart';
+import 'package:wanderhuman_app/view/components/card_admin_social_service_role.dart';
 import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/userRolesUI/social_services/add_patient.dart';
@@ -53,12 +53,8 @@ class PatientRecords extends StatelessWidget {
                   child: ListView.builder(
                     itemCount: snapshot.data!.length,
                     itemBuilder: (context, index) {
-                      return MyCardInfoDisplayer(
-                        profilePicture: snapshot.data![index].picture,
-                        name: snapshot.data![index].name,
-                        role: "${snapshot.data![index].age} years old",
-                        contactNumber: snapshot.data![index].contactNumber,
-                        emailAdd: snapshot.data![index].email,
+                      return MyAdminSocialServiceCardInfoDisplayer(
+                        personalInfo: snapshot.data![index],
                         onTap: () {
                           // Navigator.pop(context);
                           MyNavigator.goTo(

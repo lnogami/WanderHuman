@@ -137,7 +137,7 @@ class ListenToPatients {
       }
 
       log(
-        "Notice: ✅ Successfully listening to ${_patientsList.length} patients realtime locations.",
+        "Notice:✅ Successfully listening to ${_patientsList.length} patients realtime locations.",
       );
     } catch (e, stackTrace) {
       log("ERROR ON LISTENTOPATIENTS METHOD: $e. AT $stackTrace");

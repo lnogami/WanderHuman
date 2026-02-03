@@ -11,6 +11,7 @@ import 'package:wanderhuman_app/view-model/home_appbar_provider.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_emergency_contacts_button.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_patient_list_dropdown.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/map_functions/active_status.dart';
 import 'package:wanderhuman_app/view/home_appbar/home_appbar.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_body.dart';
 
@@ -50,10 +51,12 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     initUserData();
+    ActiveStatus.setupOnDisconnectStatus();
   }
 
   @override
   void dispose() {
+    ActiveStatus.setActiveStatusToOffline();
     super.dispose();
   }
 

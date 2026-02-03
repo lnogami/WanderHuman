@@ -111,6 +111,10 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mp;
 import 'package:wanderhuman_app/model/realtime_location_model.dart';
 
 class MyRealtimeLocationReposity {
+  // Getters
+  /// `rootRef` refers to the root node of the realtime database
+  static get rootRef => _rootRef;
+
   // this is the root reference, it is only called once
   static final DatabaseReference _rootRef = FirebaseDatabase.instanceFor(
     app: Firebase.app(),
@@ -321,4 +325,24 @@ class MyRealtimeLocationReposity {
       rethrow;
     }
   }
+
+  //----- User Device Status ---------------------------------------------------
+
+  // /// Get user/device status in realtime stream
+  // Stream<ActiveStatusModel> getActiveStatusStream({required String deviceID}) {
+  //   try {
+  //     return _realtimeLocationRef.child("ActiveStatus").onValue.map((event) {
+  //       if (event.snapshot.exists) {
+  //         return ActiveStatusModel.fromMap(
+  //           Map<String, dynamic>.from(event.snapshot.value as Map),
+  //         );
+  //       }
+
+  //       return ActiveStatusModel(deviceID: deviceID, isActive: false);
+  //     });
+  //   } catch (e, stackTrace) {
+  //     log("ERROR WHILE RETRIEVING ACTIVE STATUS: $e. AT $stackTrace");
+  //     rethrow;
+  //   }
+  // }
 }

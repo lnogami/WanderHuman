@@ -1,30 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:wanderhuman_app/helper/realtime_active_status_repository.dart';
+import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
 import 'package:wanderhuman_app/view/components/image_displayer.dart';
 import 'package:wanderhuman_app/view/components/image_picker.dart';
 
-class MyCardInfoDisplayer extends StatelessWidget {
+class MyAdminSocialServiceCardInfoDisplayer extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
-  final String profilePicture;
-  // acts as the title of the card
-  final String name;
-  // acts as the subtitle of the card
-  final String role;
-  // acts as the description/additional info of the card
-  final String contactNumber;
-  final String emailAdd;
-  const MyCardInfoDisplayer({
+  // final String profilePicture;
+  // // acts as the title of the card
+  // final String name;
+  // // acts as the subtitle of the card
+  // final String role;
+  // // acts as the description/additional info of the card
+  // final String contactNumber;
+  // final String emailAdd;
+  final PersonalInfo personalInfo;
+  const MyAdminSocialServiceCardInfoDisplayer({
     super.key,
     this.onTap,
     this.onLongPress,
-    required this.name,
-    required this.role,
-    required this.contactNumber,
-    this.emailAdd = "No Email",
-    required this.profilePicture,
+    // required this.name,
+    // required this.role,
+    // required this.contactNumber,
+    // this.emailAdd = "No Email",
+    // required this.profilePicture,
+    required this.personalInfo,
   });
 
   @override
@@ -75,7 +79,7 @@ class MyCardInfoDisplayer extends StatelessWidget {
           child: MyImageDisplayer(
             profileImageSize: 80,
             base64ImageString: MyImageProcessor.decodeStringToUint8List(
-              profilePicture,
+              personalInfo.picture,
             ),
           ),
         ),
@@ -100,7 +104,7 @@ class MyCardInfoDisplayer extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               MyTextFormatter.h3(
-                text: name,
+                text: personalInfo.name,
                 // fontsize: kDefaultFontSize + 2,
                 fontWeight: FontWeight.w600,
               ),
@@ -110,32 +114,48 @@ class MyCardInfoDisplayer extends StatelessWidget {
                 margin: EdgeInsets.only(top: 5, bottom: 5),
                 color: MyColorPalette.lightBlue,
               ),
-              MyTextFormatter.h5(text: role),
+              MyTextFormatter.h5(text: personalInfo.userType),
               Text(
-                emailAdd,
+                personalInfo.email,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: (kDefaultFontSize - 1),
                   // color: Colors.blue.shade400,
                 ),
               ),
-              Row(
-                children: [
-                  Text(
-                    contactNumber,
-                    style: TextStyle(
-                      fontSize: (kDefaultFontSize - 1),
-                      // color: Colors.blue.shade400,
-                    ),
-                  ),
-                  Spacer(),
-                  CircleAvatar(backgroundColor: Colors.green, radius: 5),
-                  SizedBox(width: 2.5),
-                  MyTextFormatter.p(
-                    text: "Active",
-                    fontsize: kDefaultFontSize - 1,
-                  ),
-                ],
+              FutureBuilder(
+                future: MyRealtimeActiveStatusRepository.getActiveStatus(
+                  userID: personalInfo.userID,
+                ),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return MyTextFormatter.p(text: "Loading...");
+                  } else {
+                    return Row(
+                      children: [
+                        Text(
+                          personalInfo.contactNumber,
+                          style: TextStyle(
+                            fontSize: (kDefaultFontSize - 1),
+                            // color: Colors.blue.shade400,
+                          ),
+                        ),
+                        Spacer(),
+                        CircleAvatar(
+                          backgroundColor: (snapshot.data!)
+                              ? Colors.green
+                              : Colors.grey.shade400,
+                          radius: 5,
+                        ),
+                        SizedBox(width: 2.5),
+                        MyTextFormatter.p(
+                          text: (snapshot.data!) ? "Online" : "Offline",
+                          fontsize: kDefaultFontSize - 1,
+                        ),
+                      ],
+                    );
+                  }
+                },
               ),
             ],
           ),

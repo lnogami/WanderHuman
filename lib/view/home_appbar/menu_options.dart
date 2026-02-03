@@ -4,6 +4,7 @@ import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/universal_sizes.dart';
 import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/map_functions/active_status.dart';
 import 'package:wanderhuman_app/view/home_appbar/home_appbar_dynamic_panel.dart';
 import 'package:wanderhuman_app/view/home_appbar/user_role_previlige.dart';
 import 'package:wanderhuman_app/view/components/option_container.dart';
@@ -23,6 +24,7 @@ class MyMenuOptions extends StatefulWidget {
 }
 
 class _MyMenuOptionsState extends State<MyMenuOptions> {
+  bool isGoingToLogout = false;
   @override
   void initState() {
     super.initState();
@@ -84,25 +86,44 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
                   },
                 ),
                 SizedBox(height: 10),
-                optionsContainer(
-                  context,
-                  onTap: () {
-                    myAlertDialogue(
-                      context: context,
-                      alertTitle: "Confirm Logout",
-                      alertContent: "Are you sure you want to logout?",
-                      onApprovalPressed: () {
-                        Navigator.pop(context);
-                        FirebaseAuth.instance.signOut();
-                      },
-                    );
-                  },
-                  Icons.logout_outlined,
-                  "Logout",
-                  // bgColor: const Color.fromARGB(80, 255, 108, 108),
-                  // bgColor: const Color.fromARGB(70, 255, 198, 198),
-                  bgColor: const Color.fromARGB(70, 255, 234, 234),
-                ),
+                // if the logout button is pressed
+                (!isGoingToLogout)
+                    ? optionsContainer(
+                        context,
+                        Icons.logout_outlined,
+                        "Logout",
+                        // bgColor: const Color.fromARGB(80, 255, 108, 108),
+                        // bgColor: const Color.fromARGB(70, 255, 198, 198),
+                        bgColor: const Color.fromARGB(70, 255, 234, 234),
+                        onTap: () {
+                          myAlertDialogue(
+                            context: context,
+                            alertTitle: "Confirm Logout",
+                            alertContent: "Are you sure you want to logout?",
+                            onApprovalPressed: () async {
+                              setState(() {
+                                isGoingToLogout = true;
+                              });
+                              // await FirebaseAuth.instance.signOut();
+                            },
+                          );
+                        },
+                      )
+                    : FutureBuilder(
+                        future: ActiveStatus.setActiveStatusToOffline(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return CircularProgressIndicator();
+                          } else {
+                            signOut();
+                            return Icon(
+                              Icons.check_circle_outline_rounded,
+                              color: Colors.blue.shade400,
+                            );
+                          }
+                        },
+                      ),
                 SizedBox(height: 10),
               ],
             ),
@@ -166,6 +187,11 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
         ),
       ),
     );
+  }
+
+  Future<void> signOut() async {
+    Navigator.pop(context);
+    await FirebaseAuth.instance.signOut();
   }
 
   Row toDisplayUserType() {

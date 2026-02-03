@@ -1,9 +1,13 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
+import 'package:wanderhuman_app/helper/realtime_active_status_repository.dart';
 import 'package:wanderhuman_app/helper/realtime_location_repository.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
+import 'package:wanderhuman_app/model/realtime_active_status_model.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
 import 'package:wanderhuman_app/view-model/my_mapbox_ref_provider.dart';
@@ -26,30 +30,39 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
   bool isExpanded = false;
   // this will contain the mapbox controller reference
   late MapboxMap _mapControllerRef;
-  // (not yet implemented)
-  // this will contain the History og patients
-  // NOTE: History is just temporary, this must be change to Realtime Location if okay na ang device
-  List patientsLocation = [];
-  Future<void> getPatientsLocation() async {
-    // TODO: add the Realtime Location collection here
-    // MyHistoryReposity
-  }
 
   // will return all the patients in the PersonalInfo in the database (PersonalInfo)
   Future<List<PersonalInfo>> getPatientList() async {
     // this is called in here to also fetch Realtime Location callction while getting the patient list
-    getPatientsLocation();
 
-    List<PersonalInfo> patientList =
-        await MyPersonalInfoRepository.getAllPersonalInfoRecords(
-          fieldName: "userType",
-          valueToLookFor: "Patient",
-        );
-    // sort the patients by name in ascending order
-    patientList.sort((a, b) {
-      return a.name.compareTo(b.name);
-    });
-    return patientList;
+    // List<PersonalInfo> patientList =
+    //     await MyPersonalInfoRepository.getAllPersonalInfoRecords(
+    //       fieldName: "userType",
+    //       valueToLookFor: "Patient",
+    //     );
+    // // sort the patients by name in ascending order
+    // patientList.sort((a, b) {
+    //   return a.name.compareTo(b.name);
+    // });
+    // return patientList;
+
+    List<MyRealtimeActiveStatusModel> activeDevices =
+        await MyRealtimeActiveStatusRepository.getAllDeviceIDWithActiveStatus();
+
+    log("ALL ACTIVE DEVICESSSSSSSSSSSSSSSSSSSSSS: ${activeDevices.length}");
+
+    List<PersonalInfo> activePersons = [];
+    for (var device in activeDevices) {
+      log("PERSON's IDDDDDDDDDDDDDDDD: ${device.userID}");
+      activePersons.add(
+        await MyPersonalInfoRepository.getSpecificPersonalInfo(
+          userID: device.userID,
+        ),
+      );
+    }
+
+    log("ALL ACTIVE PERSONSSSSSSSSSSSSSSSSSSSSS: $activePersons");
+    return activePersons;
   }
 
   @override
@@ -151,6 +164,7 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
 
   /// Patient pictures that acts as a tappable icon.
   FutureBuilder individualPatientIcon({required PersonalInfo personalInfo}) {
+    bool isPatient = personalInfo.userType == "Patient";
     // only get the first name from the full name
     String firstName = personalInfo.name.split(" ")[0];
     if (firstName.length > 6 && firstName.length <= 10) {
@@ -199,7 +213,8 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
                   MyTextFormatter.p(
                     text: firstName,
                     fontsize: kDefaultFontSize - 4,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: (isPatient) ? FontWeight.w600 : FontWeight.w500,
+                    color: (isPatient) ? Colors.blue.shade700 : Colors.black,
                   ),
                 ],
               ),
