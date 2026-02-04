@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -48,8 +47,8 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
         await MyRealtimeActiveStatusRepository.getAllDeviceIDWithActiveStatus();
     // log("ALL ACTIVE DEVICESSSSSSSSSSSSSSSSSSSSSS: ${activeDevices.length}");
 
-    // storing the data in a temporary local variable is a preventive measure for multiple occurance of data
-    //that triggers when the dropdown is quickly clode while still loading then opening it again.
+    // Storing the data in a temporary local variable is a preventive measure for multiple occurance of data
+    // that triggers when the dropdown is quickly clode while still loading then opening it again.
     List<PersonalInfo> tempPatientList = [];
     Map<String, Position> tempPatientLocations = {};
     Map<String, Uint8List> tempDecodedImagesBuffer = {};
@@ -61,13 +60,13 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
         userID: device.userID,
       );
 
-      // add the patient as an active person to the list
+      // add the patient as an active person to a temporaruy list
       tempPatientList.add(
         await MyPersonalInfoRepository.getSpecificPersonalInfo(
           userID: device.userID,
         ),
       );
-      // store the coordinates of the patient in a map
+      // store the coordinates of the patient in a temporary map
       tempPatientLocations[device.userID] =
           await MyRealtimeLocationReposity.getLocation(deviceID: device.userID);
       // store the decoded image in a temporary buffer
@@ -75,7 +74,7 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
           MyImageProcessor.decodeStringToUint8List(person.picture);
     }
 
-    log("ALL ACTIVE PERSONSSSSSSSSSSSSSSSSSSSSS: ${patientList.length}");
+    // log("ALL ACTIVE PERSONSSSSSSSSSSSSSSSSSSSSS: ${patientList.length}");
 
     tempPatientList.sort((a, b) => a.name.compareTo(b.name));
 

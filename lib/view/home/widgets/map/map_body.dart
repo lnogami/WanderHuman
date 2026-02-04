@@ -21,6 +21,8 @@ import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/home/home.dart';
 // import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/bottom_modal_sheet_for_patient.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/listen_to_patients.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/map_functions/map_geofence.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/map_functions/map_interactions.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/point_annotation_options.dart';
 import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 
@@ -258,6 +260,9 @@ class _MapBodyState extends State<MapBody> with RouteAware {
       // ignore: use_build_context_synchronously
       context: context,
     );
+
+    MyMapInteractions.tapInteraction(mapboxMapController: mapboxMapController!);
+    MyMapGeofence.drawPolygon(mapboxMapController: mapboxMapController!);
   }
 
   // /// Add this to your state variables

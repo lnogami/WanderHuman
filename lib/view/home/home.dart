@@ -12,6 +12,7 @@ import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_emergency_contacts_button.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_patient_list_dropdown.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/active_status.dart';
+import 'package:wanderhuman_app/view/home/widgets/set_geofence.dart';
 import 'package:wanderhuman_app/view/home_appbar/home_appbar.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_body.dart';
 
@@ -91,9 +92,16 @@ class _HomePageState extends State<HomePage> {
                     child: MyHomeEmergencyContactsButton(),
                   ),
 
-                  // Temporary for testing realtime database only (deletable)
+                  // Set Geofence
                   Positioned(
                     top: MyDimensionAdapter.getHeight(context) * 0.2,
+                    left: 18,
+                    child: SetGeofence(),
+                  ),
+
+                  // Temporary for testing realtime database only (deletable)
+                  Positioned(
+                    top: MyDimensionAdapter.getHeight(context) * 0.27,
                     left: 18,
                     child: IconButton(
                       onPressed: () {
