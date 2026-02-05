@@ -3,7 +3,7 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 class MyMapGeofence {
   // Sample geofence polygon points
-  static final _customShapePoints = [
+  static final customShapePoints = [
     [
       // Position(125.801, 7.441),
       // Position(125.805, 7.441),
@@ -32,7 +32,7 @@ class MyMapGeofence {
 
     polygonManager.create(
       PolygonAnnotationOptions(
-        geometry: Polygon(coordinates: _customShapePoints),
+        geometry: Polygon(coordinates: customShapePoints),
         fillColor: Colors.blue.toARGB32(),
         fillOpacity: 0.2,
         fillOutlineColor: Colors.black.toARGB32(),

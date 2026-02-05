@@ -7,7 +7,7 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 Future<void> myMapFlyTo({
   required MapboxMap mapboxController,
   required Position position,
-  required String patientID,
+  // required String patientID,
   double zoomLevel = 15.0,
 }) async {
   try {

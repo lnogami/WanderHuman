@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
+import 'package:wanderhuman_app/view-model/home_geofence_config_provider.dart';
 import 'package:wanderhuman_app/view/components/bottom_sheet.dart';
 import 'package:wanderhuman_app/view/components/button.dart';
 import 'package:wanderhuman_app/view/components/tooltip.dart';
@@ -61,7 +63,13 @@ class _SetGeofenceState extends State<SetGeofence> {
               buttonTextColor: Colors.white,
               buttonTextFontWeight: FontWeight.w500,
               buttonTextFontSize: kDefaultFontSize + 2,
-              onTap: () {},
+              onTap: () {
+                context
+                    .read<MyHomeGeofenceConfigurationProvider>()
+                    .toggleGeofenceCreation(true);
+
+                Navigator.pop(context);
+              },
             ),
             SizedBox(height: 10),
             MyCustButton(

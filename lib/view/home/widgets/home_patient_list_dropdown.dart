@@ -197,7 +197,7 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
           mapboxController: _mapControllerRef,
           // position: Position(125.7989268, 7.4233187),
           position: patientLocations[personalInfo.userID]!,
-          patientID: personalInfo.userID,
+          // patientID: personalInfo.userID,
         );
 
         setState(() {

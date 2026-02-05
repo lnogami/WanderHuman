@@ -9,6 +9,7 @@ import 'package:wanderhuman_app/firebase_options.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
 import 'package:wanderhuman_app/view-model/home_appbar_provider.dart';
+import 'package:wanderhuman_app/view-model/home_geofence_config_provider.dart';
 import 'package:wanderhuman_app/view-model/my_mapbox_ref_provider.dart';
 import 'package:wanderhuman_app/view/home/home.dart';
 import 'package:wanderhuman_app/view/login/login.dart';
@@ -54,8 +55,12 @@ class MainApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (context) => HomeAppBarProvider(),
         ), // NOTE: this is just here because if I remove this it will call an error, the children must not be empty.
-        // newly added (not yet tested as of Jan26, 2026)
+        // for Mapbox configuration
         ChangeNotifierProvider(create: (context) => MyMapboxRefProvider()),
+        // newly added (not yet tested as of Feb05, 2026)
+        ChangeNotifierProvider(
+          create: (context) => MyHomeGeofenceConfigurationProvider(),
+        ),
       ],
       child: MaterialApp(
         navigatorObservers: [routeObserver], // registering the route observer
