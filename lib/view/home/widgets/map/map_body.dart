@@ -14,6 +14,7 @@ import 'package:wanderhuman_app/main.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/model/realtime_location_model.dart';
 import 'package:wanderhuman_app/utilities/properties/date_formatter.dart';
+import 'package:wanderhuman_app/view-model/home_geofence_config_provider.dart';
 import 'package:wanderhuman_app/view-model/my_mapbox_ref_provider.dart';
 import 'package:wanderhuman_app/view/components/image_picker.dart';
 import 'package:wanderhuman_app/view/components/info_dialogue.dart';
@@ -21,7 +22,7 @@ import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/home/home.dart';
 // import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/bottom_modal_sheet_for_patient.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/listen_to_patients.dart';
-import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/map_geofence.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/map_geofence_drawer.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/map_interactions.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/point_annotation_options.dart';
 import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
@@ -55,6 +56,9 @@ class _MapBodyState extends State<MapBody> with RouteAware {
   mp.MapboxMap? mapboxMapController;
   // point annotation manager
   mp.PointAnnotationManager? pointAnnotationManager;
+  // This two Managers are for temporary scenarios like when creating a safe zone (geofence)
+  mp.PolygonAnnotationManager? markedPolygonAnnotationManager;
+  mp.PointAnnotationManager? markedPointAnnotationManager;
   // to listen to the user's location changes
   StreamSubscription? userPositionStream;
   // Keep track of existing annotations by Firestore document ID
@@ -149,6 +153,17 @@ class _MapBodyState extends State<MapBody> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
+    // This will act as a listener for polygonManager that if the listOfMarkedPositions is empty, clear the drawn polygon (geofence)
+    List<List<mp.Position>> listOfMarkedPositions = context
+        .watch<MyHomeGeofenceConfigurationProvider>()
+        .listOfMarkedPositions;
+    if (listOfMarkedPositions[0].isEmpty &&
+        markedPolygonAnnotationManager != null &&
+        markedPointAnnotationManager != null) {
+      markedPolygonAnnotationManager!.deleteAll();
+      markedPointAnnotationManager!.deleteAll();
+    }
+
     return mp.MapWidget(
       onMapCreated: _onMapCreated,
       // this is the styles of the map
@@ -253,6 +268,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     // // Start listening to Firebase users
     // listenToPatients();
 
+    // This part of the code is for listening to realtime database data
     ListenToPatients.listenToPatients(
       annotationData: annotationData,
       userAnnotations: userAnnotations,
@@ -261,8 +277,27 @@ class _MapBodyState extends State<MapBody> with RouteAware {
       context: context,
     );
 
-    MyMapInteractions.tapInteraction(mapboxMapController: mapboxMapController!);
-    MyMapGeofence.drawPolygon(mapboxMapController: mapboxMapController!);
+    // This part of the code is for creating geofences
+    if (context.mounted) {
+      markedPolygonAnnotationManager = await mapboxMapController!.annotations
+          .createPolygonAnnotationManager();
+
+      markedPointAnnotationManager = await mapboxMapController!.annotations
+          .createPointAnnotationManager();
+
+      MyMapInteractions.tapInteraction(
+        mapboxMapController: mapboxMapController!,
+        polygonManager: markedPolygonAnnotationManager,
+        pointAnnotationManager: markedPointAnnotationManager,
+        // ignore: use_build_context_synchronously
+        context: context,
+      );
+
+      // MyMapGeofenceDrawer.drawPolygon(
+      //   mapboxMapController: mapboxMapController!,
+      //   // ignore: use_build_context_synchronously
+      // );
+    }
   }
 
   // /// Add this to your state variables

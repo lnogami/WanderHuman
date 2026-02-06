@@ -8,9 +8,9 @@ import 'package:provider/provider.dart';
 import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
+import 'package:wanderhuman_app/view-model/home_geofence_config_provider.dart';
 import 'package:wanderhuman_app/view-model/my_mapbox_ref_provider.dart';
 import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
-import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/map_geofence.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/fly_to.dart';
 
 class SettingGeofenceBottomPanel extends StatefulWidget {
@@ -46,8 +46,12 @@ class _SettingGeofenceBottomPanelState
   @override
   void initState() {
     super.initState();
-    // TODO: to be change to call the actual source, the repository
-    listOfPositions = MyMapGeofence.customShapePoints[0];
+    // // TODO: to be change to call the actual source, the repository
+    // listOfPositions = MyMapGeofence.customShapePoints[0];
+    // listOfPositions = MyMapGeofence.listOfMarkedPositions[0];
+    listOfPositions = context
+        .read<MyHomeGeofenceConfigurationProvider>()
+        .listOfMarkedPositions[0];
     scrollController = FixedExtentScrollController(initialItem: selectedIndex);
   }
 
@@ -105,10 +109,12 @@ class _SettingGeofenceBottomPanelState
                         // });
                         dev.log("VALUEEEE: $value");
                         dev.log("SELECTED ITEMMMM: $selectedIndex");
-                        myMapFlyTo(
-                          mapboxController: mapboxMapRef!,
-                          position: listOfPositions![value],
-                        );
+                        if (listOfPositions!.isNotEmpty) {
+                          myMapFlyTo(
+                            mapboxController: mapboxMapRef!,
+                            position: listOfPositions![value],
+                          );
+                        }
                       },
                       // children: [
                       // _myCustomContainer(Text("Hello")),
@@ -225,6 +231,7 @@ class _SettingGeofenceBottomPanelState
 
   // this is responsible for
   List<Widget> myIterator() {
+    if (listOfPositions!.isEmpty) return [];
     // int length = MyMapGeofence.customShapePoints.length;
     List<Widget> widgets = <Widget>[];
     for (var position in listOfPositions!) {

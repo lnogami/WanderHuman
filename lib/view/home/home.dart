@@ -231,7 +231,26 @@ class _HomePageState extends State<HomePage> {
                   context
                       .read<MyHomeGeofenceConfigurationProvider>()
                       .toggleGeofenceViewing(false);
+                  log(
+                    context
+                        .read<MyHomeGeofenceConfigurationProvider>()
+                        .listOfMarkedPositions[0]
+                        .length
+                        .toString(),
+                  );
                   log("CLOSE BUTTONNNNNNNNNNNNNNNNNNNNNNNNN");
+                  // This is to clear the list of marked positions
+                  context
+                      .read<MyHomeGeofenceConfigurationProvider>()
+                      .clearMarkedPositions();
+                  // This is to clear the polygonManager's data
+                  log(
+                    context
+                        .read<MyHomeGeofenceConfigurationProvider>()
+                        .listOfMarkedPositions[0]
+                        .length
+                        .toString(),
+                  );
                 },
                 child: Column(
                   children: [
