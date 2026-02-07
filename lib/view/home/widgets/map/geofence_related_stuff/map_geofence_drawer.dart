@@ -66,28 +66,23 @@ class MyMapGeofenceDrawer {
       ),
     );
 
+    // (deletable)
     // final PolygonAnnotationManager polygonManager = await mapboxMapController
     //     .annotations
     //     .createPolygonAnnotationManager();
-
     // await polygonManager.deleteAll();
-
     // // Check the inner list (the first ring of the polygon)
     // if (positions.isEmpty || positions[0].length < 3) {
     //   return;
     // }
-
     // // DEEP COPY the positions to avoid corrupting the Provider data
     // // This creates a new list so we don't keep adding 'closing points' to the original
     // List<List<Position>> drawablePositions = [List.from(positions[0])];
-
     // // Mapbox requires the last point to be identical to the first to close the loop
     // drawablePositions[0].add(drawablePositions[0][0]);
-
     // for (var position in drawablePositions[0]) {
     //   log("Drawing point: lng: ${position.lng}, lat: ${position.lat}");
     // }
-
     // polygonManager.create(
     //   PolygonAnnotationOptions(
     //     geometry: Polygon(coordinates: drawablePositions),
@@ -96,7 +91,6 @@ class MyMapGeofenceDrawer {
     //     fillZOffset: 10,
     //   ),
     // );
-
     // final polygonManager = await mapboxMapController.annotations
     //     .createPolygonAnnotationManager();
     // // Clear existing polygons before drawing the updated one
@@ -112,28 +106,44 @@ class MyMapGeofenceDrawer {
     // );
   }
 
+  // static void redrawPolygon(){
+  //   drawPolygon(polygonManager: polygonManager, positions: positions)
+  // }
+
   /// This is for marking the pressed position when the user is creating the polygon of the geofence
   static void markPressedPoints({
     required PointAnnotationManager pointManager,
     required Point tappedPoint,
     required BuildContext context,
   }) async {
-    pointManager.create(
+    // This will make this function only work when the user is in the process of creating a geofence, this is to prevent marking unnecessary points in the map.
+    if (!context
+        .read<MyHomeGeofenceConfigurationProvider>()
+        .isCreatingGeofence) {
+      log("Not in geofence creation mode, ignoring tap.");
+      return;
+    }
+
+    // Adding the marked position to the Provider's listOfMarkedPositions
+    if (context.mounted) {
+      context.read<MyHomeGeofenceConfigurationProvider>().addMarkedPosition(
+        Position(tappedPoint.coordinates.lng, tappedPoint.coordinates.lat),
+      );
+    }
+
+    // this will create a marker icon at the tapped position
+    // and the returned PointAnnotation will be stored in the listOfMarkedPointAnnotations in the Provider for future reference (like deleting specific markers)
+    final PointAnnotation pointAnnotation = await pointManager.create(
       PointAnnotationOptions(
         geometry: tappedPoint,
         image: await imageToIconLoader("assets/icons/location_marker.png"),
         iconSize: 0.035,
       ),
     );
-
-    // listOfMarkedPositions[0].add(
-    //   Position(tappedPoint.coordinates.lng, tappedPoint.coordinates.lat),
-    // );
-    if (context.mounted) {
-      context.read<MyHomeGeofenceConfigurationProvider>().addMarkedPosition(
-        Position(tappedPoint.coordinates.lng, tappedPoint.coordinates.lat),
-      );
-    }
+    // ignore: use_build_context_synchronously
+    context.read<MyHomeGeofenceConfigurationProvider>().addTempPointAnnotation(
+      pointAnnotation,
+    );
   }
 
   // for loading an image asset an converting it into a Uint8List

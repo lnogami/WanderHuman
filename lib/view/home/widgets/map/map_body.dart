@@ -22,7 +22,6 @@ import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/home/home.dart';
 // import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/bottom_modal_sheet_for_patient.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/listen_to_patients.dart';
-import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/map_geofence_drawer.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/map_interactions.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/point_annotation_options.dart';
 import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
@@ -130,26 +129,26 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     super.dispose();
   }
 
-  // --- VISIBILITY EVENTS ---
-  @override
-  void didPushNext() {
-    // 4. Called when a new screen covers this map
-    log("Notice: Map is covered by another page. Pausing streams...");
-    ListenToPatients.stopListening();
-  }
+  // // --- VISIBILITY EVENTS ---
+  // @override
+  // void didPushNext() {
+  //   // 4. Called when a new screen covers this map
+  //   log("Notice: Map is covered by another page. Pausing streams...");
+  //   ListenToPatients.stopListening();
+  // }
 
-  @override
-  void didPopNext() {
-    // 5. Called when the top screen is popped and map is visible again
-    log("Notice: Map is visible again. Resuming streams...");
-    // You need to call your start method here again!
-    ListenToPatients.listenToPatients(
-      annotationData: annotationData,
-      userAnnotations: userAnnotations,
-      pointAnnotationManager: pointAnnotationManager,
-      context: context,
-    );
-  }
+  // @override
+  // void didPopNext() {
+  //   // 5. Called when the top screen is popped and map is visible again
+  //   log("Notice: Map is visible again. Resuming streams...");
+  //   // You need to call your start method here again!
+  //   ListenToPatients.listenToPatients(
+  //     annotationData: annotationData,
+  //     userAnnotations: userAnnotations,
+  //     pointAnnotationManager: pointAnnotationManager,
+  //     context: context,
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -202,12 +201,25 @@ class _MapBodyState extends State<MapBody> with RouteAware {
       mapboxMapController = controller;
     });
 
+    // manages the polygon annotations, this if for geofence related stuff
+    markedPolygonAnnotationManager = await mapboxMapController?.annotations
+        .createPolygonAnnotationManager();
+    markedPointAnnotationManager = await mapboxMapController?.annotations
+        .createPointAnnotationManager();
+
     // using addPostFrameCallback ensures it doesn't conflict with the build cycle
     // it will wait until the current fram finishes rendering
     // though its not really neccessary here (just like the setState above)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // store the controller globally (State Management) to make it accessible anywhere
       context.read<MyMapboxRefProvider>().setMapboxMapController(controller);
+      // this is for setting up the geofence configuration, this will initialize the PolygonAnnotationManager and PointAnnotationManager that will be used for creating geofences and marking the tapped points in the map when creating geofences
+      context
+          .read<MyHomeGeofenceConfigurationProvider>()
+          .initPolygonAndPointManagers(
+            polygonManager: markedPolygonAnnotationManager!,
+            pointManager: markedPointAnnotationManager!,
+          );
     });
 
     // manages point annotations
@@ -217,56 +229,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     //temporary ra ni (deletable)
     // controller.annotations.createPointAnnotationManager();
 
-    // logic for displaying user position/location on the map
-    mapboxMapController?.location.updateSettings(
-      mp.LocationComponentSettings(enabled: true, pulsingEnabled: true),
-    );
-
-    // scaleBar indicator, indicator of how much the map is zoomed in/out
-    mapboxMapController!.scaleBar.updateSettings(
-      mp.ScaleBarSettings(
-        enabled: true,
-        position: mp.OrnamentPosition.BOTTOM_LEFT,
-        primaryColor: Colors.blue.toARGB32(),
-        showTextBorder: true,
-        textColor: Colors.blue.toARGB32(),
-        borderWidth: 1,
-        textBorderWidth: 0.2,
-        marginBottom: 8,
-        marginLeft: 8,
-      ),
-    );
-
-    // the mapbox logo can be moved, but cannot be hidden as per MapBox's Terms and Policy
-    mapboxMapController!.logo.updateSettings(
-      mp.LogoSettings(
-        position: mp.OrnamentPosition.BOTTOM_RIGHT,
-        marginRight: 25,
-      ),
-    );
-
-    // I AM NOT ALLOWED TO HIDE THE MAPBOX LOGO BECAUSE IT'S IN SERVICE TERMS AND POLICES.
-
-    // the stroked i icon next to MapBox icon
-    mapboxMapController!.attribution.updateSettings(
-      mp.AttributionSettings(
-        iconColor: const Color.fromARGB(100, 33, 149, 243).toARGB32(),
-        position: mp.OrnamentPosition.BOTTOM_RIGHT,
-      ),
-    );
-
-    // the compass icon in the map that only appears if the map is tilted
-    mapboxMapController!.compass.updateSettings(
-      // mp.CompassSettings(marginTop: 80, marginRight: 15, opacity: 0.70),
-      mp.CompassSettings(marginTop: 90, marginRight: 70, opacity: 0.60),
-    );
-
-    //// original code of the new method getLocationServiceStatus()
-    // bool isLocationServiceEnabled =
-    //     await gl.Geolocator.isLocationServiceEnabled();
-
-    // // Start listening to Firebase users
-    // listenToPatients();
+    initOtherMapRequirements(mapboxMapController!);
 
     // This part of the code is for listening to realtime database data
     ListenToPatients.listenToPatients(
@@ -279,12 +242,6 @@ class _MapBodyState extends State<MapBody> with RouteAware {
 
     // This part of the code is for creating geofences
     if (context.mounted) {
-      markedPolygonAnnotationManager = await mapboxMapController!.annotations
-          .createPolygonAnnotationManager();
-
-      markedPointAnnotationManager = await mapboxMapController!.annotations
-          .createPointAnnotationManager();
-
       MyMapInteractions.tapInteraction(
         mapboxMapController: mapboxMapController!,
         polygonManager: markedPolygonAnnotationManager,
@@ -293,6 +250,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
         context: context,
       );
 
+      //// TODO: this is where the active geofence is going to be setup
       // MyMapGeofenceDrawer.drawPolygon(
       //   mapboxMapController: mapboxMapController!,
       //   // ignore: use_build_context_synchronously
@@ -684,5 +642,52 @@ class _MapBodyState extends State<MapBody> with RouteAware {
   Future<Uint8List> imageToIconLoader(String imagePath) async {
     var byteData = await rootBundle.load(imagePath);
     return byteData.buffer.asUint8List();
+  }
+
+  // these were just the things that I can' remove in the map interface because of the MapBox's Terms and Policy, but I can change their position and appearance
+  void initOtherMapRequirements(mp.MapboxMap mapController) {
+    // logic for displaying user position/location on the map
+    mapboxMapController?.location.updateSettings(
+      mp.LocationComponentSettings(enabled: true, pulsingEnabled: true),
+    );
+
+    // scaleBar indicator, indicator of how much the map is zoomed in/out
+    mapboxMapController!.scaleBar.updateSettings(
+      mp.ScaleBarSettings(
+        enabled: true,
+        position: mp.OrnamentPosition.BOTTOM_LEFT,
+        primaryColor: Colors.blue.toARGB32(),
+        showTextBorder: true,
+        textColor: Colors.blue.toARGB32(),
+        borderWidth: 1,
+        textBorderWidth: 0.2,
+        marginBottom: 8,
+        marginLeft: 8,
+      ),
+    );
+
+    // the mapbox logo can be moved, but cannot be hidden as per MapBox's Terms and Policy
+    mapboxMapController!.logo.updateSettings(
+      mp.LogoSettings(
+        position: mp.OrnamentPosition.BOTTOM_RIGHT,
+        marginRight: 25,
+      ),
+    );
+
+    // I AM NOT ALLOWED TO HIDE THE MAPBOX LOGO BECAUSE IT'S IN SERVICE TERMS AND POLICES.
+
+    // the stroked i icon next to MapBox icon
+    mapboxMapController!.attribution.updateSettings(
+      mp.AttributionSettings(
+        iconColor: const Color.fromARGB(100, 33, 149, 243).toARGB32(),
+        position: mp.OrnamentPosition.BOTTOM_RIGHT,
+      ),
+    );
+
+    // the compass icon in the map that only appears if the map is tilted
+    mapboxMapController!.compass.updateSettings(
+      // mp.CompassSettings(marginTop: 80, marginRight: 15, opacity: 0.70),
+      mp.CompassSettings(marginTop: 90, marginRight: 70, opacity: 0.60),
+    );
   }
 }

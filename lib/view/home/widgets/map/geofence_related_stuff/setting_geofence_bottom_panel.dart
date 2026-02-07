@@ -11,6 +11,7 @@ import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
 import 'package:wanderhuman_app/view-model/home_geofence_config_provider.dart';
 import 'package:wanderhuman_app/view-model/my_mapbox_ref_provider.dart';
 import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/map_geofence_drawer.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/fly_to.dart';
 
 class SettingGeofenceBottomPanel extends StatefulWidget {
@@ -116,34 +117,13 @@ class _SettingGeofenceBottomPanelState
                           );
                         }
                       },
-                      // children: [
-                      // _myCustomContainer(Text("Hello")),
-                      // _myCustomContainer(Text("World!")),
-                      // _myCustomContainer(Text("Hi")),
-                      // _myCustomContainer(Text("Are")),
-                      // _myCustomContainer(Text("You?")),
-                      // _myCustomContainer(Text("World!")),
-                      // ],
                       children: myIterator(),
                     ),
                   ),
                 ),
               ),
 
-              //(deletable)
-              // Positioned(
-              //   left: -10,
-              //   child: Transform.rotate(
-              //     angle: -pi / 180 * 90,
-              //     origin: Offset(0, 0),
-              //     // child: Container(width: 100, height: 100, color: Colors.blue),
-              //     child: Icon(
-              //       Icons.location_on_rounded,
-              //       size: 56,
-              //       color: Colors.blue,
-              //     ),
-              //   ),
-              // ),
+              // This is the blue button for deleting the selected coordinate, it will show an alert dialogue for confirmation before deleting the coordinate
               Positioned(
                 right: 5,
                 top: MyDimensionAdapter.getHeight(context) * 0.07,
@@ -161,8 +141,7 @@ class _SettingGeofenceBottomPanelState
 
                         setState(() {
                           listOfPositions!.removeAt(selectedIndex);
-
-                          // to safely handle the index out of range error
+                          // to safely handle the index out of range error before scrolling to child
                           if (selectedIndex >= listOfPositions!.length) {
                             selectedIndex = listOfPositions!.length - 1;
                           }
@@ -172,7 +151,28 @@ class _SettingGeofenceBottomPanelState
                         dev.log(
                           "List of Positions Length: ${listOfPositions!.length}",
                         );
+
+                        // Remove the alert dialog
                         Navigator.pop(context);
+
+                        // This will remove the marked position at the selected index from the Provider
+                        context
+                            .read<MyHomeGeofenceConfigurationProvider>()
+                            .removeMarkedAnnotationPositionAt(selectedIndex);
+
+                        // This will redraw the polygon with the updated list of positions after deleting the selected coordinate
+                        MyMapGeofenceDrawer.drawPolygon(
+                          polygonManager: context
+                              .read<MyHomeGeofenceConfigurationProvider>()
+                              .markedPolygonAnnotationManager!,
+                          positions: context
+                              .read<MyHomeGeofenceConfigurationProvider>()
+                              .listOfMarkedPositions,
+                        );
+
+                        dev.log(
+                          "Successfully removed coordinate at $selectedIndex",
+                        );
                       },
                     );
                   },
