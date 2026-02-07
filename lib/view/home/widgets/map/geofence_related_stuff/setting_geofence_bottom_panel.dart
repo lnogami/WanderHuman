@@ -139,6 +139,11 @@ class _SettingGeofenceBottomPanelState
                           "List of Positions Length: ${listOfPositions!.length}",
                         );
 
+                        // This will remove the marked position at the selected index from the Provider
+                        context
+                            .read<MyHomeGeofenceConfigurationProvider>()
+                            .removeMarkedAnnotationPositionAt(selectedIndex);
+
                         setState(() {
                           listOfPositions!.removeAt(selectedIndex);
                           // to safely handle the index out of range error before scrolling to child
@@ -154,11 +159,6 @@ class _SettingGeofenceBottomPanelState
 
                         // Remove the alert dialog
                         Navigator.pop(context);
-
-                        // This will remove the marked position at the selected index from the Provider
-                        context
-                            .read<MyHomeGeofenceConfigurationProvider>()
-                            .removeMarkedAnnotationPositionAt(selectedIndex);
 
                         // This will redraw the polygon with the updated list of positions after deleting the selected coordinate
                         MyMapGeofenceDrawer.drawPolygon(

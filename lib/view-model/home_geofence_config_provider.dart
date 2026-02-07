@@ -77,6 +77,7 @@ class MyHomeGeofenceConfigurationProvider extends ChangeNotifier {
     );
   }
 
+  /// This will be used for storing a copy of the created PointAnnotation in the [_markedPolygonAnnotationManager]
   void addTempPointAnnotation(PointAnnotation annotation) {
     _listOfMarkedPointAnnotations.add(annotation);
     notifyListeners();

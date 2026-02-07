@@ -129,26 +129,26 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     super.dispose();
   }
 
-  // // --- VISIBILITY EVENTS ---
-  // @override
-  // void didPushNext() {
-  //   // 4. Called when a new screen covers this map
-  //   log("Notice: Map is covered by another page. Pausing streams...");
-  //   ListenToPatients.stopListening();
-  // }
+  // --- VISIBILITY EVENTS ---
+  @override
+  void didPushNext() {
+    // 4. Called when a new screen covers this map
+    log("Notice: Map is covered by another page. Pausing streams...");
+    ListenToPatients.stopListening();
+  }
 
-  // @override
-  // void didPopNext() {
-  //   // 5. Called when the top screen is popped and map is visible again
-  //   log("Notice: Map is visible again. Resuming streams...");
-  //   // You need to call your start method here again!
-  //   ListenToPatients.listenToPatients(
-  //     annotationData: annotationData,
-  //     userAnnotations: userAnnotations,
-  //     pointAnnotationManager: pointAnnotationManager,
-  //     context: context,
-  //   );
-  // }
+  @override
+  void didPopNext() {
+    // 5. Called when the top screen is popped and map is visible again
+    log("Notice: Map is visible again. Resuming streams...");
+    // You need to call your start method here again!
+    ListenToPatients.listenToPatients(
+      annotationData: annotationData,
+      userAnnotations: userAnnotations,
+      pointAnnotationManager: pointAnnotationManager,
+      context: context,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
