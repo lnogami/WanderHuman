@@ -13,6 +13,7 @@ import 'package:wanderhuman_app/view-model/home_geofence_config_provider.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_emergency_contacts_button.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_patient_list_dropdown.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/saving_geofence_form.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/setting_geofence_bottom_panel.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/active_status.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/set_geofence_interface.dart';
@@ -28,14 +29,17 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   bool isLoading = true;
+  // UID of the logged in user
+  final String currentLoggedInUser = FirebaseAuth.instance.currentUser!.uid;
 
   // this will initialize the logged in user's personal info in the HomeAppBarProvider
   Future<void> initUserData() async {
     try {
-      final String uid = FirebaseAuth.instance.currentUser!.uid;
       // Fetch the full object once to save reads
       PersonalInfo currentlyLoggedInUserData =
-          await MyPersonalInfoRepository.getSpecificPersonalInfo(userID: uid);
+          await MyPersonalInfoRepository.getSpecificPersonalInfo(
+            userID: currentLoggedInUser,
+          );
 
       // using addPostFrameCallback ensures it doesn't conflict with the build cycle
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -267,13 +271,11 @@ class _HomePageState extends State<HomePage> {
               if (isCreatingGeofence)
                 GestureDetector(
                   onTap: () {
-                    context
-                        .read<MyHomeGeofenceConfigurationProvider>()
-                        .toggleGeofenceCreation(false);
-                    context
-                        .read<MyHomeGeofenceConfigurationProvider>()
-                        .toggleGeofenceViewing(false);
-
+                    MyNavigator.goTo(
+                      context,
+                      SavingGeofenceForm(loggedInUserID: currentLoggedInUser),
+                      animationType: 1,
+                    );
                     // Actions to be added here
                   },
                   child: Column(

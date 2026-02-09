@@ -226,9 +226,6 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     pointAnnotationManager = await mapboxMapController?.annotations
         .createPointAnnotationManager();
 
-    //temporary ra ni (deletable)
-    // controller.annotations.createPointAnnotationManager();
-
     initOtherMapRequirements(mapboxMapController!);
 
     // This part of the code is for listening to realtime database data

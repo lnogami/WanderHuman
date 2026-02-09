@@ -4,25 +4,32 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wanderhuman_app/model/geofence_model.dart';
 
 class MyGeofenceRepository {
-  final CollectionReference geofenceColRef = FirebaseFirestore.instance
-      .collection("geofences");
+  static final CollectionReference geofenceColRef = FirebaseFirestore.instance
+      .collection("Geofences");
 
   // used for creating a geofence to have the same geofenceID as the doc.id
-  DocumentReference get _docRef => geofenceColRef.doc();
+  static DocumentReference _getDocRef() {
+    return geofenceColRef.doc();
+  }
+
   // try {} catch (e, stackTrace) {
   //       log("ERROR WHILE CREATING GEOFENCE: $e. AT $stackTrace");
   //     }
-  Future<void> createGeofence(MyGeofenceModel geofenceModel) async {
+  static Future<void> createGeofence(MyGeofenceModel geofenceModel) async {
     try {
-      await geofenceColRef.add({
-        "geofenceID": _docRef.id,
-        "geofenceName": geofenceModel.geofenceName,
-        "geofenceCoordinates": geofenceModel.geofenceCoordinates,
-        "createdAt": geofenceModel.createdAt,
-        "createdBy": geofenceModel.createdBy,
-        "registeredPatients": geofenceModel.registeredPatients,
-        "isActive": geofenceModel.isActive,
-      });
+      // await geofenceColRef.add({
+      //   "geofenceID": _docRef.id,
+      //   "geofenceName": geofenceModel.geofenceName,
+      //   "geofenceCoordinates": geofenceModel.geofenceCoordinates,
+      //   "createdAt": geofenceModel.createdAt,
+      //   "createdBy": geofenceModel.createdBy,
+      //   "registeredPatients": geofenceModel.registeredPatients,
+      //   "isActive": geofenceModel.isActive,
+      // });
+
+      // the purpose of this docRef is to get the docID beforehand, so that it can be used for geofenceID
+      final DocumentReference docRef = _getDocRef();
+      await docRef.set(geofenceModel.toFirestore(docID: docRef.id));
 
       log("GEOFENCE CREATED SUCCESSFULLY");
     } catch (e, stackTrace) {
@@ -31,14 +38,17 @@ class MyGeofenceRepository {
     }
   }
 
-  Future<MyGeofenceModel> getGeofence({required String geofenceID}) async {
+  static Future<MyGeofenceModel> getGeofence({
+    required String geofenceID,
+  }) async {
     try {
       final DocumentSnapshot docSnapshot = await geofenceColRef
           .doc(geofenceID)
           .get();
 
       return MyGeofenceModel.fromFirestore(
-        docSnapshot.data() as Map<String, dynamic>,
+        docId: docSnapshot.id,
+        data: docSnapshot.data() as Map<String, dynamic>,
       );
     } catch (e, stackTrace) {
       log("ERROR WHILE GETTING GEOFENCE: $e. AT $stackTrace");
@@ -46,7 +56,7 @@ class MyGeofenceRepository {
     }
   }
 
-  Future<List<MyGeofenceModel>> getAllGeofences({
+  static Future<List<MyGeofenceModel>> getAllGeofences({
     String? field,
     String? fieldValue,
   }) async {
@@ -63,9 +73,28 @@ class MyGeofenceRepository {
 
       return querySnapshot.docs.map((doc) {
         return MyGeofenceModel.fromFirestore(
-          doc.data() as Map<String, dynamic>,
+          docId: doc.id,
+          data: doc.data() as Map<String, dynamic>,
         );
       }).toList();
+    } catch (e, stackTrace) {
+      log("ERROR WHILE GETTING ALL GEOFENCES: $e. AT $stackTrace");
+      rethrow;
+    }
+  }
+
+  static Future<List<MyGeofenceModel>> getActiveGeofences() {
+    try {
+      return getAllGeofences(
+        field: "isActive",
+        fieldValue: true.toString(),
+      ).then((geofences) {
+        if (geofences.isNotEmpty) {
+          return geofences; // Return all active geofences
+        } else {
+          throw Exception("No active geofence found");
+        }
+      });
     } catch (e, stackTrace) {
       log("ERROR WHILE GETTING ALL GEOFENCES: $e. AT $stackTrace");
       rethrow;
