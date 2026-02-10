@@ -13,10 +13,10 @@ import 'package:wanderhuman_app/view-model/home_geofence_config_provider.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_emergency_contacts_button.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_patient_list_dropdown.dart';
-import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/saving_geofence_form.dart';
-import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/setting_geofence_bottom_panel.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/draw_geo/saving_geofence_form.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/draw_geo/setting_geofence_bottom_panel.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/active_status.dart';
-import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/set_geofence_interface.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/draw_geo/set_geofence_interface.dart';
 import 'package:wanderhuman_app/view/home_appbar/home_appbar.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_body.dart';
 
@@ -29,6 +29,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   bool isLoading = true;
+
   // UID of the logged in user
   final String currentLoggedInUser = FirebaseAuth.instance.currentUser!.uid;
 
@@ -271,11 +272,19 @@ class _HomePageState extends State<HomePage> {
               if (isCreatingGeofence)
                 GestureDetector(
                   onTap: () {
-                    MyNavigator.goTo(
-                      context,
-                      SavingGeofenceForm(loggedInUserID: currentLoggedInUser),
-                      animationType: 1,
-                    );
+                    if (!context
+                        .read<MyHomeGeofenceConfigurationProvider>()
+                        .isAboutToAddCenterPoint) {
+                      context
+                          .read<MyHomeGeofenceConfigurationProvider>()
+                          .toggleIsAboutToAddCenterPoint(true);
+                    } else {
+                      MyNavigator.goTo(
+                        context,
+                        SavingGeofenceForm(loggedInUserID: currentLoggedInUser),
+                        animationType: 1,
+                      );
+                    }
                     // Actions to be added here
                   },
                   child: Column(

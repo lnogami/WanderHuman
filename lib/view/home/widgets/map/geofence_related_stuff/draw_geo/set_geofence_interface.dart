@@ -6,6 +6,7 @@ import 'package:wanderhuman_app/view-model/home_geofence_config_provider.dart';
 import 'package:wanderhuman_app/view/components/bottom_sheet.dart';
 import 'package:wanderhuman_app/view/components/button.dart';
 import 'package:wanderhuman_app/view/components/tooltip.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/view_geo/viewing_geofences_bottom_panel.dart';
 
 class SetGeofence extends StatefulWidget {
   const SetGeofence({super.key});
@@ -64,6 +65,7 @@ class _SetGeofenceState extends State<SetGeofence> {
               buttonTextFontWeight: FontWeight.w500,
               buttonTextFontSize: kDefaultFontSize + 2,
               onTap: () {
+                // this will make the bottom panel appear
                 context
                     .read<MyHomeGeofenceConfigurationProvider>()
                     .toggleGeofenceCreation(true);
@@ -82,7 +84,13 @@ class _SetGeofenceState extends State<SetGeofence> {
               height: 45,
               color: Colors.white24,
               enableShadow: false,
-              onTap: () {},
+              onTap: () {
+                Navigator.pop(context);
+                MyBottomPanel.showMyBottomPanel(
+                  context: context,
+                  child: ViewingGeofencesBottomPanel(),
+                );
+              },
             ),
           ],
         ),

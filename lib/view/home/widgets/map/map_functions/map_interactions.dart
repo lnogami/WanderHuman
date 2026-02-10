@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:wanderhuman_app/view-model/home_geofence_config_provider.dart';
-import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/map_geofence_drawer.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/draw_geo/map_geofence_drawer.dart';
 
 class MyMapInteractions {
   /// Tap interection within the map itself.

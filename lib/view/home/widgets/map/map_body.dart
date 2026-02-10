@@ -8,8 +8,10 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart' as gl;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mp;
 import 'package:provider/provider.dart';
+import 'package:wanderhuman_app/helper/geofence_repository.dart';
 import 'package:wanderhuman_app/helper/realtime_location_repository.dart';
 import 'package:wanderhuman_app/main.dart';
+import 'package:wanderhuman_app/model/geofence_model.dart';
 // import 'package:wanderhuman_app/model/history_model.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/model/realtime_location_model.dart';
@@ -20,6 +22,7 @@ import 'package:wanderhuman_app/view/components/image_picker.dart';
 import 'package:wanderhuman_app/view/components/info_dialogue.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/home/home.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/draw_geo/map_geofence_drawer.dart';
 // import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/bottom_modal_sheet_for_patient.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/listen_to_patients.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/map_interactions.dart';
@@ -55,9 +58,15 @@ class _MapBodyState extends State<MapBody> with RouteAware {
   mp.MapboxMap? mapboxMapController;
   // point annotation manager
   mp.PointAnnotationManager? pointAnnotationManager;
+
+  mp.PolygonAnnotationManager? polygonAnnotationManager;
+  List<List<mp.Position>> listOfPositions = [];
+  int numberOfActiveGeofences = 0;
+
   // This two Managers are for temporary scenarios like when creating a safe zone (geofence)
   mp.PolygonAnnotationManager? markedPolygonAnnotationManager;
   mp.PointAnnotationManager? markedPointAnnotationManager;
+
   // to listen to the user's location changes
   StreamSubscription? userPositionStream;
   // Keep track of existing annotations by Firestore document ID
@@ -96,6 +105,33 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     }
   }
 
+  Future<void> setupGeofences() async {
+    try {
+      List<MyGeofenceModel> activeGeofences =
+          await MyGeofenceRepository.getActiveGeofences();
+
+      polygonAnnotationManager = await mapboxMapController?.annotations
+          .createPolygonAnnotationManager();
+
+      numberOfActiveGeofences = activeGeofences.length;
+
+      for (final geofence in activeGeofences) {
+        MyMapGeofenceDrawer.drawPolygon(
+          polygonManager: polygonAnnotationManager!,
+          positions: [
+            geofence.geofenceCoordinates
+                .map((pos) => mp.Position(pos.lng, pos.lat))
+                .toList(),
+          ],
+        );
+      }
+
+      log("The number of active geofences is: $numberOfActiveGeofences");
+    } catch (e, stackTrace) {
+      log("ERROR WHILE SETTING UP GEOFENCES: $e. AT $stackTrace");
+    }
+  }
+
   /// this will initialize the mapbox API
   Future<void> setupMapboxAccessToken() async {
     mp.MapboxOptions.setAccessToken(dotenv.env['MAPBOX_ACCESS_TOKEN']!);
@@ -109,6 +145,8 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     checkAndRequestLocationPermission();
     checkLocationServiceStatus();
     // updatePatient(); // for tranfering firestore dummy data to realtime database only (deletable)
+
+    setupGeofences();
   }
 
   @override
@@ -247,11 +285,13 @@ class _MapBodyState extends State<MapBody> with RouteAware {
         context: context,
       );
 
-      //// TODO: this is where the active geofence is going to be setup
-      // MyMapGeofenceDrawer.drawPolygon(
-      //   mapboxMapController: mapboxMapController!,
-      //   // ignore: use_build_context_synchronously
-      // );
+      // TODO: this is where the active geofence is going to be setup
+      MyMapGeofenceDrawer.drawPolygon(
+        polygonManager: markedPolygonAnnotationManager!,
+        positions: context
+            .read<MyHomeGeofenceConfigurationProvider>()
+            .listOfMarkedPositions,
+      );
     }
   }
 

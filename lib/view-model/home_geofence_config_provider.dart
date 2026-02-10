@@ -19,8 +19,12 @@ class MyHomeGeofenceConfigurationProvider extends ChangeNotifier {
     ],
   ];
 
+  // after adding all the points for the polygon, add a center point
+  bool _isAboutToAddCenterPoint = false;
+
   bool get isCreatingGeofence => _isCreatingGeofence;
   bool get isViewingGeofences => _isViewingGeofences;
+  bool get isAboutToAddCenterPoint => _isAboutToAddCenterPoint;
   List<List<Position>> get listOfMarkedPositions => _listOfMarkedPositions;
   PolygonAnnotationManager? get markedPolygonAnnotationManager =>
       _markedPolygonAnnotationManager;
@@ -102,5 +106,12 @@ class MyHomeGeofenceConfigurationProvider extends ChangeNotifier {
     notifyListeners();
 
     log("Successfully removed marked position at index $index");
+  }
+
+  void toggleIsAboutToAddCenterPoint(bool value) {
+    _isAboutToAddCenterPoint = value;
+    notifyListeners();
+
+    log("Successfully toggled isAboutToAddCenterPoint to $value");
   }
 }

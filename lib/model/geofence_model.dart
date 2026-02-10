@@ -122,9 +122,9 @@ class MyGeofenceModel {
   // ==========================================
   // WRITE: App Object -> Firestore Map
   // ==========================================
-  Map<String, dynamic> toFirestore({required String docID}) {
+  Map<String, dynamic> toFirestore({String? docID}) {
     return {
-      "geofenceID": docID,
+      "geofenceID": docID ?? "No ID Provided",
       "geofenceName": geofenceName,
       // Convert List<Position> back to List<Map>
       "geofenceCoordinates": geofenceCoordinates

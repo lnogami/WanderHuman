@@ -7,27 +7,27 @@ import 'package:provider/provider.dart';
 import 'package:wanderhuman_app/view-model/home_geofence_config_provider.dart';
 
 class MyMapGeofenceDrawer {
-  // Sample geofence polygon points
-  static final customShapePoints = [
-    [
-      // Position(125.801, 7.441),
-      // Position(125.805, 7.441),
-      // Position(125.805, 7.438),
-      // Position(125.803, 7.438),
-      // Position(125.803, 7.440),
-      // Position(125.801, 7.440),
-      // Position(125.801, 7.441), // Closing the loop
+  // // Sample geofence polygon points
+  // static final customShapePoints = [
+  //   [
+  //     // Position(125.801, 7.441),
+  //     // Position(125.805, 7.441),
+  //     // Position(125.805, 7.438),
+  //     // Position(125.803, 7.438),
+  //     // Position(125.803, 7.440),
+  //     // Position(125.801, 7.440),
+  //     // Position(125.801, 7.441), // Closing the loop
 
-      // testing purposes only
-      Position(125.79811, 7.42784),
-      Position(125.79937, 7.42688),
-      Position(125.80123, 7.42712),
-      Position(125.80336, 7.42956),
-      Position(125.80139, 7.43204),
-      Position(125.79735, 7.43112),
-      Position(125.79811, 7.42784), // Closing the loop
-    ],
-  ];
+  //     // testing purposes only
+  //     Position(125.79811, 7.42784),
+  //     Position(125.79937, 7.42688),
+  //     Position(125.80123, 7.42712),
+  //     Position(125.80336, 7.42956),
+  //     Position(125.80139, 7.43204),
+  //     Position(125.79735, 7.43112),
+  //     Position(125.79811, 7.42784), // Closing the loop
+  //   ],
+  // ];
 
   /// This is the actual visible geofence area
   static void drawPolygon({

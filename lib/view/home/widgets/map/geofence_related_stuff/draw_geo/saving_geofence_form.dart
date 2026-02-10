@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:provider/provider.dart';
@@ -46,9 +48,24 @@ class _SavingGeofenceFormState extends State<SavingGeofenceForm> {
       fieldName: "userType",
       valueToLookFor: "Patient",
     );
+
+    addedParticipants.addAll(
+      participants.map((participant) => participant.userID),
+    );
+
     setState(() {
       isLoading = false;
     });
+
+    log(
+      "NOTICEEEEEEEEEEEEEEEEEEEEEEEE: Participants data in saving geofence form: ${participants.length}",
+    );
+    log(
+      "NOTICEEEEEEEEEEEEEEEEEEEEEEEE: IS ALL PARTICIPANTS SELECTED: $isAllParticipantsSelected",
+    );
+    log(
+      "NOTICEEEEEEEEEEEEEEEEEEEEEEEE: ADDED PARTICIPANTS: $addedParticipants",
+    );
   }
 
   @override
@@ -128,6 +145,10 @@ class _SavingGeofenceFormState extends State<SavingGeofenceForm> {
                           buttonTextSpacing: 1.2,
                           onTap: () async {
                             FocusManager.instance.primaryFocus?.unfocus();
+
+                            log(
+                              "Participants to be added in the geofence: ${addedParticipants.length}",
+                            );
 
                             // animate the button to show the saving process occurs
                             setState(() => isSaving = true);
@@ -239,6 +260,10 @@ class _SavingGeofenceFormState extends State<SavingGeofenceForm> {
                         participants.map((participant) {
                           return participant.userID;
                         }),
+                      );
+
+                      log(
+                        "NOTICEEEEEEEEEEEEEEEEEEEEEEEE: ADDED PARTICIPANTS: $addedParticipants",
                       );
                     }
                     // This helper method finds whatever text field is currently active and closes it

@@ -58,7 +58,7 @@ class MyGeofenceRepository {
 
   static Future<List<MyGeofenceModel>> getAllGeofences({
     String? field,
-    String? fieldValue,
+    dynamic fieldValue,
   }) async {
     try {
       late QuerySnapshot querySnapshot;
@@ -83,12 +83,12 @@ class MyGeofenceRepository {
     }
   }
 
+  // Returns a list of all active geofences
   static Future<List<MyGeofenceModel>> getActiveGeofences() {
     try {
-      return getAllGeofences(
-        field: "isActive",
-        fieldValue: true.toString(),
-      ).then((geofences) {
+      return getAllGeofences(field: "isActive", fieldValue: true).then((
+        geofences,
+      ) {
         if (geofences.isNotEmpty) {
           return geofences; // Return all active geofences
         } else {
@@ -97,6 +97,51 @@ class MyGeofenceRepository {
       });
     } catch (e, stackTrace) {
       log("ERROR WHILE GETTING ALL GEOFENCES: $e. AT $stackTrace");
+      rethrow;
+    }
+  }
+
+  // This function checks if a patient is already registered in any active geofence.
+  static Future<bool> isPatientAlreadyRegisteredInAnActiveGeofence(
+    String patientID,
+  ) async {
+    try {
+      final List<MyGeofenceModel> activeGeofences = await getActiveGeofences();
+      for (final geofence in activeGeofences) {
+        if (geofence.registeredPatients.contains(patientID)) {
+          return true; // Patient is already registered in an active geofence
+        }
+      }
+      return false; // Patient is not registered in any active geofence
+    } catch (e, stackTrace) {
+      log(
+        "ERROR WHILE CHECKING IF PATIENT IS IN AN ACTIVE GEOFENCE: $e. AT $stackTrace",
+      );
+      rethrow;
+    }
+  }
+
+  static Future<void> updateGeofence({
+    required String id,
+    required MyGeofenceModel geofenceModel,
+  }) async {
+    try {
+      await geofenceColRef.doc(id).set(geofenceModel.toFirestore(docID: id));
+
+      log("GEOFENCE UPDATED SUCCESSFULLY");
+    } catch (e, stackTrace) {
+      log("ERROR WHILE UPDATING GEOFENCE: $e. AT $stackTrace");
+      rethrow;
+    }
+  }
+
+  static Future<void> deleteGeofence({required String id}) async {
+    try {
+      await geofenceColRef.doc(id).delete();
+
+      log("GEOFENCE DELETED SUCCESSFULLY");
+    } catch (e, stackTrace) {
+      log("ERROR WHILE DELETING GEOFENCE: $e. AT $stackTrace");
       rethrow;
     }
   }
