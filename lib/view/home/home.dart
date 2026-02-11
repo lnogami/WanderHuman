@@ -10,6 +10,8 @@ import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
 import 'package:wanderhuman_app/view-model/home_appbar_provider.dart';
 import 'package:wanderhuman_app/view-model/home_geofence_config_provider.dart';
+import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
+import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_emergency_contacts_button.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_patient_list_dropdown.dart';
@@ -75,6 +77,10 @@ class _HomePageState extends State<HomePage> {
         .watch<MyHomeGeofenceConfigurationProvider>();
     bool isCreatingGeofence = geofenceProvider.isCreatingGeofence;
     bool isViewingGeofences = geofenceProvider.isViewingGeofences;
+    // for special button activation
+    bool isAboutToAddCenterPoint = context
+        .watch<MyHomeGeofenceConfigurationProvider>()
+        .isAboutToAddCenterPoint;
 
     return Scaffold(
       body: SafeArea(
@@ -115,7 +121,8 @@ class _HomePageState extends State<HomePage> {
                   // this only appears if the user is creating/viewing geofences
                   creatingOrViewingASafeZoneButtons(
                     context,
-                    isCreatingGeofence,
+                    isCreatingGeofence: isCreatingGeofence,
+                    isAboutToAddCenterPoint: isAboutToAddCenterPoint,
                   ),
 
                   // -----------------------
@@ -203,9 +210,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   Positioned creatingOrViewingASafeZoneButtons(
-    BuildContext context,
-    bool isCreatingGeofence,
-  ) {
+    BuildContext context, {
+    required bool isCreatingGeofence,
+    required bool isAboutToAddCenterPoint,
+  }) {
     return Positioned(
       top: MyDimensionAdapter.getHeight(context) * 0.01,
       right: 0,
@@ -244,10 +252,15 @@ class _HomePageState extends State<HomePage> {
                         .toString(),
                   );
                   log("CLOSE BUTTONNNNNNNNNNNNNNNNNNNNNNNNN");
-                  // This is to clear the list of marked positions
+                  // // This is to clear the list of marked positions
+                  // context
+                  //     .read<MyHomeGeofenceConfigurationProvider>()
+                  //     .clearMarkedPositions();
+
+                  // clear all the temporary data in the provider
                   context
                       .read<MyHomeGeofenceConfigurationProvider>()
-                      .clearMarkedPositions();
+                      .clearAllCachedTemporaryData();
                   // This is to clear the polygonManager's data
                   log(
                     context
@@ -268,41 +281,94 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
-              // this button is not visible viewing geofences only
-              if (isCreatingGeofence)
-                GestureDetector(
-                  onTap: () {
-                    if (!context
-                        .read<MyHomeGeofenceConfigurationProvider>()
-                        .isAboutToAddCenterPoint) {
-                      context
-                          .read<MyHomeGeofenceConfigurationProvider>()
-                          .toggleIsAboutToAddCenterPoint(true);
-                    } else {
-                      MyNavigator.goTo(
-                        context,
-                        SavingGeofenceForm(loggedInUserID: currentLoggedInUser),
-                        animationType: 1,
-                      );
-                    }
-                    // Actions to be added here
-                  },
-                  child: Column(
-                    children: [
-                      Icon(Icons.check, color: Colors.blue, size: 32),
-                      MyTextFormatter.p(
-                        text: "Save",
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ],
-                  ),
-                ),
+
+              creatingGeofencesButtons(
+                isCreatingGeofence,
+                isAboutToAddCenterPoint,
+              ),
+
+              // this button is not visible if viewing geofences only
               SizedBox(width: 15),
             ],
           ),
         ),
       ),
     );
+  }
+
+  GestureDetector creatingGeofencesButtons(
+    bool isCreatingGeofence,
+    bool isAboutToAddCenterPoint,
+  ) {
+    return (isCreatingGeofence && !isAboutToAddCenterPoint)
+        // For creating the outside circle of the geofence
+        ? GestureDetector(
+            onTap: () {
+              myAlertDialogue(
+                context: context,
+                alertTitle: "Save Safezone",
+                alertContent:
+                    "Are you sure you want to save this safezone?\nYou wont be able to add coordinates to it, and if you want to add you need to close this first.",
+                onApprovalPressed: () {
+                  // toggle the isAboutToAddCenterPoint to true
+                  context
+                      .read<MyHomeGeofenceConfigurationProvider>()
+                      .toggleIsAboutToAddCenterPoint(true);
+
+                  Navigator.pop(context);
+                },
+              );
+            },
+            child: Column(
+              children: [
+                Icon(Icons.check_rounded, color: Colors.blue, size: 32),
+                MyTextFormatter.p(
+                  text: "Save",
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ],
+            ),
+          )
+        // For creating the center point of the geofence
+        : GestureDetector(
+            onTap: () {
+              if (context
+                      .read<MyHomeGeofenceConfigurationProvider>()
+                      .centerPoint ==
+                  null) {
+                showMyAnimatedSnackBar(
+                  context: context,
+                  dataToDisplay:
+                      "Please, mark the center point first to proceed.",
+                );
+              } else {
+                myAlertDialogue(
+                  context: context,
+                  alertTitle: "Save Center Point",
+                  alertContent:
+                      "Are you sure you want to save the center point of this safezone?",
+                  onApprovalPressed: () {
+                    Navigator.pop(context);
+                    MyNavigator.goTo(
+                      context,
+                      SavingGeofenceForm(loggedInUserID: currentLoggedInUser),
+                      animationType: 1,
+                    );
+                  },
+                );
+              }
+            },
+            child: Column(
+              children: [
+                Icon(Icons.check_rounded, color: Colors.blue, size: 32),
+                MyTextFormatter.p(
+                  text: "Finish",
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ],
+            ),
+          );
   }
 }

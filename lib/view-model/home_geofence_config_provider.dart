@@ -18,13 +18,15 @@ class MyHomeGeofenceConfigurationProvider extends ChangeNotifier {
       // Position(0, 0)
     ],
   ];
-
+  // centerPoint is separated from the list of markedPositions
+  Position? _centerPoint;
   // after adding all the points for the polygon, add a center point
   bool _isAboutToAddCenterPoint = false;
 
   bool get isCreatingGeofence => _isCreatingGeofence;
   bool get isViewingGeofences => _isViewingGeofences;
   bool get isAboutToAddCenterPoint => _isAboutToAddCenterPoint;
+  // The actual
   List<List<Position>> get listOfMarkedPositions => _listOfMarkedPositions;
   PolygonAnnotationManager? get markedPolygonAnnotationManager =>
       _markedPolygonAnnotationManager;
@@ -32,6 +34,7 @@ class MyHomeGeofenceConfigurationProvider extends ChangeNotifier {
       _markedPointAnnotationManager;
   List<PointAnnotation> get listOfMarkedPointAnnotations =>
       _listOfMarkedPointAnnotations;
+  Position? get centerPoint => _centerPoint;
 
   // For when creating a new geofence.
   void toggleGeofenceCreation(bool value) {
@@ -50,7 +53,7 @@ class MyHomeGeofenceConfigurationProvider extends ChangeNotifier {
   }
 
   // For adding a mark to a specific Position (coordinates in the map) that will be used for creating a geofence, this will be added to the listOfMarkedPositions which will then be used for drawing the geofence polygon.
-  void addMarkedPosition(Position position) {
+  void addMarkedPosition({required Position position}) {
     _listOfMarkedPositions[0].add(position);
     notifyListeners();
 
@@ -65,6 +68,21 @@ class MyHomeGeofenceConfigurationProvider extends ChangeNotifier {
     notifyListeners();
 
     log("Successfully cleared marked positions");
+  }
+
+  /// For clearing the cached data after saving, to avoid using it.
+  void clearAllCachedTemporaryData() {
+    clearMarkedPositions();
+    _centerPoint = Position(0, 0); // temporarily throw it somewhere else
+    _markedPointAnnotationManager!.deleteAll();
+    _markedPolygonAnnotationManager!.deleteAll();
+    _listOfMarkedPointAnnotations.clear();
+    _isAboutToAddCenterPoint = false;
+    _isCreatingGeofence = false;
+    _isViewingGeofences = false;
+
+    notifyListeners();
+    log("Successfully cleared all cached temporary data");
   }
 
   // For setting up PolygonAnnotationManager and PointAnnotationManager, this will be used for when the user wants to start creating a geofence, we need to initialize these two managers to be able to draw the polygon and the points in the map.
@@ -113,5 +131,14 @@ class MyHomeGeofenceConfigurationProvider extends ChangeNotifier {
     notifyListeners();
 
     log("Successfully toggled isAboutToAddCenterPoint to $value");
+  }
+
+  void setCenterPoint(Position position) {
+    _centerPoint = position;
+    notifyListeners();
+
+    log(
+      "Successfully set center point to lng: ${position.lng}, lat: ${position.lat}",
+    );
   }
 }

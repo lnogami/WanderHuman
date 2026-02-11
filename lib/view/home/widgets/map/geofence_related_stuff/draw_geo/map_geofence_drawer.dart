@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:wanderhuman_app/utilities/properties/universal_sizes.dart';
 import 'package:wanderhuman_app/view-model/home_geofence_config_provider.dart';
 
 class MyMapGeofenceDrawer {
@@ -115,6 +116,7 @@ class MyMapGeofenceDrawer {
     required PointAnnotationManager pointManager,
     required Point tappedPoint,
     required BuildContext context,
+    bool isACenterPoint = false,
   }) async {
     // This will make this function only work when the user is in the process of creating a geofence, this is to prevent marking unnecessary points in the map.
     if (!context
@@ -125,20 +127,45 @@ class MyMapGeofenceDrawer {
     }
 
     // Adding the marked position to the Provider's listOfMarkedPositions
-    if (context.mounted) {
+    // Only add to the MarkedPosition if its not a center point
+    if (context.mounted && !isACenterPoint) {
       context.read<MyHomeGeofenceConfigurationProvider>().addMarkedPosition(
-        Position(tappedPoint.coordinates.lng, tappedPoint.coordinates.lat),
+        position: Position(
+          tappedPoint.coordinates.lng,
+          tappedPoint.coordinates.lat,
+        ),
       );
     }
 
     // this will create a marker icon at the tapped position
     // and the returned PointAnnotation will be stored in the listOfMarkedPointAnnotations in the Provider for future reference (like deleting specific markers)
     final PointAnnotation pointAnnotation = await pointManager.create(
-      PointAnnotationOptions(
-        geometry: tappedPoint,
-        image: await imageToIconLoader("assets/icons/location_marker.png"),
-        iconSize: 0.035,
-      ),
+      // isACenterPoint means the center point is going to be marked
+      (isACenterPoint)
+          ? PointAnnotationOptions(
+              geometry: tappedPoint,
+              image: await imageToIconLoader(
+                "assets/icons/location_marker.png",
+              ),
+              iconSize: 0.038,
+              textField: "Center Point",
+              textColor: Colors.white.toARGB32(),
+              textHaloColor: Colors.blue.toARGB32(),
+              textHaloWidth: 2,
+              textHaloBlur: 1,
+              textSize: MySizes.mapTextFieldSize,
+              textOcclusionOpacity: 1,
+              isDraggable: false,
+              textAnchor: TextAnchor.BOTTOM,
+              textOffset: [0, -1.2],
+            )
+          : PointAnnotationOptions(
+              geometry: tappedPoint,
+              image: await imageToIconLoader(
+                "assets/icons/location_marker.png",
+              ),
+              iconSize: 0.035,
+            ),
     );
     // ignore: use_build_context_synchronously
     context.read<MyHomeGeofenceConfigurationProvider>().addTempPointAnnotation(

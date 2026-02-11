@@ -5,6 +5,7 @@ import 'package:battery_plus/battery_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:geolocator/geolocator.dart' as gl;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mp;
 import 'package:provider/provider.dart';
@@ -20,8 +21,6 @@ import 'package:wanderhuman_app/view-model/home_geofence_config_provider.dart';
 import 'package:wanderhuman_app/view-model/my_mapbox_ref_provider.dart';
 import 'package:wanderhuman_app/view/components/image_picker.dart';
 import 'package:wanderhuman_app/view/components/info_dialogue.dart';
-import 'package:wanderhuman_app/view/components/page_navigator.dart';
-import 'package:wanderhuman_app/view/home/home.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/draw_geo/map_geofence_drawer.dart';
 // import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/bottom_modal_sheet_for_patient.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/listen_to_patients.dart';
@@ -56,16 +55,8 @@ class _MapBodyState extends State<MapBody> with RouteAware {
 
   // controller for the map
   mp.MapboxMap? mapboxMapController;
-  // point annotation manager
+  // point annotation manager for  patients
   mp.PointAnnotationManager? pointAnnotationManager;
-
-  mp.PolygonAnnotationManager? polygonAnnotationManager;
-  List<List<mp.Position>> listOfPositions = [];
-  int numberOfActiveGeofences = 0;
-
-  // This two Managers are for temporary scenarios like when creating a safe zone (geofence)
-  mp.PolygonAnnotationManager? markedPolygonAnnotationManager;
-  mp.PointAnnotationManager? markedPointAnnotationManager;
 
   // to listen to the user's location changes
   StreamSubscription? userPositionStream;
@@ -76,6 +67,15 @@ class _MapBodyState extends State<MapBody> with RouteAware {
   Map<String, Map<String, dynamic>> annotationData = {};
   // temporary
   gl.Position? myPosition;
+
+  // Geofence related stuff
+  mp.PolygonAnnotationManager? polygonAnnotationManager;
+  // List<List<mp.Position>> listOfPositions = [];
+  int numberOfActiveGeofences = 0;
+
+  // This two Managers are for temporary scenarios like when creating a safe zone (geofence)
+  mp.PolygonAnnotationManager? markedPolygonAnnotationManager;
+  mp.PointAnnotationManager? markedPointAnnotationManager;
 
   // TODO: after pressing the refresh, the UI will not change if you logout (but it is already logged out, just the UI doesn't change)
   // this will check if the location is enabled or not, if not, a dialog box
@@ -95,10 +95,8 @@ class _MapBodyState extends State<MapBody> with RouteAware {
           onPressText: "Refresh",
           barrierColor: Color.fromARGB(72, 45, 60, 71),
           onPress: () {
-            // this will simulate a refresh
-            Navigator.pop(context);
-            Navigator.pop(context);
-            MyNavigator.goTo(context, HomePage());
+            // This will soft restart the App
+            Phoenix.rebirth(context);
           },
         );
       }
@@ -109,6 +107,9 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     try {
       List<MyGeofenceModel> activeGeofences =
           await MyGeofenceRepository.getActiveGeofences();
+
+      // return if there are no active geofences
+      if (activeGeofences.isEmpty) return;
 
       polygonAnnotationManager = await mapboxMapController?.annotations
           .createPolygonAnnotationManager();

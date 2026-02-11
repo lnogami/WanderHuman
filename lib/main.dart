@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:provider/provider.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:wanderhuman_app/firebase_options.dart';
@@ -30,7 +31,10 @@ void main() async {
   await dotenv.load(fileName: ".env");
   // To prevent the device from sleeping.
   WakelockPlus.enable();
-  runApp(const MainApp());
+  runApp(
+    // Phoenix is a wrapper that is capable of resrting the app.
+    Phoenix(child: const MainApp()),
+  );
 }
 
 class MainApp extends StatelessWidget {

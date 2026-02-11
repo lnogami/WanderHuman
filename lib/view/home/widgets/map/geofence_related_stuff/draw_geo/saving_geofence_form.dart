@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:wanderhuman_app/helper/geofence_repository.dart';
@@ -14,6 +15,8 @@ import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
 import 'package:wanderhuman_app/view-model/home_geofence_config_provider.dart';
 import 'package:wanderhuman_app/view/components/appbar.dart';
 import 'package:wanderhuman_app/view/components/button.dart';
+import 'package:wanderhuman_app/view/components/info_dialogue.dart';
+import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/components/textfield.dart';
 
 class SavingGeofenceForm extends StatefulWidget {
@@ -77,110 +80,121 @@ class _SavingGeofenceFormState extends State<SavingGeofenceForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: MyDimensionAdapter.getWidth(context),
-        height: MyDimensionAdapter.getHeight(context),
-        decoration: BoxDecoration(
-          // color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
+      body: SingleChildScrollView(
+        child: Container(
+          width: MyDimensionAdapter.getWidth(context),
+          height: MyDimensionAdapter.getHeight(context),
+          decoration: BoxDecoration(
+            // color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // MyLine(
-              //   length: MyDimensionAdapter.getWidth(context) * 0.15,
-              //   thickness: 4,
-              //   isRounded: true,
-              //   isVertical: false,
-              //   color: Colors.grey.shade600,
-              // ),
-              // SizedBox(height: 10),
-              MyCustAppBar(
-                title: "Saving Safe Zone Form",
-                fontSize: kDefaultFontSize + 4,
-                fontWeight: FontWeight.w600,
-              ),
-              SizedBox(height: 35),
+          child: SafeArea(
+            child: Column(
+              children: [
+                MyCustAppBar(
+                  title: "Saving Safe Zone Form",
+                  fontSize: kDefaultFontSize + 4,
+                  fontWeight: FontWeight.w600,
+                ),
+                SizedBox(height: 35),
 
-              MyCustTextfield(
-                labelText: "Safezone name",
-                prefixIcon: Icons.location_on_rounded,
-                textController: safeZoneNameController,
-              ),
-              SizedBox(height: 20),
+                MyCustTextfield(
+                  labelText: "Safezone name",
+                  prefixIcon: Icons.location_on_rounded,
+                  textController: safeZoneNameController,
+                ),
+                SizedBox(height: 20),
 
-              (isLoading)
-                  ? CircularProgressIndicator.adaptive()
-                  : participantsDropDown(context),
-              SizedBox(height: 20),
+                (isLoading)
+                    ? CircularProgressIndicator.adaptive()
+                    : participantsDropDown(context),
+                SizedBox(height: 20),
 
-              Spacer(),
+                Spacer(),
 
-              // Buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  MyCustButton(
-                    buttonText: "Cancel",
-                    color: Colors.transparent,
-                    enableShadow: false,
-                    borderColor: Colors.transparent,
-                    widthPercentage: 0.25,
-                    buttonTextSpacing: 1.2,
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                  SizedBox(width: 10),
-                  (isSaving)
-                      ? CircularProgressIndicator.adaptive()
-                      : MyCustButton(
-                          buttonText: "Save Safe Zone",
-                          buttonTextColor: Colors.white,
-                          buttonTextFontSize: kDefaultFontSize + 2,
-                          buttonTextFontWeight: FontWeight.w600,
-                          buttonTextSpacing: 1.2,
-                          onTap: () async {
-                            FocusManager.instance.primaryFocus?.unfocus();
+                // Buttons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    MyCustButton(
+                      buttonText: "Cancel",
+                      color: Colors.transparent,
+                      enableShadow: false,
+                      borderColor: Colors.transparent,
+                      widthPercentage: 0.25,
+                      buttonTextSpacing: 1.2,
+                      onTap: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                    SizedBox(width: 10),
+                    (isSaving)
+                        ? CircularProgressIndicator.adaptive()
+                        : MyCustButton(
+                            buttonText: "Save Safe Zone",
+                            buttonTextColor: Colors.white,
+                            buttonTextFontSize: kDefaultFontSize + 2,
+                            buttonTextFontWeight: FontWeight.w600,
+                            buttonTextSpacing: 1.2,
+                            onTap: () async {
+                              FocusManager.instance.primaryFocus?.unfocus();
 
-                            log(
-                              "Participants to be added in the geofence: ${addedParticipants.length}",
-                            );
+                              log(
+                                "Participants to be added in the geofence: ${addedParticipants.length}",
+                              );
 
-                            // animate the button to show the saving process occurs
-                            setState(() => isSaving = true);
-                            await saveExecution(context);
-                            setState(() => isSaving = false);
+                              if (safeZoneNameController.text.isEmpty) {
+                                showMyAnimatedSnackBar(
+                                  context: context,
+                                  dataToDisplay:
+                                      "Please do not leave the field empty",
+                                );
+                              } else {
+                                // animate the button to show the saving process occurs
+                                setState(() => isSaving = true);
+                                await saveExecution(context);
+                                setState(() => isSaving = false);
+                              }
 
-                            // after saving the geofence, close the form
-                            if (context.mounted) Navigator.pop(context);
-                          },
-                        ),
-                ],
-              ),
-              SizedBox(height: 20),
-            ],
+                              // to return to the home page after saving the geofence
+                              context
+                                  .read<MyHomeGeofenceConfigurationProvider>()
+                                  .toggleGeofenceCreation(false);
+                              context
+                                  .read<MyHomeGeofenceConfigurationProvider>()
+                                  .toggleGeofenceViewing(false);
+                            },
+                          ),
+                  ],
+                ),
+                SizedBox(height: 20),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Future<void> saveExecution(BuildContext context) {
+  Future<void> saveExecution(BuildContext context) async {
     List<List<Position>> listOfMarkedPositions = context
         .read<MyHomeGeofenceConfigurationProvider>()
         .listOfMarkedPositions;
+    Position centerPoint = context
+        .read<MyHomeGeofenceConfigurationProvider>()
+        .centerPoint!;
 
-    return MyGeofenceRepository.createGeofence(
+    await MyGeofenceRepository.createGeofence(
       MyGeofenceModel(
         geofenceID:
             "", // This will be generated in the repository to match the doc.id
         geofenceName: safeZoneNameController.text.trim(),
         geofenceCoordinates: listOfMarkedPositions.first,
-        centerCoordinates: Position(125.79929, 7.42916),
+        // centerCoordinates: Position(125.79929, 7.42916),
+        centerCoordinates: centerPoint,
         createdAt: MyDateFormatter.formatDate(
           dateTimeInString: DateTime.now().toString(),
         ),
@@ -188,6 +202,28 @@ class _SavingGeofenceFormState extends State<SavingGeofenceForm> {
         registeredPatients: addedParticipants,
         isActive: true,
       ),
+    );
+
+    // Clear all the temporary data in the provider, after saving in the database
+    context
+        .read<MyHomeGeofenceConfigurationProvider>()
+        .clearAllCachedTemporaryData();
+
+    // // after saving the geofence, close the form
+    // if (context.mounted) Navigator.pop(context);
+
+    // This will ask the user to restart the app
+    myInfoDialogue(
+      context: context,
+      alertTitle: "Restart App",
+      alertContent:
+          "The app needs to restart in order to implement the latest changes.",
+      onPressText: "Restart",
+      onPress: () {
+        // This will restart the app
+        Phoenix.rebirth(context);
+        log("RESTARTINGGGGGGGGGGGGGGGGGGGGGGGGGGGG");
+      },
     );
   }
 

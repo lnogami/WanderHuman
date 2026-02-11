@@ -7,6 +7,8 @@ import 'package:wanderhuman_app/view-model/home_geofence_config_provider.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/draw_geo/map_geofence_drawer.dart';
 
 class MyMapInteractions {
+  static PointAnnotationManager? _centerPointAnnotationManager;
+
   /// Tap interection within the map itself.
   /// polygonManager is for creating a polygon of the geofence area
   static void tapInteraction({
@@ -29,6 +31,22 @@ class MyMapInteractions {
           "NOTICEEEEEEEEEEEEEEEEEEEEEEE: The tapped position is:  lng: ${mapContext.point.coordinates.lng}, lat: ${mapContext.point.coordinates.lat}",
         );
 
+        //----------------------------------------------------------------------
+        // Special Event: if the tap is happening during adding a center point
+        if (context
+            .read<MyHomeGeofenceConfigurationProvider>()
+            .isAboutToAddCenterPoint) {
+          _initCenterPointAnnotationManager(
+            mapboxMapController: mapboxMapController,
+            context: context,
+            mapContext: mapContext,
+          );
+
+          // to prevent the other lines of code below from running
+          return;
+        }
+
+        //----------------------------------------------------------------------
         if (pointAnnotationManager != null) {
           MyMapGeofenceDrawer.markPressedPoints(
             pointManager: pointAnnotationManager,
@@ -59,6 +77,35 @@ class MyMapInteractions {
           "NOTICEEEEEEEEEEEEEEEEEEEEEEE: The long tapped position is:  lng: ${context.point.coordinates.lng}, lat: ${context.point.coordinates.lat}",
         );
       }),
+    );
+  }
+
+  // this is only for centerPoint
+  static Future<void> _initCenterPointAnnotationManager({
+    required MapboxMap mapboxMapController,
+    required BuildContext context,
+    required MapContentGestureContext mapContext,
+  }) async {
+    // if _centerPointAnnotationManager is null, assign a value
+    _centerPointAnnotationManager ??= await mapboxMapController.annotations
+        .createPointAnnotationManager();
+
+    // to prevent having more than one centerpoint
+    _centerPointAnnotationManager!.deleteAll();
+
+    // // delete the polygonManager data because it is not need here anymore
+    // if (polygonManager != null) polygonManager.deleteAll();
+
+    // ignore: use_build_context_synchronously
+    context.read<MyHomeGeofenceConfigurationProvider>().setCenterPoint(
+      mapContext.point.coordinates,
+    );
+
+    MyMapGeofenceDrawer.markPressedPoints(
+      pointManager: _centerPointAnnotationManager!,
+      tappedPoint: Point(coordinates: (mapContext.point.coordinates)),
+      context: context,
+      isACenterPoint: true,
     );
   }
 }

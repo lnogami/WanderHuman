@@ -56,7 +56,10 @@ class _SettingGeofenceBottomPanelState
     listOfPositions = context
         .read<MyHomeGeofenceConfigurationProvider>()
         .listOfMarkedPositions[0];
-    scrollController = FixedExtentScrollController(initialItem: selectedIndex);
+    scrollController = FixedExtentScrollController(
+      initialItem: selectedIndex,
+      keepScrollOffset: true,
+    );
   }
 
   @override
@@ -218,13 +221,18 @@ class _SettingGeofenceBottomPanelState
                 ),
 
               if (isAboutToAddCenterPoint)
-                MyTextFormatter.p(
-                  text: "Tap on the map to\nadd the center Point",
-                  maxLines: 2,
-                  color: Colors.blue.shade500,
-                  fontWeight: FontWeight.w600,
-                  fontsize: kDefaultFontSize + 2,
-                ),
+                // if there is no centerPoint yet, display this text, otherwise, display the actual coordinates
+                (context
+                            .read<MyHomeGeofenceConfigurationProvider>()
+                            .centerPoint ==
+                        null)
+                    ? dialogVisibleDuringCenterPointMarking()
+                    : _myCustomContainer(
+                        context
+                            .read<MyHomeGeofenceConfigurationProvider>()
+                            .centerPoint!,
+                        isPadded: true,
+                      ),
             ],
           )
         : Center(
@@ -237,10 +245,46 @@ class _SettingGeofenceBottomPanelState
           );
   }
 
+  Padding dialogVisibleDuringCenterPointMarking() {
+    return Padding(
+      padding: const EdgeInsets.only(left: 20, right: 20),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          MyTextFormatter.p(
+            text:
+                "Tap INSIDE the previously added safezone to add center point.",
+            maxLines: 5,
+            color: Colors.blue.shade600,
+            fontWeight: FontWeight.w600,
+            fontsize: kDefaultFontSize + 2,
+          ),
+          SizedBox(height: 20),
+          MyTextFormatter.p(
+            text: "WARNING NOTICE:",
+            maxLines: 5,
+            color: Colors.grey.shade800,
+            fontWeight: FontWeight.w600,
+            fontsize: kDefaultFontSize + 2,
+          ),
+          MyTextFormatter.p(
+            text: "DO NOT MARK OUTSIDE THE SAFEZONE.",
+            maxLines: 5,
+            color: const Color.fromARGB(255, 173, 47, 37),
+            fontWeight: FontWeight.w600,
+            fontsize: kDefaultFontSize + 2,
+          ),
+        ],
+      ),
+    );
+  }
+
   // this will make the listview to scroll to the selected index
   void scrollToChild(int index) {
     scrollController.animateToItem(
-      selectedIndex,
+      // selectedIndex,
+      index,
       duration: Duration(milliseconds: 1000),
       curve: Curves.easeInOut,
     );
@@ -258,10 +302,10 @@ class _SettingGeofenceBottomPanelState
   }
 
   // containers for the ListWheelScrollView childred, the UI
-  Container _myCustomContainer(Position postion) {
+  Container _myCustomContainer(Position postion, {bool isPadded = false}) {
     return Container(
       width: MyDimensionAdapter.getWidth(context) * 0.8,
-      height: MyDimensionAdapter.getHeight(context) * 0.25,
+      height: MyDimensionAdapter.getHeight(context) * ((isPadded) ? 0.15 : 25),
       margin: EdgeInsets.only(top: 5),
       decoration: BoxDecoration(
         color: Colors.white70,

@@ -92,7 +92,8 @@ class MyGeofenceRepository {
         if (geofences.isNotEmpty) {
           return geofences; // Return all active geofences
         } else {
-          throw Exception("No active geofence found");
+          // throw Exception("No active geofence found");
+          return [];
         }
       });
     } catch (e, stackTrace) {
