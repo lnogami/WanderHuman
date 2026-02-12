@@ -5,18 +5,24 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mp;
+import 'package:wanderhuman_app/helper/geofence_repository.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/helper/realtime_location_repository.dart';
+import 'package:wanderhuman_app/model/geofence_model.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/model/realtime_location_model.dart';
 import 'package:wanderhuman_app/view/components/image_picker.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/bottom_modal_sheet_for_patient.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/geo_logics/turf.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/point_annotation_options.dart';
 
 class ListenToPatients {
   static List<PersonalInfo> _patientsList = [];
   // Keep track of subscriptions so we can cancel them later to save bandwidth
   static final Map<String, StreamSubscription> _locationSubscriptions = {};
+
+  // // Geofence logic object
+  // MyGeofenceLogic geofenceLogic = MyGeofenceLogic();
 
   static Future<void> _getAllPatients() async {
     _patientsList = await MyPersonalInfoRepository.getAllPersonalInfoRecords(
@@ -49,10 +55,14 @@ class ListenToPatients {
     required Map<String, mp.PointAnnotation> userAnnotations,
     mp.PointAnnotationManager? pointAnnotationManager,
     required BuildContext context,
+    List<MyGeofenceModel>? activeGeofences,
   }) async {
     try {
       // 1. Fetch all patients from Firestore (Personal Info)
       await _getAllPatients();
+
+      List<MyGeofenceModel> activeGeofences =
+          await MyGeofenceRepository.getActiveGeofences();
 
       // for debugging purposes only
       for (var p in _patientsList) {
@@ -119,6 +129,7 @@ class ListenToPatients {
                   ),
                 );
 
+                // if the newAnnotation is not null, add it to a specific userAnnoation
                 if (newAnnotation != null) {
                   userAnnotations[deviceID] = newAnnotation;
                 }
@@ -129,6 +140,21 @@ class ListenToPatients {
                   userAnnotations: userAnnotations,
                   annotationData: annotationData,
                   context: context,
+                );
+
+                // This will determine if a patient is inside a safe zone or not
+                var isInsideSafeZone =
+                    await MyGeofenceLogic.isPatientInsideTheAssignedSafeZone(
+                      userPosition: mp.Position(lng, lat),
+                      activeGeofences: activeGeofences,
+                      userID: patient.userID,
+                    );
+
+                log(
+                  "🗺️ Patient ${patient.name} is inside the Safe Zone: --> $isInsideSafeZone",
+                );
+                log(
+                  "POSITION of patient with ID ${patient.userID} is lng:$lng, lat:$lat",
                 );
               } catch (e, stackTrace) {
                 log("ERROR UPDATING MARKER FOR $deviceID: $e. AT $stackTrace");

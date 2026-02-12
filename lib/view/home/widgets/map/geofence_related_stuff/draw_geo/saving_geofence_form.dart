@@ -54,6 +54,7 @@ class _SavingGeofenceFormState extends State<SavingGeofenceForm> {
 
     addedParticipants.addAll(
       participants.map((participant) => participant.userID),
+      // participants.map((participant) => participant.deviceID),
     );
 
     setState(() {
@@ -186,6 +187,9 @@ class _SavingGeofenceFormState extends State<SavingGeofenceForm> {
     Position centerPoint = context
         .read<MyHomeGeofenceConfigurationProvider>()
         .centerPoint!;
+
+    // This is to close the polygon coordinates. Add the first Position to the last, to make a closing end.
+    listOfMarkedPositions[0].add(listOfMarkedPositions[0][0]);
 
     await MyGeofenceRepository.createGeofence(
       MyGeofenceModel(

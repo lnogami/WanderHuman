@@ -16,6 +16,7 @@ import 'package:wanderhuman_app/view-model/my_mapbox_ref_provider.dart';
 import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
 import 'package:wanderhuman_app/view/components/button.dart';
 import 'package:wanderhuman_app/view/components/lines.dart';
+import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/components/textfield.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/fly_to.dart';
 
@@ -57,6 +58,8 @@ class _ViewingGeofencesBottomPanelState
   }
 
   Future<void> getAllGeofences() async {
+    await getAllPatients();
+
     // Get all the geofences from the database
     final tempVar = await MyGeofenceRepository.getAllGeofences();
     tempVar.sort((a, b) => a.geofenceName.compareTo(b.geofenceName));
@@ -75,7 +78,6 @@ class _ViewingGeofencesBottomPanelState
       });
       return;
     }
-
     setState(() {
       allGeofences = tempVar;
       // for safety purposes
@@ -86,7 +88,10 @@ class _ViewingGeofencesBottomPanelState
       selectedGeofence = allGeofences[selectedGeofenceIndex];
       isCurrentlySelectedGeofenceActive = selectedGeofence.isActive;
       geofenceNameController.text = selectedGeofence.geofenceName;
-      addedParticipants.addAll(selectedGeofence.registeredPatients);
+      addedParticipants = selectedGeofence.registeredPatients;
+      if (listOfPatients.length == addedParticipants.length) {
+        isAllParticipantsSelected = true;
+      }
       isLoadingResources = false;
     });
     log("All Geofences Fetched: ${allGeofences.length}");
@@ -96,7 +101,6 @@ class _ViewingGeofencesBottomPanelState
   initState() {
     super.initState();
     getAllGeofences();
-    getAllPatients();
     scrollController = FixedExtentScrollController(initialItem: 0);
     infoFieldsScrollController = ScrollController();
     participantsScrollController = ScrollController();
@@ -343,78 +347,6 @@ class _ViewingGeofencesBottomPanelState
     );
   }
 
-  Row saveAndCancelButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      spacing: 5,
-      children: [
-        MyCustButton(
-          buttonText: "Cancel",
-          color: Colors.transparent,
-          enableShadow: false,
-          borderColor: Colors.transparent,
-          widthPercentage: 0.25,
-          buttonTextSpacing: 1.2,
-          onTap: () {
-            Navigator.pop(context);
-          },
-        ),
-        (isSavingUpdate)
-            ? CircularProgressIndicator.adaptive()
-            : MyCustButton(
-                buttonText: "Save Changes",
-                buttonTextSpacing: 1.2,
-                buttonTextColor: Colors.white,
-                buttonTextFontSize: kDefaultFontSize + 2,
-                onTap: () {
-                  myAlertDialogue(
-                    context: context,
-                    alertTitle: "Confirm Update",
-                    alertContent:
-                        "Are you sure you want to save these changes?",
-                    onApprovalPressed: () async {
-                      setState(() {
-                        isSavingUpdate = true;
-                      });
-
-                      await MyGeofenceRepository.updateGeofence(
-                        id: selectedGeofence.geofenceID,
-                        geofenceModel: MyGeofenceModel(
-                          geofenceID: selectedGeofence.geofenceID,
-                          geofenceName: geofenceNameController.text,
-                          geofenceCoordinates:
-                              selectedGeofence.geofenceCoordinates,
-                          centerCoordinates: selectedGeofence.centerCoordinates,
-                          createdAt: selectedGeofence.createdAt,
-                          createdBy: selectedGeofence.createdBy,
-                          registeredPatients: addedParticipants,
-                          isActive: isCurrentlySelectedGeofenceActive,
-                        ),
-                      );
-
-                      setState(() {
-                        isSavingUpdate = false;
-                      });
-
-                      log(
-                        "Successfully Updated Geofence with ID: ${selectedGeofence.geofenceID}",
-                      );
-
-                      Navigator.pop(context);
-                      Future.delayed(Duration(milliseconds: 500), () {
-                        // to animate a closing panel effect after saving changes
-                        isExpanded = false;
-                        // to refresh the fetched geofences
-                        getAllGeofences();
-                      });
-                    },
-                  );
-                },
-              ),
-      ],
-    );
-  }
-
   // this is responsible for
   List<Widget> myIterator() {
     if (allGeofences.isEmpty) return [];
@@ -431,9 +363,10 @@ class _ViewingGeofencesBottomPanelState
   GestureDetector _myCustomContainer(MyGeofenceModel geofence) {
     return GestureDetector(
       onTap: () {
-        setState(() {
-          isExpanded = !isExpanded;
-        });
+        // can't be expanded if resources are still being loaded
+        if (!isLoadingResources) {
+          setState(() => isExpanded = !isExpanded);
+        }
       },
       onLongPress: () {
         myAlertDialogue(
@@ -704,6 +637,110 @@ class _ViewingGeofencesBottomPanelState
             ),
           ),
         ),
+      ],
+    );
+  }
+
+  Row saveAndCancelButtons() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      spacing: 5,
+      children: [
+        MyCustButton(
+          buttonText: "Cancel",
+          color: Colors.transparent,
+          enableShadow: false,
+          borderColor: Colors.transparent,
+          widthPercentage: 0.25,
+          buttonTextSpacing: 1.2,
+          onTap: () {
+            Navigator.pop(context);
+          },
+        ),
+        (isSavingUpdate)
+            ? CircularProgressIndicator.adaptive()
+            : MyCustButton(
+                buttonText: "Save Changes",
+                buttonTextSpacing: 1.2,
+                buttonTextColor: Colors.white,
+                buttonTextFontSize: kDefaultFontSize + 2,
+                onTap: () async {
+                  // to start the animation of the button
+                  setState(() {
+                    isSavingUpdate = true;
+                  });
+                  // this will veryfiy if the patient is already registered in another active safezone
+                  bool alreadyExist = false;
+                  String name = "";
+                  for (var patient in addedParticipants) {
+                    if (await MyGeofenceRepository.isPatientAlreadyRegisteredInAnActiveGeofence(
+                      patientID: patient,
+                      geofenceIDToBeExcluded: selectedGeofence.geofenceID,
+                    )) {
+                      alreadyExist = true;
+                      final patientName =
+                          await MyPersonalInfoRepository.getSpecificPersonalInfo(
+                            userID: patient,
+                          );
+                      name = patientName.name;
+                    }
+                  }
+
+                  // can only update if the patient is not already registered in another safezone OR if the safezone will be inactive
+                  if (!alreadyExist || !isCurrentlySelectedGeofenceActive) {
+                    myAlertDialogue(
+                      context: context,
+                      alertTitle: "Confirm Update",
+                      alertContent:
+                          "Are you sure you want to save these changes?",
+                      onApprovalPressed: () async {
+                        // to start the animation of the button
+                        // setState(() {
+                        //   isSavingUpdate = true;
+                        // });
+                        await MyGeofenceRepository.updateGeofence(
+                          id: selectedGeofence.geofenceID,
+                          geofenceModel: MyGeofenceModel(
+                            geofenceID: selectedGeofence.geofenceID,
+                            geofenceName: geofenceNameController.text,
+                            geofenceCoordinates:
+                                selectedGeofence.geofenceCoordinates,
+                            centerCoordinates:
+                                selectedGeofence.centerCoordinates,
+                            createdAt: selectedGeofence.createdAt,
+                            createdBy: selectedGeofence.createdBy,
+                            registeredPatients: addedParticipants,
+                            isActive: isCurrentlySelectedGeofenceActive,
+                          ),
+                        );
+
+                        log(
+                          "Successfully Updated Geofence with ID: ${selectedGeofence.geofenceID}",
+                        );
+
+                        Navigator.pop(context);
+                        Future.delayed(Duration(milliseconds: 500), () {
+                          // to animate a closing panel effect after saving changes
+                          isExpanded = false;
+                          // to refresh the fetched geofences
+                          getAllGeofences();
+                        });
+                      },
+                    );
+                  } else {
+                    showMyAnimatedSnackBar(
+                      context: context,
+                      dataToDisplay:
+                          "Patient $name is already registered in another safezone",
+                    );
+                  }
+
+                  // to stop the animation of the button
+                  setState(() {
+                    isSavingUpdate = false;
+                  });
+                },
+              ),
       ],
     );
   }

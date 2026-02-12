@@ -103,12 +103,16 @@ class MyGeofenceRepository {
   }
 
   // This function checks if a patient is already registered in any active geofence.
-  static Future<bool> isPatientAlreadyRegisteredInAnActiveGeofence(
-    String patientID,
-  ) async {
+  static Future<bool> isPatientAlreadyRegisteredInAnActiveGeofence({
+    required String? patientID,
+    String geofenceIDToBeExcluded = "",
+  }) async {
     try {
       final List<MyGeofenceModel> activeGeofences = await getActiveGeofences();
       for (final geofence in activeGeofences) {
+        // the provided geofence to be excluded from this rule
+        if (geofenceIDToBeExcluded == geofence.geofenceID) continue;
+
         if (geofence.registeredPatients.contains(patientID)) {
           return true; // Patient is already registered in an active geofence
         }

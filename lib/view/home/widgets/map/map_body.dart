@@ -57,13 +57,14 @@ class _MapBodyState extends State<MapBody> with RouteAware {
   mp.MapboxMap? mapboxMapController;
   // point annotation manager for  patients
   mp.PointAnnotationManager? pointAnnotationManager;
+  // this will hold all the active geofences (safezones)
+  List<MyGeofenceModel> activeGeofences = [];
 
   // to listen to the user's location changes
   StreamSubscription? userPositionStream;
   // Keep track of existing annotations by Firestore document ID
   Map<String, mp.PointAnnotation> userAnnotations = {};
-  // Add this to your state variables
-  // The first Map is for ?, and the second Map is for ?
+  // The first Map is for ID, and the second Map is for the data of each individual
   Map<String, Map<String, dynamic>> annotationData = {};
   // temporary
   gl.Position? myPosition;
@@ -103,10 +104,19 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     }
   }
 
+  // /// initialize the polygonManage of the active geofences (safezones)
+  // Future<void> setupPolygonManager() async {
+  //   polygonAnnotationManager = await mapboxMapController?.annotations
+  //       .createPolygonAnnotationManager();
+  // }
+
+  /// setup all the active geofences (safezones)
   Future<void> setupGeofences() async {
     try {
-      List<MyGeofenceModel> activeGeofences =
-          await MyGeofenceRepository.getActiveGeofences();
+      // // if is not empty, clear it
+      // if (activeGeofences.isNotEmpty) setState(() => activeGeofences.clear());
+
+      activeGeofences = await MyGeofenceRepository.getActiveGeofences();
 
       // return if there are no active geofences
       if (activeGeofences.isEmpty) return;
@@ -147,6 +157,10 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     checkLocationServiceStatus();
     // updatePatient(); // for tranfering firestore dummy data to realtime database only (deletable)
 
+    // // setup the polygon manager for the active geofences
+    // setupPolygonManager();
+
+    // setup all the active geofences (safezones)
     setupGeofences();
   }
 
@@ -186,6 +200,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
       userAnnotations: userAnnotations,
       pointAnnotationManager: pointAnnotationManager,
       context: context,
+      activeGeofences: activeGeofences,
     );
   }
 
@@ -265,6 +280,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     pointAnnotationManager = await mapboxMapController?.annotations
         .createPointAnnotationManager();
 
+    // other mapbox's requirements for its rules and policies
     initOtherMapRequirements(mapboxMapController!);
 
     // This part of the code is for listening to realtime database data
@@ -274,6 +290,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
       pointAnnotationManager: pointAnnotationManager,
       // ignore: use_build_context_synchronously
       context: context,
+      activeGeofences: activeGeofences,
     );
 
     // This part of the code is for creating geofences
@@ -286,13 +303,16 @@ class _MapBodyState extends State<MapBody> with RouteAware {
         context: context,
       );
 
-      // TODO: this is where the active geofence is going to be setup
-      MyMapGeofenceDrawer.drawPolygon(
-        polygonManager: markedPolygonAnnotationManager!,
-        positions: context
-            .read<MyHomeGeofenceConfigurationProvider>()
-            .listOfMarkedPositions,
-      );
+      // // TODO: this is where the active geofence is going to be setup
+      // MyMapGeofenceDrawer.drawPolygon(
+      //   polygonManager: markedPolygonAnnotationManager!,
+      //   positions: context
+      //       .read<MyHomeGeofenceConfigurationProvider>()
+      //       .listOfMarkedPositions,
+      // );
+
+      // //
+      // setupGeofences();
     }
   }
 
