@@ -13,6 +13,7 @@ import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/model/realtime_location_model.dart';
 import 'package:wanderhuman_app/view/components/image_picker.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/bottom_modal_sheet_for_patient.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/geo_logics/notifcation_alerts.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/geo_logics/turf.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/point_annotation_options.dart';
 
@@ -150,6 +151,14 @@ class ListenToPatients {
                       userID: patient.userID,
                     );
 
+                // Notifies if the patient is not inside the safe zone
+                if (!isInsideSafeZone) {
+                  MyAlertNotification.triggerSafeZoneAlert(
+                    patientName: patient.name,
+                  );
+                }
+
+                // for debugging purposes only
                 log(
                   "🗺️ Patient ${patient.name} is inside the Safe Zone: --> $isInsideSafeZone",
                 );

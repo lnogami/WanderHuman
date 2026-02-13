@@ -9,6 +9,12 @@
 	<string>We need access to your camera to take a photo.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>We need access to the microphone for video.</string>
+	// newly added for notification and vibration
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
 
 
 	<key>NSLocationWhenInUseUsageDescription</key>

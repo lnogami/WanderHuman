@@ -13,6 +13,7 @@ import 'package:wanderhuman_app/view-model/home_appbar_provider.dart';
 import 'package:wanderhuman_app/view-model/home_geofence_config_provider.dart';
 import 'package:wanderhuman_app/view-model/my_mapbox_ref_provider.dart';
 import 'package:wanderhuman_app/view/home/home.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/geo_logics/notifcation_alerts.dart';
 import 'package:wanderhuman_app/view/login/login.dart';
 import 'package:wanderhuman_app/view/userRolesUI/no_role_yet_landing_page.dart';
 
@@ -31,6 +32,9 @@ void main() async {
   await dotenv.load(fileName: ".env");
   // To prevent the device from sleeping.
   WakelockPlus.enable();
+  // To initialize notification alerts
+  await MyAlertNotification.init();
+
   runApp(
     // Phoenix is a wrapper that is capable of resrting the app.
     Phoenix(child: const MainApp()),
