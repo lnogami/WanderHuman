@@ -1,18 +1,4 @@
-// import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-// import 'package:vibration/vibration.dart';
-
-// class MyAlertNotification {
-//   static void triggerNotification() async {
-//     if (await Vibration.hasVibrator()) {
-//       Vibration.vibrate();
-//     }
-
-//     // AndroidNotificationDetails androidNotificationDetails =
-//     //     AndroidNotificationDetails(channelId, channelName);
-//   }
-// }
-
-import 'dart:developer';
+import 'dart:developer' as dev;
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:vibration/vibration.dart';
@@ -56,18 +42,26 @@ class MyAlertNotification {
 
       await _notifications.initialize(settings: settings);
     } catch (e, stackTrace) {
-      log(
+      dev.log(
         "AN ERROR OCCURED WHEN INITIALIZING NOTIFICATIONS: $e,  AT: $stackTrace",
       );
     }
   }
 
   // 3. The Function You Wanted (Now robust and reusable)
-  static Future<void> triggerSafeZoneAlert({String? patientName}) async {
+  /// `patientName` is for the name of the patient that is outside the safe zone <br>
+  /// `randomGeneratedIDForAlert` is an identification for the notification for each patient, each of them has their own unique ID assigned to them.
+  static Future<void> triggerSafeZoneAlert({
+    String? patientName,
+    int? randomGeneratedIDForAlert,
+  }) async {
     try {
+      dev.log(
+        "Random Number of patient: $patientName is ID: $randomGeneratedIDForAlert",
+      );
       // A. Vibrate the phone (Heavy vibration for danger)
       if (await Vibration.hasVibrator()) {
-        Vibration.vibrate(pattern: [500, 1000, 500, 2000, 500, 2000]);
+        Vibration.vibrate(pattern: [500, 1000, 500, 2000, 500, 2500]);
       }
 
       // B. Define Notification Details
@@ -89,7 +83,8 @@ class MyAlertNotification {
 
       // C. Show the notification
       await _notifications.show(
-        id: 0, // ID (0 means this notification replaces previous ones with ID 0)
+        // ID (0 means this notification replaces previous ones with ID 0)
+        id: randomGeneratedIDForAlert ?? 0,
         title: "NOTICE! 🚨",
         // title: '🚨 SAFE ZONE ALERT 🚨',
         body: (patientName != null)
@@ -98,7 +93,7 @@ class MyAlertNotification {
         notificationDetails: platformDetails,
       );
     } catch (e, stackTrace) {
-      log(
+      dev.log(
         "AN ERROR OCCURED WHEN TRIGGERING NOTIFICATION: $e,  AT: $stackTrace",
       );
     }

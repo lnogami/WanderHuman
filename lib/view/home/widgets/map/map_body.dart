@@ -19,13 +19,11 @@ import 'package:wanderhuman_app/model/realtime_location_model.dart';
 import 'package:wanderhuman_app/utilities/properties/date_formatter.dart';
 import 'package:wanderhuman_app/view-model/home_geofence_config_provider.dart';
 import 'package:wanderhuman_app/view-model/my_mapbox_ref_provider.dart';
-import 'package:wanderhuman_app/view/components/image_picker.dart';
 import 'package:wanderhuman_app/view/components/info_dialogue.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/draw_geo/map_geofence_drawer.dart';
 // import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/bottom_modal_sheet_for_patient.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/listen_to_patients.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/map_interactions.dart';
-import 'package:wanderhuman_app/view/home/widgets/map/map_functions/point_annotation_options.dart';
 import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 
 class MapBody extends StatefulWidget {
@@ -39,35 +37,25 @@ class MapBody extends StatefulWidget {
 
 // RouteAware is an observer for route pages
 class _MapBodyState extends State<MapBody> with RouteAware {
-  // (deletable)
-  // // For app user specific
-  // // this will be used as a deviceID for app users, unlike the patient that have the specific device
-  // String appUserID = FirebaseAuth.instance.currentUser!.uid;
-  // late PersonalInfo personalInfo;
-  // Future<void> getPersonalInfo() async {
-  //   final tempPerson = await MyPersonalInfoRepository.getSpecificPersonalInfo(
-  //     userID: appUserID,
-  //   );
-  //   setState(() {
-  //     personalInfo = tempPerson;
-  //   });
-  // }
-
-  // controller for the map
+  /// Controller for the map
   mp.MapboxMap? mapboxMapController;
-  // point annotation manager for  patients
+
+  /// The generic point annotation manager for patients and caregivers that are visible in the map
   mp.PointAnnotationManager? pointAnnotationManager;
-  // this will hold all the active geofences (safezones)
+
+  /// This will hold all the active geofences (safezones)
   List<MyGeofenceModel> activeGeofences = [];
 
-  // to listen to the user's location changes
-  StreamSubscription? userPositionStream;
-  // Keep track of existing annotations by Firestore document ID
+  /// To listen to the user's location changes
+  StreamSubscription? currentLoggedInUserPositionStream;
+
+  /// Keep track of existing annotations by Firestore document ID
   Map<String, mp.PointAnnotation> userAnnotations = {};
-  // The first Map is for ID, and the second Map is for the data of each individual
+
+  /// The first Map is for ID, and the second Map is for the data of each individual
   Map<String, Map<String, dynamic>> annotationData = {};
-  // temporary
-  gl.Position? myPosition;
+  // // temporary
+  // gl.Position? myPosition;
 
   // Geofence related stuff
   mp.PolygonAnnotationManager? polygonAnnotationManager;
@@ -78,9 +66,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
   mp.PolygonAnnotationManager? markedPolygonAnnotationManager;
   mp.PointAnnotationManager? markedPointAnnotationManager;
 
-  // TODO: after pressing the refresh, the UI will not change if you logout (but it is already logged out, just the UI doesn't change)
-  // this will check if the location is enabled or not, if not, a dialog box
-  // will appear to refresh the screen.
+  // This will check if the location is enabled or not, if not, a dialog box will appear to refresh the screen.
   bool isLocationServiceEnabled = false;
   Future<void> checkLocationServiceStatus() async {
     isLocationServiceEnabled = await gl.Geolocator.isLocationServiceEnabled();
@@ -104,18 +90,9 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     }
   }
 
-  // /// initialize the polygonManage of the active geofences (safezones)
-  // Future<void> setupPolygonManager() async {
-  //   polygonAnnotationManager = await mapboxMapController?.annotations
-  //       .createPolygonAnnotationManager();
-  // }
-
   /// setup all the active geofences (safezones)
   Future<void> setupGeofences() async {
     try {
-      // // if is not empty, clear it
-      // if (activeGeofences.isNotEmpty) setState(() => activeGeofences.clear());
-
       activeGeofences = await MyGeofenceRepository.getActiveGeofences();
 
       // return if there are no active geofences
@@ -151,14 +128,9 @@ class _MapBodyState extends State<MapBody> with RouteAware {
   @override
   void initState() {
     super.initState();
-    // getPersonalInfo(); //(deletable)
     setupMapboxAccessToken();
     checkAndRequestLocationPermission();
     checkLocationServiceStatus();
-    // updatePatient(); // for tranfering firestore dummy data to realtime database only (deletable)
-
-    // // setup the polygon manager for the active geofences
-    // setupPolygonManager();
 
     // setup all the active geofences (safezones)
     setupGeofences();
@@ -167,14 +139,15 @@ class _MapBodyState extends State<MapBody> with RouteAware {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Subscribe to the RouteObserver again if the widget is rebuilt
+    // --- VISIBILITY EVENTS ---
+    // Subscribe to the RouteObserver again if the widget is rebuilt, for routing purposes, like if the map is covered by another page or visible again.
     routeObserver.subscribe(this, ModalRoute.of(context)!);
   }
 
   @override
   void dispose() {
     // cancels the subscriptionStream to avoid memory leaks
-    userPositionStream?.cancel();
+    currentLoggedInUserPositionStream?.cancel();
     // 3. Unsubscribe and Stop Listening when widget is destroyed
     routeObserver.unsubscribe(this);
     // this method will stop all the StreamSubscriptions to save resources
@@ -547,29 +520,36 @@ class _MapBodyState extends State<MapBody> with RouteAware {
       distanceFilter: 100,
     );
 
+    positionStreamOfTheCurrentLoggedInUser(locationSettings);
+
+    // (deletable)
     /*
       this is stream, meaning it is listening to the user's location changes
 
       .cacel() stops the process then rerun again with an updated 
       gl.Geolocator.getPositionStream(...)
     */
-    userPositionStream?.cancel();
-    userPositionStream =
+  }
+
+  // the stream where the position of the user is updated
+  void positionStreamOfTheCurrentLoggedInUser(
+    gl.LocationSettings locationSettings,
+  ) {
+    currentLoggedInUserPositionStream?.cancel();
+    currentLoggedInUserPositionStream =
         gl.Geolocator.getPositionStream(
           locationSettings: locationSettings,
         ).listen((gl.Position? position) async {
           if (position != null && mapboxMapController != null) {
-            // print(position);
-            // temporary
-            myPosition = position;
+            // // print(position);
+            // // temporary
+            // myPosition = position;
+
             // CameraOptios sets where the map is centered and how zoomed in it is.
             mapboxMapController?.setCamera(
               mp.CameraOptions(
                 zoom: 15.0,
-                // bearing: 50.0,
-                // pitch: 50.0,
                 center: mp.Point(
-                  // TODO: this could be change to adapt to a new feature, where if the user clicks a patient icon, that patient icon becomes the center of the screen
                   coordinates: mp.Position(
                     position.longitude,
                     position.latitude,
@@ -588,24 +568,25 @@ class _MapBodyState extends State<MapBody> with RouteAware {
               // ),
             );
 
-            updateUserLocation(position);
+            updateUserLocationInTheDatabase(position);
 
-            mp.PointAnnotationOptions pointAnnotationOptions =
-                await myPointAnnotationOptions(
-                  imageData: MyImageProcessor.decodeStringToUint8List(
-                    widget.loggedInUserData.picture,
-                  ),
-                  name: widget.loggedInUserData.name,
-                  textSize: 12.5,
-                  myPosition: mp.Position(
-                    // THIS IS THE PATIENTS CURRENT COORDINATES
-                    // temporary coordinates
-                    myPosition!.longitude,
-                    myPosition!.latitude,
-                  ),
-                );
-            // add the marker to the map
-            pointAnnotationManager?.create(pointAnnotationOptions);
+            //// This is no longer needed because the app user can see himself as the uniqure blue dot on the map
+            // mp.PointAnnotationOptions pointAnnotationOptions =
+            //     await myPointAnnotationOptions(
+            //       imageData: MyImageProcessor.decodeStringToUint8List(
+            //         widget.loggedInUserData.picture,
+            //       ),
+            //       name: widget.loggedInUserData.name,
+            //       textSize: 12.5,
+            //       myPosition: mp.Position(
+            //         // THIS IS THE PATIENTS CURRENT COORDINATES
+            //         // temporary coordinates
+            //         myPosition!.longitude,
+            //         myPosition!.latitude,
+            //       ),
+            //     );
+            // // add the marker to the map
+            // pointAnnotationManager?.create(pointAnnotationOptions);
 
             // pointAnnotationManager?.createMulti(List<mp.PointAnnotation>);
             // // this was move to listenToPatients method
@@ -624,8 +605,8 @@ class _MapBodyState extends State<MapBody> with RouteAware {
         });
   }
 
-  // this will update the location data of only the staff, the patients' location data will be hanlded by the device
-  Future<void> updateUserLocation(gl.Position position) async {
+  // this will update the location data of only the current logged in user of this mobile app, the patients' location data will be hanlded by the device
+  Future<void> updateUserLocationInTheDatabase(gl.Position position) async {
     try {
       return MyRealtimeLocationReposity.updateLocation(
         deviceID: widget.loggedInUserData.userID,
@@ -685,6 +666,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
   //   }
   // }
 
+  // (deletable)
   //// // this is a helper function to convert the image to Uint8List
   //// Future< Uint8List> converter() {
   ////  var cs = CustomMapMarker(
@@ -693,10 +675,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
   ////   return cs;
   //// }
 
-  /*
-    this will convert the image to Uint8List
-    so that it can be used as an icon for the marker
-  */
+  // This will convert the image to Uint8List so that it can be used as an icon for the marker
   Future<Uint8List> imageToIconLoader(String imagePath) async {
     var byteData = await rootBundle.load(imagePath);
     return byteData.buffer.asUint8List();

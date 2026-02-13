@@ -1,6 +1,7 @@
 // import 'dart:developer';
 import 'dart:async';
 import 'dart:developer';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -72,9 +73,12 @@ class ListenToPatients {
         print("DEVICE IDDDDDDDDDDDDDDDDDDDDDDDD: ${p.deviceID}");
       }
 
+      // Create a random number generator for ID generation for each patient so that each of them have different notifications.
+      math.Random randomNumberGenerator = math.Random();
       // 2. Loop through patients and attach a REALTIME listener to each
       for (var patient in _patientsList) {
         String deviceID = patient.deviceID;
+        int randomGeneratedID = randomNumberGenerator.nextInt(100);
 
         // Cancel existing subscription if it exists to avoid memory leaks
         await _locationSubscriptions[deviceID]?.cancel();
@@ -155,6 +159,7 @@ class ListenToPatients {
                 if (!isInsideSafeZone) {
                   MyAlertNotification.triggerSafeZoneAlert(
                     patientName: patient.name,
+                    randomGeneratedIDForAlert: randomGeneratedID,
                   );
                 }
 
