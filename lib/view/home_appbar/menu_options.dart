@@ -1,14 +1,17 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/universal_sizes.dart';
+import 'package:wanderhuman_app/view-model/home_appbar_provider.dart';
 import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
+import 'package:wanderhuman_app/view/components/bottom_sheet.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/active_status.dart';
 import 'package:wanderhuman_app/view/home_appbar/home_appbar_dynamic_panel.dart';
+import 'package:wanderhuman_app/view/home_appbar/options_interface.dart';
 import 'package:wanderhuman_app/view/home_appbar/user_role_previlige.dart';
 import 'package:wanderhuman_app/view/components/option_container.dart';
-import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 
 class MyMenuOptions extends StatefulWidget {
   final bool isVisible;
@@ -79,9 +82,19 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
                   Icons.settings_outlined,
                   "Settings",
                   onTap: () {
-                    showMyAnimatedSnackBar(
+                    // (deletable)
+                    // showMyAnimatedSnackBar(
+                    //   context: context,
+                    //   dataToDisplay: "Testing",
+                    // );
+
+                    context.read<HomeAppBarProvider>().toggleAppBarExpansion(
+                      false,
+                    );
+
+                    MyBottomPanel.showMyBottomPanel(
                       context: context,
-                      dataToDisplay: "Testing",
+                      child: MyOptionsInterface(),
                     );
                   },
                 ),

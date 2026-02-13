@@ -10,12 +10,14 @@ import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/model/realtime_active_status_model.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
+import 'package:wanderhuman_app/view-model/home_appbar_provider.dart';
+import 'package:wanderhuman_app/view-model/home_settings_provider.dart';
 import 'package:wanderhuman_app/view-model/my_mapbox_ref_provider.dart';
 import 'package:wanderhuman_app/view/components/image_displayer.dart';
 import 'package:wanderhuman_app/view/components/image_picker.dart';
 import 'package:wanderhuman_app/view/components/lines.dart';
 import 'package:wanderhuman_app/view/components/tooltip.dart';
-import 'package:wanderhuman_app/view/home/widgets/map/map_functions/fly_to.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/map_functions/map_camera_animations.dart';
 
 class HomePatientListDropDown extends StatefulWidget {
   const HomePatientListDropDown({super.key});
@@ -105,6 +107,9 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
       message: "Tap to exapand/collapse patient list",
       child: GestureDetector(
         onTap: () {
+          // this will close the appbar if it is open when opening this dropdown
+          context.read<HomeAppBarProvider>().toggleAppBarExpansion(false);
+
           setState(() {
             isExpanded = !isExpanded;
             if (isExpanded) {
@@ -193,10 +198,11 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
 
     return GestureDetector(
       onTap: () {
-        myMapFlyTo(
+        MyMapCameraAnimations.myMapFlyTo(
           mapboxController: _mapControllerRef,
           // position: Position(125.7989268, 7.4233187),
           position: patientLocations[personalInfo.userID]!,
+          zoomLevel: context.read<MyHomeSettingsProvider>().zoomLevel,
           // patientID: personalInfo.userID,
         );
 

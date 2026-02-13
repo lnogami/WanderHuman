@@ -20,7 +20,7 @@ class HomeAppBar extends StatefulWidget {
 class _HomeAppBarState extends State<HomeAppBar> {
   int animationDuration = 200;
   double animatedOpacity = 0.0;
-  bool isExpanded = false;
+  // bool isExpanded = false;
   double borderRadius = 50;
 
   // // pang cache sa user (patient) list
@@ -60,13 +60,13 @@ class _HomeAppBarState extends State<HomeAppBar> {
     return AnimatedContainer(
       duration: Duration(milliseconds: animationDuration),
       width: MyDimensionAdapter.getWidth(context) * 0.80,
-      height: (isExpanded)
+      height: (provider.isAppBarExpanded)
           ? MyDynamicAppbarHeight.expandingOuterPanelHeight(
               widget.loggedInUserData.userType,
             )
           : 50,
       decoration: BoxDecoration(
-        color: (isExpanded)
+        color: (provider.isAppBarExpanded)
             ? const Color.fromARGB(210, 255, 255, 255)
             : Colors.white70,
         borderRadius: BorderRadius.only(
@@ -123,14 +123,21 @@ class _HomeAppBarState extends State<HomeAppBar> {
                 InkWell(
                   onTap: () {
                     setState(() {
-                      isExpanded = !isExpanded;
-                      borderRadius = (isExpanded) ? 20 : 50;
+                      // isExpanded = !isExpanded;
+                      provider.toggleAppBarExpansion(
+                        !(provider.isAppBarExpanded),
+                      );
+                      borderRadius = (provider.isAppBarExpanded) ? 20 : 50;
                     });
                   },
                   child: Icon(
-                    (isExpanded) ? Icons.close_rounded : Icons.menu_rounded,
+                    (provider.isAppBarExpanded)
+                        ? Icons.close_rounded
+                        : Icons.menu_rounded,
                     size: 32,
-                    color: (isExpanded) ? Colors.blueAccent : Colors.blue,
+                    color: (provider.isAppBarExpanded)
+                        ? Colors.blueAccent
+                        : Colors.blue,
                   ),
                 ),
 
@@ -140,11 +147,11 @@ class _HomeAppBarState extends State<HomeAppBar> {
 
             // this contains the menu options
             AnimatedOpacity(
-              opacity: (isExpanded) ? 1.0 : 0.0,
+              opacity: (provider.isAppBarExpanded) ? 1.0 : 0.0,
               curve: Curves.easeInOut,
               duration: Duration(milliseconds: animationDuration),
               child: MyMenuOptions(
-                isVisible: isExpanded,
+                isVisible: provider.isAppBarExpanded,
                 loggedInUserData: widget.loggedInUserData,
               ),
             ),

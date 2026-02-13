@@ -9,10 +9,11 @@ import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
 import 'package:wanderhuman_app/view-model/home_geofence_config_provider.dart';
+import 'package:wanderhuman_app/view-model/home_settings_provider.dart';
 import 'package:wanderhuman_app/view-model/my_mapbox_ref_provider.dart';
 import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/draw_geo/map_geofence_drawer.dart';
-import 'package:wanderhuman_app/view/home/widgets/map/map_functions/fly_to.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/map_functions/map_camera_animations.dart';
 
 class SettingGeofenceBottomPanel extends StatefulWidget {
   const SettingGeofenceBottomPanel({super.key});
@@ -121,9 +122,12 @@ class _SettingGeofenceBottomPanelState
                           dev.log("VALUEEEE: $value");
                           dev.log("SELECTED ITEMMMM: $selectedIndex");
                           if (listOfPositions!.isNotEmpty) {
-                            myMapFlyTo(
+                            MyMapCameraAnimations.myMapFlyTo(
                               mapboxController: mapboxMapRef!,
                               position: listOfPositions![value],
+                              zoomLevel: context
+                                  .read<MyHomeSettingsProvider>()
+                                  .zoomLevel,
                             );
                           }
                         },

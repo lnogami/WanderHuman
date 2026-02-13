@@ -18,6 +18,7 @@ import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/model/realtime_location_model.dart';
 import 'package:wanderhuman_app/utilities/properties/date_formatter.dart';
 import 'package:wanderhuman_app/view-model/home_geofence_config_provider.dart';
+import 'package:wanderhuman_app/view-model/home_settings_provider.dart';
 import 'package:wanderhuman_app/view-model/my_mapbox_ref_provider.dart';
 import 'package:wanderhuman_app/view/components/info_dialogue.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/draw_geo/map_geofence_drawer.dart';
@@ -61,6 +62,9 @@ class _MapBodyState extends State<MapBody> with RouteAware {
   mp.PolygonAnnotationManager? polygonAnnotationManager;
   // List<List<mp.Position>> listOfPositions = [];
   int numberOfActiveGeofences = 0;
+
+  // Provider
+  double cameraZoomLevel = 15.0;
 
   // This two Managers are for temporary scenarios like when creating a safe zone (geofence)
   mp.PolygonAnnotationManager? markedPolygonAnnotationManager;
@@ -189,6 +193,9 @@ class _MapBodyState extends State<MapBody> with RouteAware {
       markedPolygonAnnotationManager!.deleteAll();
       markedPointAnnotationManager!.deleteAll();
     }
+
+    // This will listen to changes
+    cameraZoomLevel = context.watch<MyHomeSettingsProvider>().zoomLevel;
 
     return mp.MapWidget(
       onMapCreated: _onMapCreated,
@@ -548,7 +555,8 @@ class _MapBodyState extends State<MapBody> with RouteAware {
             // CameraOptios sets where the map is centered and how zoomed in it is.
             mapboxMapController?.setCamera(
               mp.CameraOptions(
-                zoom: 15.0,
+                // zoom: 15.0,
+                zoom: cameraZoomLevel,
                 center: mp.Point(
                   coordinates: mp.Position(
                     position.longitude,

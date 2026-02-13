@@ -155,13 +155,14 @@ class ListenToPatients {
                       userID: patient.userID,
                     );
 
-                // Notifies if the patient is not inside the safe zone
-                if (!isInsideSafeZone) {
-                  MyAlertNotification.triggerSafeZoneAlert(
-                    patientName: patient.name,
-                    randomGeneratedIDForAlert: randomGeneratedID,
-                  );
-                }
+                /// TODO: commented for now because the vibrate is annoying while hot reloading
+                // // Notifies if the patient is not inside the safe zone
+                // if (!isInsideSafeZone) {
+                //   MyAlertNotification.triggerSafeZoneAlert(
+                //     patientName: patient.name,
+                //     randomGeneratedIDForAlert: randomGeneratedID,
+                //   );
+                // }
 
                 // for debugging purposes only
                 log(

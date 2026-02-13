@@ -12,13 +12,14 @@ import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
 import 'package:wanderhuman_app/view-model/home_geofence_config_provider.dart';
+import 'package:wanderhuman_app/view-model/home_settings_provider.dart';
 import 'package:wanderhuman_app/view-model/my_mapbox_ref_provider.dart';
 import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
 import 'package:wanderhuman_app/view/components/button.dart';
 import 'package:wanderhuman_app/view/components/lines.dart';
 import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/components/textfield.dart';
-import 'package:wanderhuman_app/view/home/widgets/map/map_functions/fly_to.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/map_functions/map_camera_animations.dart';
 
 class ViewingGeofencesBottomPanel extends StatefulWidget {
   const ViewingGeofencesBottomPanel({super.key});
@@ -189,11 +190,14 @@ class _ViewingGeofencesBottomPanelState
                                 }
                               });
 
-                              myMapFlyTo(
+                              MyMapCameraAnimations.myMapFlyTo(
                                 mapboxController: context
                                     .read<MyMapboxRefProvider>()
                                     .getMapboxMapController!,
                                 position: selectedGeofence.centerCoordinates,
+                                zoomLevel: context
+                                    .read<MyHomeSettingsProvider>()
+                                    .zoomLevel,
                               );
                             },
                             children: myIterator(),
