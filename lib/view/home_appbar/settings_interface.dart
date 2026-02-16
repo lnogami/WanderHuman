@@ -8,14 +8,14 @@ import 'package:wanderhuman_app/view-model/my_mapbox_ref_provider.dart';
 import 'package:wanderhuman_app/view/components/lines.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/map_camera_animations.dart';
 
-class MyOptionsInterface extends StatefulWidget {
-  const MyOptionsInterface({super.key});
+class MySettingsInterface extends StatefulWidget {
+  const MySettingsInterface({super.key});
 
   @override
-  State<MyOptionsInterface> createState() => _MyOptionsInterfaceState();
+  State<MySettingsInterface> createState() => _MySettingsInterfaceState();
 }
 
-class _MyOptionsInterfaceState extends State<MyOptionsInterface> {
+class _MySettingsInterfaceState extends State<MySettingsInterface> {
   double zoomLevel = 15.0;
 
   @override
@@ -115,28 +115,40 @@ class _MyOptionsInterfaceState extends State<MyOptionsInterface> {
               ),
             ],
           ),
-          SizedBox(
-            width: width,
-            height: height * 0.05,
-            child: CupertinoSlider(
-              min: 0.0,
-              max: 20.0,
-              divisions: 20,
-              value: zoomLevel,
-              onChanged: (value) {
-                // setState(() => zoomLevel = value);
-                setState(() {
-                  context.read<MyHomeSettingsProvider>().setZoomLevel(value);
-                });
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            spacing: 5,
+            children: [
+              Icon(Icons.zoom_out, size: 22, color: Colors.grey.shade700),
+              Expanded(
+                child: SizedBox(
+                  // width: width * 0.6,
+                  height: height * 0.05,
+                  child: CupertinoSlider(
+                    min: 0.0,
+                    max: 20.0,
+                    divisions: 20,
+                    value: zoomLevel,
+                    onChanged: (value) {
+                      // setState(() => zoomLevel = value);
+                      setState(() {
+                        context.read<MyHomeSettingsProvider>().setZoomLevel(
+                          value,
+                        );
+                      });
 
-                MyMapCameraAnimations.myMapZoom(
-                  mapboxController: context
-                      .read<MyMapboxRefProvider>()
-                      .getMapboxMapController!,
-                  zoomLevel: value,
-                );
-              },
-            ),
+                      MyMapCameraAnimations.myMapZoom(
+                        mapboxController: context
+                            .read<MyMapboxRefProvider>()
+                            .getMapboxMapController!,
+                        zoomLevel: value,
+                      );
+                    },
+                  ),
+                ),
+              ),
+              Icon(Icons.zoom_in, size: 28, color: Colors.grey.shade700),
+            ],
           ),
         ],
       ),

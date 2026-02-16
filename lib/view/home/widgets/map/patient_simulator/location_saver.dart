@@ -57,6 +57,7 @@ Future<bool> savePatientLocation({
           patientID: patientID, // place holder
           isInSafeZone: false, // place holder
           currentlyIn: "No Data Retrieved", // place holder
+          isCurrentlySafe: true,
           // currentLocation: currentPositon, // place holder
           currentLocationLng: currentPositon.lng.toString(), // place holder
           currentLocationLat: currentPositon.lat.toString(), // place holder

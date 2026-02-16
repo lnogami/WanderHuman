@@ -41,6 +41,7 @@ class MyRealtimeLocationModel {
   String deviceID;
   String patientID;
   bool isInSafeZone;
+  bool isCurrentlySafe;
   String currentlyIn;
   String currentLocationLng;
   String currentLocationLat;
@@ -53,6 +54,7 @@ class MyRealtimeLocationModel {
     required this.deviceID,
     required this.patientID,
     required this.isInSafeZone,
+    required this.isCurrentlySafe,
     required this.currentlyIn,
     required this.currentLocationLng,
     required this.currentLocationLat,
@@ -67,6 +69,7 @@ class MyRealtimeLocationModel {
       "deviceID": data.deviceID,
       "patientID": data.patientID,
       "isInSafeZone": data.isInSafeZone,
+      "isCurrentlySafe": data.isCurrentlySafe,
       "currentlyIn": data.currentlyIn,
       "currentLocationLng": data.currentLocationLng,
       "currentLocationLat": data.currentLocationLat,
@@ -87,6 +90,7 @@ class MyRealtimeLocationModel {
         deviceID: data['deviceID'] ?? "",
         patientID: data['patientID'] ?? "",
         isInSafeZone: data['isInSafeZone'] ?? false,
+        isCurrentlySafe: data['isCurrentlySafe'] ?? true,
         currentlyIn: data['currentlyIn'] ?? "",
         currentLocationLng: data['currentLocationLng'] ?? "",
         currentLocationLat: data['currentLocationLat'] ?? "",

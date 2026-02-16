@@ -45,6 +45,7 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
 
   // will return all the patients in the PersonalInfo in the database (PersonalInfo)
   Future<void> getActivePatientList() async {
+    // activeDevice includes both the patient device and the mobile app (caregivers)
     List<MyRealtimeActiveStatusModel> activeDevices =
         await MyRealtimeActiveStatusRepository.getAllDeviceIDWithActiveStatus();
     // log("ALL ACTIVE DEVICESSSSSSSSSSSSSSSSSSSSSS: ${activeDevices.length}");
@@ -63,11 +64,7 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
       );
 
       // add the patient as an active person to a temporaruy list
-      tempPatientList.add(
-        await MyPersonalInfoRepository.getSpecificPersonalInfo(
-          userID: device.userID,
-        ),
-      );
+      tempPatientList.add(person);
       // store the coordinates of the patient in a temporary map
       tempPatientLocations[device.userID] =
           await MyRealtimeLocationReposity.getLocation(deviceID: device.userID);
@@ -173,6 +170,7 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
                         itemBuilder: (context, index) {
                           return individualPatientIcon(
                             personalInfo: patientList[index],
+                            context: context,
                           );
                         },
                       ),
@@ -185,8 +183,17 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
   }
 
   /// Patient pictures that acts as a tappable icon.
-  GestureDetector individualPatientIcon({required PersonalInfo personalInfo}) {
+  GestureDetector individualPatientIcon({
+    required PersonalInfo personalInfo,
+    required BuildContext context,
+  }) {
+    // this will filer who are the patients among the staff
     bool isPatient = personalInfo.userType == "Patient";
+
+    // for getting the logged in user's personal info, and use it later for enhancing user experience
+    final PersonalInfo loggedInUserData = context
+        .read<HomeAppBarProvider>()
+        .loggedInUserData;
 
     // only get the first name from the full name
     String firstName = personalInfo.name.split(" ")[0];
@@ -231,7 +238,9 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
               ),
             ),
             MyTextFormatter.p(
-              text: firstName,
+              text: (loggedInUserData.userID == personalInfo.userID)
+                  ? "Me" // "you"
+                  : firstName,
               fontsize: kDefaultFontSize - 4,
               fontWeight: (isPatient) ? FontWeight.w600 : FontWeight.w500,
               color: (isPatient) ? Colors.blue.shade700 : Colors.black,

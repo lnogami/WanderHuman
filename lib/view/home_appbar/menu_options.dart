@@ -9,7 +9,7 @@ import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
 import 'package:wanderhuman_app/view/components/bottom_sheet.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/active_status.dart';
 import 'package:wanderhuman_app/view/home_appbar/home_appbar_dynamic_panel.dart';
-import 'package:wanderhuman_app/view/home_appbar/options_interface.dart';
+import 'package:wanderhuman_app/view/home_appbar/settings_interface.dart';
 import 'package:wanderhuman_app/view/home_appbar/user_role_previlige.dart';
 import 'package:wanderhuman_app/view/components/option_container.dart';
 
@@ -94,7 +94,7 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
 
                     MyBottomPanel.showMyBottomPanel(
                       context: context,
-                      child: MyOptionsInterface(),
+                      child: MySettingsInterface(),
                     );
                   },
                 ),

@@ -137,7 +137,8 @@ class MyHistoryReposity {
               HistoryModel(
                 deviceID: doc["deviceID"] ?? "No Data Retrieved",
                 patientID: doc["patientID"] ?? "No Data Retrieved",
-                isInSafeZone: doc["isInSafeZone"] ?? "No Data Retrieved",
+                isInSafeZone: doc["isInSafeZone"] ?? false,
+                isCurrentlySafe: doc["isCurrentlySafe"] ?? true,
                 currentlyIn: doc["currentlyIn"] ?? "No Data Retrieved",
                 currentLocationLng:
                     doc["currentLocationLng"] ?? "No Data Retrieved",
@@ -177,6 +178,7 @@ class MyHistoryReposity {
       deviceID: data["deviceID"] ?? "",
       patientID: data["patientID"] ?? "",
       isInSafeZone: data["isInSafeZone"] ?? "",
+      isCurrentlySafe: data["isCurrentlySafe"] ?? "",
       currentlyIn: data["currentlyIn"] ?? "",
       currentLocationLng: data["currentLocationLng"] ?? "",
       currentLocationLat: data["currentLocationLat"] ?? "",

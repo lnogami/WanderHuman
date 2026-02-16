@@ -622,6 +622,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
           deviceID: widget.loggedInUserData.userID,
           patientID: widget.loggedInUserData.userID,
           isInSafeZone: true,
+          isCurrentlySafe: true,
           currentlyIn: "NOT APPLICABLE",
           currentLocationLng: position.longitude.toString(),
           currentLocationLat: position.latitude.toString(),
