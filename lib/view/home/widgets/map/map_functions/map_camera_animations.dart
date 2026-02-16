@@ -30,6 +30,7 @@ class MyMapCameraAnimations {
     // mapboxController.addInteraction(interaction);
   }
 
+  /// This will do a zoom animation on the map
   static Future<void> myMapZoom({
     required MapboxMap mapboxController,
     required double zoomLevel,

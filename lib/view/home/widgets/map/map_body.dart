@@ -290,7 +290,6 @@ class _MapBodyState extends State<MapBody> with RouteAware {
       //       .read<MyHomeGeofenceConfigurationProvider>()
       //       .listOfMarkedPositions,
       // );
-
       // //
       // setupGeofences();
     }
@@ -523,6 +522,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     }
     // Permissions are granted, proceed with location functionality
     gl.LocationSettings locationSettings = gl.LocationSettings(
+      // accuracy: gl.LocationAccuracy.best,
       accuracy: gl.LocationAccuracy.high,
       distanceFilter: 100,
     );

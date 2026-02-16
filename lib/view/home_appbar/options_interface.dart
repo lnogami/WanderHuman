@@ -68,72 +68,74 @@ class _MyOptionsInterfaceState extends State<MyOptionsInterface> {
           ),
           SizedBox(height: 30),
 
-          _myLayoutContainer(
-            width: width,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    MyTextFormatter.p(
-                      text: "Map Zoom Level:  ",
-                      fontsize: kDefaultFontSize - 2,
-                    ),
-                    MyTextFormatter.p(
-                      text: "${zoomLevel.toInt()}",
-                      fontsize: kDefaultFontSize,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey.shade700,
-                    ),
-                    Spacer(),
-                    GestureDetector(
-                      onTap: () {
-                        // Revert to default zoom level
-                        setState(() => zoomLevel = 15.0);
-                        context.read<MyHomeSettingsProvider>().setZoomLevel(
-                          zoomLevel,
-                        );
-                        MyMapCameraAnimations.myMapZoom(
-                          mapboxController: context
-                              .read<MyMapboxRefProvider>()
-                              .getMapboxMapController!,
-                          zoomLevel: zoomLevel,
-                        );
-                      },
-                      child: Icon(
-                        Icons.rotate_left_rounded,
-                        size: 24,
-                        color: Colors.grey.shade700,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  width: width,
-                  height: height * 0.05,
-                  child: CupertinoSlider(
-                    min: 0.0,
-                    max: 25.0,
-                    divisions: 25,
-                    value: zoomLevel,
-                    onChanged: (value) {
-                      // setState(() => zoomLevel = value);
-                      setState(() {
-                        context.read<MyHomeSettingsProvider>().setZoomLevel(
-                          value,
-                        );
-                      });
+          myMapZoomSlider(width, context, height),
+        ],
+      ),
+    );
+  }
 
-                      MyMapCameraAnimations.myMapZoom(
-                        mapboxController: context
-                            .read<MyMapboxRefProvider>()
-                            .getMapboxMapController!,
-                        zoomLevel: value,
-                      );
-                    },
-                  ),
+  Container myMapZoomSlider(double width, BuildContext context, double height) {
+    return _myLayoutContainer(
+      width: width,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              MyTextFormatter.p(
+                text: "Map Zoom Level:  ",
+                fontsize: kDefaultFontSize - 2,
+              ),
+              MyTextFormatter.p(
+                text: "${zoomLevel.toInt()}",
+                fontsize: kDefaultFontSize,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade700,
+              ),
+              Spacer(),
+              GestureDetector(
+                onTap: () {
+                  // Revert to default zoom level
+                  setState(() => zoomLevel = 15.0);
+                  context.read<MyHomeSettingsProvider>().setZoomLevel(
+                    zoomLevel,
+                  );
+                  MyMapCameraAnimations.myMapZoom(
+                    mapboxController: context
+                        .read<MyMapboxRefProvider>()
+                        .getMapboxMapController!,
+                    zoomLevel: zoomLevel,
+                  );
+                },
+                child: Icon(
+                  Icons.rotate_left_rounded,
+                  size: 24,
+                  color: Colors.grey.shade700,
                 ),
-              ],
+              ),
+            ],
+          ),
+          SizedBox(
+            width: width,
+            height: height * 0.05,
+            child: CupertinoSlider(
+              min: 0.0,
+              max: 20.0,
+              divisions: 20,
+              value: zoomLevel,
+              onChanged: (value) {
+                // setState(() => zoomLevel = value);
+                setState(() {
+                  context.read<MyHomeSettingsProvider>().setZoomLevel(value);
+                });
+
+                MyMapCameraAnimations.myMapZoom(
+                  mapboxController: context
+                      .read<MyMapboxRefProvider>()
+                      .getMapboxMapController!,
+                  zoomLevel: value,
+                );
+              },
             ),
           ),
         ],
