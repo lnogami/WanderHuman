@@ -158,6 +158,7 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
                 height: (isExpanded)
                     ? MyDimensionAdapter.getHeight(context) * 0.65
                     : 0,
+                padding: EdgeInsets.only(top: 3),
                 decoration: BoxDecoration(
                   color: Colors.white30,
                   borderRadius: BorderRadius.all(Radius.circular(7)),

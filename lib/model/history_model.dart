@@ -38,9 +38,10 @@
 // }
 
 // newly added, not yet tested out
+import 'package:wanderhuman_app/model/realtime_location_model.dart';
 import 'package:wanderhuman_app/utilities/properties/date_formatter.dart';
 
-class HistoryModel {
+class MyHistoryModel {
   String deviceID;
   String patientID;
   bool isInSafeZone;
@@ -49,11 +50,11 @@ class HistoryModel {
   String currentLocationLng;
   String currentLocationLat;
   String timeStamp;
-  String deviceBatteryPercentage;
+  int deviceBatteryPercentage;
   String bPM;
-  String requestBPM;
+  bool requestBPM;
 
-  HistoryModel({
+  MyHistoryModel({
     required this.deviceID,
     required this.patientID,
     required this.isInSafeZone,
@@ -67,9 +68,9 @@ class HistoryModel {
     required this.requestBPM,
   });
 
-  factory HistoryModel.fromFirestore(Map<String, dynamic> data) {
+  factory MyHistoryModel.fromFirestore(Map<String, dynamic> data) {
     try {
-      return HistoryModel(
+      return MyHistoryModel(
         deviceID: data['deviceID'] ?? "",
         patientID: data['patientID'] ?? "",
         isInSafeZone: data['isInSafeZone'] ?? "",
@@ -91,5 +92,22 @@ class HistoryModel {
       print("DATE TIME FORMATTTTTTTTTTTTTT: ${DateTime.now().toString()}");
       throw Exception();
     }
+  }
+
+  /// To convert into Map object, for efficiently uploading to firebase
+  static Map<String, dynamic> toMap(MyRealtimeLocationModel data) {
+    return {
+      "deviceID": data.deviceID,
+      "patientID": data.patientID,
+      "isInSafeZone": data.isInSafeZone,
+      "isCurrentlySafe": data.isCurrentlySafe,
+      "currentlyIn": data.currentlyIn,
+      "currentLocationLng": data.currentLocationLng,
+      "currentLocationLat": data.currentLocationLat,
+      "timeStamp": data.timeStamp,
+      "deviceBatteryPercentage": data.deviceBatteryPercentage,
+      "bPM": data.bPM,
+      "requestBPM": data.requestBPM,
+    };
   }
 }

@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mp;
 import 'package:wanderhuman_app/helper/geofence_repository.dart';
+import 'package:wanderhuman_app/helper/history_reposity.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/helper/realtime_location_repository.dart';
 import 'package:wanderhuman_app/model/geofence_model.dart';
@@ -68,9 +69,9 @@ class ListenToPatients {
 
       // for debugging purposes only
       for (var p in _patientsList) {
-        print("PATIENTSSSSSSSSSSSSSSSSSSSSSSSSS: ${p.name}");
-        print("PATIENT IDDDDDDDDDDDDDDDDDDDDDDD: ${p.userID}");
-        print("DEVICE IDDDDDDDDDDDDDDDDDDDDDDDD: ${p.deviceID}");
+        log("PATIENTSSSSSSSSSSSSSSSSSSSSSSSSS: ${p.name}");
+        log("PATIENT IDDDDDDDDDDDDDDDDDDDDDDD: ${p.userID}");
+        log("DEVICE IDDDDDDDDDDDDDDDDDDDDDDDD: ${p.deviceID}");
       }
 
       // Create a random number generator for ID generation for each patient so that each of them have different notifications.
@@ -144,6 +145,7 @@ class ListenToPatients {
                   pointAnnotationManager: pointAnnotationManager!,
                   userAnnotations: userAnnotations,
                   annotationData: annotationData,
+                  // ignore: use_build_context_synchronously
                   context: context,
                 );
 
@@ -155,7 +157,6 @@ class ListenToPatients {
                       userID: patient.userID,
                     );
 
-                /// TODO: commented for now because the vibrate is annoying while hot reloading
                 // Notifies if the patient is not inside the safe zone
                 if (!isInsideSafeZone) {
                   MyAlertNotification.triggerSafeZoneAlert(
@@ -163,6 +164,11 @@ class ListenToPatients {
                     randomGeneratedIDForAlert: randomGeneratedID,
                   );
                 }
+
+                // Saves the lcation data of the patient to the database
+                await MyHistoryReposity.savePatientLocation(
+                  locationData: realtimeLocModel,
+                );
 
                 // for debugging purposes only
                 log(

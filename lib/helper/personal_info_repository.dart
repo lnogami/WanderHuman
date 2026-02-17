@@ -154,7 +154,6 @@ class MyPersonalInfoRepository {
   //   try {
   //     late QuerySnapshot querySnapshot;
   //     late List<PersonalInfo> patients;
-
   //     if (fieldName == null && valueToLookFor == null) {
   //       querySnapshot = await _personalInfoCollectionReference
   //           // .where("userType", isEqualTo: "Patient")
@@ -174,7 +173,6 @@ class MyPersonalInfoRepository {
   //     }
   //     // // to cache personal innfo records, for the purpose of getPatientIdAandName()
   //     // _personalInfoRecords = patients;
-
   //     print('✅🔍 Successfully fetched ${patients.length} patients');
   //     return patients;
   //   } catch (e) {
@@ -189,20 +187,16 @@ class MyPersonalInfoRepository {
   //   try {
   //     // DocumentSnapshot queryDocumentSnapshot = await FirebaseFirestore.instance.collection("Personal Info").where("userID", isEqualTo: userID).get().then((value) => value.docs.first);
   //     // DocumentSnapshot queryDocumentSnapshot = await _personalInfoCollectionReference.doc(userID).get();
-
   //     List<PersonalInfo> allPersonalInfoRecords =
   //         await getAllPersonalInfoRecords();
   //     PersonalInfo? personalInfo;
-
   //     for (var individualRecord in allPersonalInfoRecords) {
   //       if (individualRecord.userID == userID) {
   //         personalInfo = individualRecord;
   //       }
   //     }
-
   //     if (personalInfo == null)
   //       throw Exception("❌❌❌ No PersonalInfo found for userID: $userID");
-
   //     return PersonalInfo(
   //       userID: personalInfo.userID,
   //       userType: personalInfo.userType,

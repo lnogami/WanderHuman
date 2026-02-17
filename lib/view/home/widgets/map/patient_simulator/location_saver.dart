@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:wanderhuman_app/helper/history_reposity.dart';
-import 'package:wanderhuman_app/model/history_model.dart';
+import 'package:wanderhuman_app/model/realtime_location_model.dart';
 import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 
 ///
@@ -52,7 +52,7 @@ Future<bool> savePatientLocation({
 
     if (certainSecondsHasPassed || locationChanged) {
       MyHistoryReposity.savePatientLocation(
-        HistoryModel(
+        locationData: MyRealtimeLocationModel(
           deviceID: "No Data Retrieved",
           patientID: patientID, // place holder
           isInSafeZone: false, // place holder
@@ -62,9 +62,9 @@ Future<bool> savePatientLocation({
           currentLocationLng: currentPositon.lng.toString(), // place holder
           currentLocationLat: currentPositon.lat.toString(), // place holder
           timeStamp: lastSaved.toString(), // place holder
-          deviceBatteryPercentage: "100", // place holder
+          deviceBatteryPercentage: 100, // place holder
           bPM: "100",
-          requestBPM: "100",
+          requestBPM: true,
         ),
       );
       showMyAnimatedSnackBar(
