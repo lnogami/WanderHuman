@@ -1,7 +1,6 @@
 // ignore_for_file: avoid_print
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
@@ -17,6 +16,7 @@ import 'package:wanderhuman_app/view/components/image_displayer.dart';
 import 'package:wanderhuman_app/view/components/image_picker.dart';
 import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/components/textfield.dart';
+import 'package:wanderhuman_app/view/userRolesUI/social_services/mini_widgets/frequently_go_to.dart';
 
 class ViewPatientForm extends StatefulWidget {
   final PersonalInfo patientPersonalInfo;
@@ -55,7 +55,7 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
   //   }
   // }
 
-  ScrollController scrollController = ScrollController();
+  ScrollController wholePageScrollController = ScrollController();
 
   String pictureValue = "";
 
@@ -132,7 +132,7 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
     emailAddController.dispose();
     notableBehaviorController.dispose();
     assignedCaregiverController.dispose();
-    scrollController.dispose();
+    wholePageScrollController.dispose();
   }
 
   @override
@@ -141,6 +141,7 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
       backgroundColor: MyColorPalette.formColor,
       body: SafeArea(
         child: RawScrollbar(
+          controller: wholePageScrollController,
           thumbColor: Colors.blue.shade300,
           padding: EdgeInsets.only(right: 0, top: (kDefaultFontSize * 4) + 10),
           thumbVisibility: true,
@@ -149,6 +150,7 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
           thickness: 5,
           radius: Radius.circular(7),
           child: SingleChildScrollView(
+            controller: wholePageScrollController,
             scrollDirection: Axis.vertical,
             // this is the main body of the Form
             child: Container(
@@ -359,76 +361,10 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
             (otherInfoIsReadOnly) ? SizedBox() : buttonArea(context),
 
             // Frequently Go-To Area
-            frequentyGoToArea(context),
+            FrequentlyGoToArea(patientID: widget.patientPersonalInfo.userID),
           ],
         ),
       ],
-    );
-  }
-
-  Container frequentyGoToArea(BuildContext context) {
-    return Container(
-      width: MyDimensionAdapter.getWidth(context),
-      height: 500,
-      margin: EdgeInsets.only(top: 20),
-      padding: EdgeInsets.symmetric(horizontal: 40),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Container(
-            width: MyDimensionAdapter.getWidth(context),
-            height: 1,
-            color: Colors.blue.shade100,
-          ),
-          SizedBox(height: 20),
-          MyTextFormatter.h1(
-            text: "Frequently Go-To",
-            fontWeight: FontWeight.w600,
-            fontsize: kDefaultFontSize + 9,
-          ),
-          SizedBox(height: 20),
-          Container(
-            width: MyDimensionAdapter.getWidth(context),
-            height: MyDimensionAdapter.getHeight(context) * 0.45,
-            color: Colors.green,
-            child: RawScrollbar(
-              thumbColor: Colors.blue.shade300,
-              padding: EdgeInsets.only(right: 0),
-              thumbVisibility: true,
-              trackVisibility: true,
-              thickness: 4,
-              radius: Radius.circular(7),
-              child: ListView.builder(
-                controller: scrollController,
-                dragStartBehavior: DragStartBehavior.down,
-                shrinkWrap: true,
-                physics: ScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-                itemCount: 15,
-                itemBuilder: (context, index) {
-                  return Container(
-                    width: MyDimensionAdapter.getWidth(context),
-                    height: MyDimensionAdapter.getHeight(context) * 0.065,
-                    color: (index % 2 == 0)
-                        ? Colors.amber.shade100
-                        : Colors.purple.shade100,
-                    child: Row(
-                      // spacing: 20,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        SizedBox(width: 20),
-                        Text("Hello"),
-                        Spacer(),
-                        Text("${index + 1} / Day"),
-                        SizedBox(width: 20),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 

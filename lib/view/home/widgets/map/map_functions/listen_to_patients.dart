@@ -157,13 +157,13 @@ class ListenToPatients {
                       userID: patient.userID,
                     );
 
-                // Notifies if the patient is not inside the safe zone
-                if (!isInsideSafeZone) {
-                  MyAlertNotification.triggerSafeZoneAlert(
-                    patientName: patient.name,
-                    randomGeneratedIDForAlert: randomGeneratedID,
-                  );
-                }
+                // // Notifies if the patient is not inside the safe zone
+                // if (!isInsideSafeZone) {
+                //   MyAlertNotification.triggerSafeZoneAlert(
+                //     patientName: patient.name,
+                //     randomGeneratedIDForAlert: randomGeneratedID,
+                //   );
+                // }
 
                 // Saves the lcation data of the patient to the database
                 await MyHistoryReposity.savePatientLocation(

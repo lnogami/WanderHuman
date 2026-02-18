@@ -184,14 +184,25 @@ class MyHistoryReposity {
 
   /// Retrieve all history logs for a specific patient
   static Future<List<MyHistoryModel>> getPatientHistory(
-    String patientID,
-  ) async {
+    String patientID, {
+    String orderBy = "timeStamp",
+    bool isDescending = true,
+  }) async {
     try {
-      QuerySnapshot snapshot = await _rootCollection
-          .doc(patientID)
-          .collection(_subCollection)
-          .orderBy('timeStamp', descending: true) // Get newest first
-          .get();
+      late QuerySnapshot snapshot;
+
+      if (orderBy == "timeStamp") {
+        snapshot = await _rootCollection
+            .doc(patientID)
+            .collection(_subCollection)
+            .orderBy('timeStamp', descending: isDescending) // Get newest first
+            .get();
+      } else {
+        snapshot = await _rootCollection
+            .doc(patientID)
+            .collection(_subCollection)
+            .get();
+      }
 
       return snapshot.docs.map((doc) {
         return MyHistoryModel.fromFirestore(doc.data() as Map<String, dynamic>);
@@ -201,4 +212,20 @@ class MyHistoryReposity {
       return [];
     }
   }
+
+  /// TODO: to be continued
+  // static Future<List<MyHistoryModel>> getPatientFrequentlyGoToHistory(
+  //   String patientID,
+  // ) async {
+  //   try {
+  //     List<MyHistoryModel> patientHistory = await getPatientHistory(patientID, orderBy: "currentlyIn");
+
+  //     // for(var history in patientHistory){
+
+  //     // }
+  //   } catch (e) {
+  //     log("ERROR FETCHING HISTORY: $e");
+  //     return [];
+  //   }
+  // }
 }

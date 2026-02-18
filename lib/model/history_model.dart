@@ -78,9 +78,7 @@ class MyHistoryModel {
         currentlyIn: data['currentlyIn'] ?? "",
         currentLocationLng: data['currentLocationLng'] ?? "",
         currentLocationLat: data['currentLocationLat'] ?? "",
-        timeStamp: MyDateFormatter.formatDate(
-          dateTimeInString: data['timeStamp'].toString(),
-        ),
+        timeStamp: data['timeStamp'] ?? "",
         deviceBatteryPercentage: data['deviceBatteryPercentage'] ?? "",
         bPM: data['bPM'] ?? "",
         requestBPM: data['requestBPM'] ?? "",
@@ -104,7 +102,8 @@ class MyHistoryModel {
       "currentlyIn": data.currentlyIn,
       "currentLocationLng": data.currentLocationLng,
       "currentLocationLat": data.currentLocationLat,
-      "timeStamp": data.timeStamp,
+      // "timeStamp": data.timeStamp,
+      "timeStamp": DateTime.now().toString(), // temporary
       "deviceBatteryPercentage": data.deviceBatteryPercentage,
       "bPM": data.bPM,
       "requestBPM": data.requestBPM,

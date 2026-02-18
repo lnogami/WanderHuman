@@ -576,7 +576,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
               // ),
             );
 
-            updateUserLocationInTheDatabase(position);
+            updateLoggedInUserLocationToTheDatabase(position);
 
             //// This is no longer needed because the app user can see himself as the uniqure blue dot on the map
             // mp.PointAnnotationOptions pointAnnotationOptions =
@@ -614,7 +614,9 @@ class _MapBodyState extends State<MapBody> with RouteAware {
   }
 
   // this will update the location data of only the current logged in user of this mobile app, the patients' location data will be hanlded by the device
-  Future<void> updateUserLocationInTheDatabase(gl.Position position) async {
+  Future<void> updateLoggedInUserLocationToTheDatabase(
+    gl.Position position,
+  ) async {
     try {
       return MyRealtimeLocationReposity.updateLocation(
         deviceID: widget.loggedInUserData.userID,
