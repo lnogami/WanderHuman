@@ -47,7 +47,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
   /// This will hold all the active geofences (safezones)
   List<MyGeofenceModel> activeGeofences = [];
 
-  /// To listen to the user's location changes
+  /// To listen to the mobile app user's location changes
   StreamSubscription? currentLoggedInUserPositionStream;
 
   /// Keep track of existing annotations by Firestore document ID

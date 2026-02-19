@@ -213,6 +213,64 @@ class MyHistoryReposity {
     }
   }
 
+  /// Retrieve all history logs for a specific patient
+  static Future<List<MyHistoryModel>> getPatientFrequentlyGoToHistory(
+    String patientID, {
+    String? fieldToLookFor,
+    String? fieldValue,
+    String? fieldValueStart,
+    String? fieldValueEnd,
+    String orderBy = "timeStamp",
+    bool isDescending = true,
+  }) async {
+    try {
+      late QuerySnapshot snapshot;
+
+      if (fieldToLookFor != null &&
+          fieldValueStart != null &&
+          fieldValueEnd != null) {
+        snapshot = await _rootCollection
+            .doc(patientID)
+            .collection(_subCollection)
+            .where(fieldToLookFor, isGreaterThanOrEqualTo: fieldValueStart)
+            .where(fieldToLookFor, isLessThanOrEqualTo: fieldValueEnd)
+            .orderBy(
+              fieldToLookFor,
+              descending: isDescending,
+            ) // Get newest first
+            .get();
+      } else if (fieldToLookFor != null && fieldValue != null) {
+        snapshot = await _rootCollection
+            .doc(patientID)
+            .collection(_subCollection)
+            .where(fieldToLookFor, isEqualTo: fieldValue)
+            .orderBy(
+              fieldToLookFor,
+              descending: isDescending,
+            ) // Get newest first
+            .get();
+      } else if (orderBy == "timeStamp") {
+        snapshot = await _rootCollection
+            .doc(patientID)
+            .collection(_subCollection)
+            .orderBy(orderBy, descending: isDescending) // Get newest first
+            .get();
+      } else {
+        snapshot = await _rootCollection
+            .doc(patientID)
+            .collection(_subCollection)
+            .get();
+      }
+
+      return snapshot.docs.map((doc) {
+        return MyHistoryModel.fromFirestore(doc.data() as Map<String, dynamic>);
+      }).toList();
+    } catch (e) {
+      log("ERROR FETCHING HISTORY: $e");
+      return [];
+    }
+  }
+
   /// TODO: to be continued
   // static Future<List<MyHistoryModel>> getPatientFrequentlyGoToHistory(
   //   String patientID,
