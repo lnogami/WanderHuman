@@ -39,7 +39,6 @@
 
 // newly added, not yet tested out
 import 'package:wanderhuman_app/model/realtime_location_model.dart';
-import 'package:wanderhuman_app/utilities/properties/date_formatter.dart';
 
 class MyHistoryModel {
   String deviceID;

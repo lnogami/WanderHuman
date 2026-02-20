@@ -107,11 +107,16 @@ class ListenToPatients {
                   'deviceBatteryPercentage': realtimeLocModel
                       .deviceBatteryPercentage
                       .toString(),
+                  'userID': patient.userID,
+                  'profilePicture': patient.picture,
                   'age': patient.age,
                   'sex': patient.sex,
                   'contactInfo': patient.contactNumber,
                   'address': patient.address,
                   'notableBehavior': patient.notableBehavior,
+                  'deviceID': patient.deviceID,
+                  'email': patient.email,
+                  'birthDate': patient.birthdate,
                 };
 
                 // Decode the patient icon
@@ -212,12 +217,36 @@ class ListenToPatients {
           var data = annotationData[docId]!;
           showMyBottomNavigationSheet(
             context: context,
-            name: "${data['name']} : ${data['number']}",
+            patientID: data['patientID'] ?? "NO DATA ACQUIRED",
+            name: data['name'] ?? "NO DATA ACQUIRED",
             sex: data['sex'] ?? "NO DATA ACQUIRED",
             age: data['age'] ?? "NO DATA ACQUIRED",
             contactInfo: data['contactInfo'] ?? "NO DATA ACQUIRED",
             address: data['address'] ?? "NO DATA ACQUIRED",
             notableBehavior: data['notableBehavior'] ?? "NO DATA ACQUIRED",
+            profilePicture: data['profilePicture'] ?? "NO DATA ACQUIRED",
+            currentlyIn: data['currentlyIn'] ?? "NO DATA ACQUIRED",
+            batteryPercentage:
+                int.tryParse(data['deviceBatteryPercentage']) ?? 0,
+            isCurrentlySafe: data['isInSafeZone'] ?? false,
+            deviceID: data['deviceID'] ?? "NO DATA ACQUIRED",
+            email: data['email'] ?? "NO DATA ACQUIRED",
+            birthDate: data['birthDate'] ?? "NO DATA ACQUIRED",
+
+            //'name': patient.name,
+            // 'patientID': realtimeLocModel.patientID,
+            // 'currentlyIn': realtimeLocModel.currentlyIn,
+            // 'isInSafeZone': realtimeLocModel.isInSafeZone,
+            // 'timeStamp': realtimeLocModel.timeStamp,
+            // 'deviceBatteryPercentage': realtimeLocModel
+            //     .deviceBatteryPercentage
+            //     .toString(),
+            // 'userID': patient.userID,
+            // 'age': patient.age,
+            // 'sex': patient.sex,
+            // 'contactInfo': patient.contactNumber,
+            // 'address': patient.address,
+            // 'notableBehavior': patient.notableBehavior,
           );
         }
       },

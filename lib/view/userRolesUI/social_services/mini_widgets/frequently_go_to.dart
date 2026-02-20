@@ -7,7 +7,6 @@ import 'package:wanderhuman_app/model/history_model.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
 import 'package:wanderhuman_app/view/components/button.dart';
-import 'package:wanderhuman_app/view/components/lines.dart';
 import 'package:wanderhuman_app/view/components/tooltip.dart';
 
 class FrequentlyGoToArea extends StatefulWidget {
@@ -248,20 +247,20 @@ class _FrequentlyGoToAreaState extends State<FrequentlyGoToArea> {
       width: width,
       height: height * 0.7,
       // color: Colors.yellow,
-      margin: EdgeInsets.only(top: 20),
+      margin: EdgeInsets.only(top: 20, bottom: 30),
       padding: EdgeInsets.symmetric(horizontal: 40),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          MyLine(
-            length: width * 0.9,
-            color: Colors.blue.shade100,
-            isVertical: false,
-            isRounded: true,
-          ),
+          // MyLine(
+          //   length: width * 0.9,
+          //   color: Colors.blue.shade100,
+          //   isVertical: false,
+          //   isRounded: true,
+          // ),
           SizedBox(height: 20),
           MyCustTooltip(
-            message: "You can use these info for something significant!",
+            message: "You can use these info for something significant.",
             child: MyTextFormatter.h1(
               text: "Frequently Go-To",
               fontWeight: FontWeight.w600,
