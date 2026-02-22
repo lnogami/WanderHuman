@@ -88,7 +88,22 @@ void showMyBottomNavigationSheet({
             // Primary Details Area
             Container(
               width: MyDimensionAdapter.getWidth(context) * 0.8,
-              height: 55,
+              height: 60,
+              padding: EdgeInsets.fromLTRB(7, 7, 7, 4),
+              margin: EdgeInsets.only(bottom: 7),
+              decoration: BoxDecoration(
+                color: Colors.white10,
+                border: BoxBorder.all(color: Colors.white, width: 1.2),
+                borderRadius: BorderRadius.circular(7),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color.fromARGB(31, 0, 42, 100),
+                    blurRadius: 4,
+                    blurStyle: BlurStyle.outer,
+                    offset: Offset(0, 1),
+                  ),
+                ],
+              ),
               // color: Colors.amber,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -98,13 +113,13 @@ void showMyBottomNavigationSheet({
                     textLabel: "Age",
                     textValue: age,
                   ),
-                  verticalLine(),
+                  verticalLine(context),
                   flexibleSizedContainers(
                     flex: 4,
                     textLabel: "Sex",
                     textValue: sex,
                   ),
-                  verticalLine(),
+                  verticalLine(context),
                   flexibleSizedContainers(
                     flex: 8,
                     textLabel: "Guardian's Contact",
@@ -113,12 +128,26 @@ void showMyBottomNavigationSheet({
                 ],
               ),
             ),
-            SizedBox(height: 15),
 
             // Address Area
             Container(
-              width: MyDimensionAdapter.getWidth(context) - 40,
+              width: MyDimensionAdapter.getWidth(context) * 0.80,
               height: 75,
+              padding: EdgeInsets.fromLTRB(7, 7, 7, 4),
+              margin: EdgeInsets.only(bottom: 7),
+              decoration: BoxDecoration(
+                color: Colors.white10,
+                border: BoxBorder.all(color: Colors.white, width: 1.2),
+                borderRadius: BorderRadius.circular(7),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color.fromARGB(31, 0, 42, 100),
+                    blurRadius: 4,
+                    blurStyle: BlurStyle.outer,
+                    offset: Offset(0, 1),
+                  ),
+                ],
+              ),
               // color: Colors.amber,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -136,8 +165,23 @@ void showMyBottomNavigationSheet({
 
             // Notable Trait Area
             Container(
-              width: MyDimensionAdapter.getWidth(context) - 40,
+              width: MyDimensionAdapter.getWidth(context) * 0.80,
               height: 100,
+              padding: EdgeInsets.fromLTRB(7, 7, 7, 4),
+              margin: EdgeInsets.only(bottom: 7),
+              decoration: BoxDecoration(
+                color: Colors.white10,
+                border: BoxBorder.all(color: Colors.white, width: 1.2),
+                borderRadius: BorderRadius.circular(7),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color.fromARGB(31, 0, 42, 100),
+                    blurRadius: 4,
+                    blurStyle: BlurStyle.outer,
+                    offset: Offset(0, 1),
+                  ),
+                ],
+              ),
               // color: Colors.amber,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -154,6 +198,54 @@ void showMyBottomNavigationSheet({
                 ],
               ),
             ),
+
+            Container(
+              width: MyDimensionAdapter.getWidth(context) * 0.8,
+              height: 60,
+              padding: EdgeInsets.fromLTRB(7, 7, 7, 4),
+              margin: EdgeInsets.only(bottom: 7),
+              decoration: BoxDecoration(
+                color: Colors.white10,
+                border: BoxBorder.all(color: Colors.white, width: 1.2),
+                borderRadius: BorderRadius.circular(7),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color.fromARGB(31, 0, 42, 100),
+                    blurRadius: 4,
+                    blurStyle: BlurStyle.outer,
+                    offset: Offset(0, 1),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  fixedSizedContainers(
+                    width: MyDimensionAdapter.getWidth(context) * 0.12,
+                    textLabel: "Is Safe",
+                    textValue: (isCurrentlySafe) ? "YES" : "NO",
+                    valueColor: (isCurrentlySafe)
+                        ? Colors.blue.shade400
+                        : Colors.red.shade400,
+                  ),
+                  verticalLine(context),
+                  fixedSizedContainers(
+                    width: MyDimensionAdapter.getWidth(context) * 0.12,
+                    textLabel: "Battery",
+                    textValue: "${batteryPercentage.toString()}%",
+                  ),
+                  verticalLine(context),
+                  fixedSizedContainers(
+                    // flex: 16,
+                    width: MyDimensionAdapter.getWidth(context) * 0.45,
+                    textLabel: "Device ID",
+                    textValue: deviceID,
+                    textValueSize: kDefaultFontSize - 1,
+                  ),
+                ],
+              ),
+            ),
+
+            Spacer(),
 
             // Button
             MyCustButton(
@@ -192,6 +284,7 @@ void showMyBottomNavigationSheet({
                 );
               },
             ),
+            SizedBox(height: 16),
           ],
         ),
       );
@@ -200,13 +293,11 @@ void showMyBottomNavigationSheet({
 }
 
 // for visual separation purposes only
-Container verticalLine({Color color = Colors.grey}) {
-  return Container(
-    width: 1,
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(50),
-      color: color,
-    ),
+MyLine verticalLine(BuildContext context) {
+  return MyLine(
+    length: MyDimensionAdapter.getHeight(context) * 0.04,
+    isRounded: true,
+    color: Colors.grey.shade400,
   );
 }
 
@@ -214,13 +305,15 @@ Flexible flexibleSizedContainers({
   int flex = 1,
   String textValue = "NO VALUE",
   String textLabel = "NO LABEL",
-  double textLabelSize = 12,
-  double textValueSize = 18,
+  double textLabelSize = kDefaultFontSize - 4,
+  double textValueSize = kDefaultFontSize + 2,
   bool isPossibleToContainLongValue = false,
+  double? width,
 }) {
   return Flexible(
     flex: flex,
     child: Container(
+      width: width,
       // decoration: BoxDecoration(color: Colors.green),
       child: Column(
         //// experimental layout
@@ -233,9 +326,6 @@ Flexible flexibleSizedContainers({
             fontsize: textLabelSize,
             fontWeight: FontWeight.w400,
           ),
-          // (isPossibleToContainLongValue)
-          //     ? SizedBox(height: 7)
-          //     : SizedBox(height: 2),
           Text(
             // if walay sulod and textValue, kani ang default nga e display
             (textValue == "") ? "NO DATA TO DISPLAY HERE ..." : textValue,
@@ -246,7 +336,7 @@ Flexible flexibleSizedContainers({
               // if walay sulod and textValue, kani ang default nga e display
               color: (textValue == "")
                   ? Colors.grey.shade500.withAlpha(200)
-                  : const Color.fromARGB(255, 13, 13, 14),
+                  : Colors.grey.shade800,
               fontSize: textValueSize,
               fontWeight: FontWeight.w600,
               // if walay sulod and textValue, kani ang default nga e display
@@ -257,6 +347,46 @@ Flexible flexibleSizedContainers({
           ),
         ],
       ),
+    ),
+  );
+}
+
+Container fixedSizedContainers({
+  String textValue = "NO VALUE",
+  String textLabel = "NO LABEL",
+  double textLabelSize = kDefaultFontSize - 4,
+  double textValueSize = kDefaultFontSize + 2,
+  bool isPossibleToContainLongValue = false,
+  Color? valueColor,
+  required double width,
+}) {
+  return Container(
+    width: width,
+    child: Column(
+      children: [
+        MyTextFormatter.p(
+          text: textLabel,
+          fontsize: textLabelSize,
+          fontWeight: FontWeight.w400,
+        ),
+        Text(
+          // if walay sulod and textValue, kani ang default nga e display
+          (textValue == "") ? "NO DATA TO DISPLAY HERE ..." : textValue,
+          softWrap: true,
+          overflow: TextOverflow.ellipsis,
+          maxLines: (isPossibleToContainLongValue) ? 2 : 1,
+          style: TextStyle(
+            // if walay sulod and textValue, kani ang default nga e display
+            color: (textValue == "")
+                ? Colors.grey.shade500.withAlpha(200)
+                : valueColor ?? Colors.grey.shade800,
+            fontSize: textValueSize,
+            fontWeight: FontWeight.w600,
+            // if walay sulod and textValue, kani ang default nga e display
+            fontStyle: (textValue == "") ? FontStyle.italic : FontStyle.normal,
+          ),
+        ),
+      ],
     ),
   );
 }

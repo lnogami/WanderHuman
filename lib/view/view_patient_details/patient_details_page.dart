@@ -138,12 +138,13 @@ class _PatientDetailsPageState extends State<PatientDetailsPage> {
                     child: Padding(
                       padding: const EdgeInsets.only(bottom: 20),
                       child: MyCustButton(
-                        buttonText: "Show Medical History?",
+                        buttonText: "Show Medical History",
                         widthPercentage: 0.67,
                         color: Colors.blue.shade200,
                         borderColor: Colors.white,
                         buttonTextFontWeight: FontWeight.w500,
-                        buttonTextColor: Colors.grey.shade800,
+                        // buttonTextColor: Colors.grey.shade800,
+                        buttonTextColor: Colors.white,
                         buttonTextSpacing: 1.2,
                         onTap: () {
                           setState(() => isMedicalHistoryAreaVisible = true);
