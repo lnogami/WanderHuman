@@ -46,12 +46,14 @@ class _HomePageState extends State<HomePage> {
 
       // using addPostFrameCallback ensures it doesn't conflict with the build cycle
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        context.read<HomeAppBarProvider>().initUserData(
-          currentlyLoggedInUserData,
-        );
-        setState(() {
-          isLoading = false;
-        });
+        if (context.mounted) {
+          context.read<HomeAppBarProvider>().initUserData(
+            currentlyLoggedInUserData,
+          );
+          setState(() {
+            isLoading = false;
+          });
+        }
       });
     } catch (e, stackTrace) {
       log("ERROR FETCHING DATAAAAAA: $e. AT $stackTrace");

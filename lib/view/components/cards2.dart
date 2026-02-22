@@ -86,7 +86,7 @@ class _MyCardInfoDisplayer2 extends State<MyCardInfoDisplayer2> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            profilePictureArea(context),
+            if (widget.profilePicture != null) profilePictureArea(context),
             SizedBox(width: 3),
             informationArea(context),
           ],
@@ -143,7 +143,9 @@ class _MyCardInfoDisplayer2 extends State<MyCardInfoDisplayer2> {
               Row(
                 children: [
                   SizedBox(
-                    width: MyDimensionAdapter.getWidth(context) * 0.365,
+                    width:
+                        MyDimensionAdapter.getWidth(context) *
+                        ((widget.profilePicture == null) ? 0.45 : 0.365),
                     // color: Colors.amber,
                     child: MyTextFormatter.h3(
                       text: widget.name,

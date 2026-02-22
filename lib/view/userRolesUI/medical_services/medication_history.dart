@@ -214,8 +214,8 @@ import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
 import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
 import 'package:wanderhuman_app/view/components/appbar.dart';
+import 'package:wanderhuman_app/view/components/button.dart';
 import 'package:wanderhuman_app/view/components/cards2.dart';
-import 'package:wanderhuman_app/view/components/dropdown_button.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/userRolesUI/medical_services/medication.dart';
 
@@ -234,6 +234,9 @@ class MedicalHistory extends StatefulWidget {
 }
 
 class _MedicalHistoryState extends State<MedicalHistory> {
+  late double width;
+  late double height;
+
   final List<String> statusChoices = const ["Not Yet Okay", "Is Now Okay"];
   String selectedStatusFilter = "";
 
@@ -312,77 +315,144 @@ class _MedicalHistoryState extends State<MedicalHistory> {
 
   @override
   Widget build(BuildContext context) {
+    width = MyDimensionAdapter.getWidth(context);
+    height = MyDimensionAdapter.getHeight(context) * 1.2;
+
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 227, 237, 250),
       body: Container(
-        width: MyDimensionAdapter.getWidth(context),
-        height: MyDimensionAdapter.getHeight(context) * 1.2,
+        width: width,
+        height: height,
         // color: Colors.amber.shade100,
-        child: FutureBuilder(
-          future: getCombinedRecords(), // Call the new merging function
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.done) {
-              if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(child: Text("No records found"));
-              }
-              return Column(
-                children: [
-                  SafeArea(
-                    child: MyCustAppBar(
-                      title: "Medical History",
-                      backButton: () => Navigator.pop(context),
-                      // ... rest of your app bar code
-                    ),
-                  ),
-                  SizedBox(height: 20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            SafeArea(
+              child: MyCustAppBar(
+                title: "Medical History",
+                backButton: () => Navigator.pop(context),
+                // ... rest of your app bar code
+              ),
+            ),
+            SizedBox(height: 20),
 
-                  MyDropdownMenuButton(
-                    items: statusChoices,
-                    initialValue: selectedStatusFilter,
-                    isLeadingIconVisible: false,
-                    onChanged: (value) {
-                      setState(() {
-                        isNotYetOkayList.clear();
-                        isNowOkayList.clear();
-                        selectedStatusFilter = value!;
-                      });
-                    },
-                  ),
+            // MyDropdownMenuButton(
+            //   items: statusChoices,
+            //   initialValue: selectedStatusFilter,
+            //   isLeadingIconVisible: false,
+            //   onChanged: (value) {
+            //     setState(() {
+            //       isNotYetOkayList.clear();
+            //       isNowOkayList.clear();
+            //       selectedStatusFilter = value!;
+            //     });
+            //   },
+            // ),
+            notYetOkayAndOkayButtons(),
+            SizedBox(height: 10),
 
-                  // (selectedStatusFilter == statusChoices[0])
-                  //     ?
-                  returnSpecificWidget(selectedStatusFilter),
-                ],
-              );
-            } else {
-              return const Center(child: CircularProgressIndicator());
-            }
-          },
+            Container(
+              height: height * 0.655,
+              child: FutureBuilder(
+                future: getCombinedRecords(), // Call the new merging function
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Center(child: Text("No records found"));
+                    }
+                    return returnSpecificWidget(selectedStatusFilter);
+                  } else {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
+  Row notYetOkayAndOkayButtons() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      spacing: 7,
+      children: [
+        MyCustButton(
+          buttonText: statusChoices[0],
+          widthPercentage: 0.35,
+          height: 35,
+          borderRadius: 50,
+          buttonTextFontSize: kDefaultFontSize - 2,
+          buttonTextSpacing: 1.2,
+          color: (selectedStatusFilter == statusChoices[0])
+              ? Colors.blue.shade400
+              : Colors.transparent,
+          borderColor: (selectedStatusFilter == statusChoices[0])
+              ? Colors.white
+              : const Color.fromARGB(230, 170, 210, 243),
+          buttonTextColor: (selectedStatusFilter == statusChoices[0])
+              ? Colors.white
+              : Colors.grey.shade700,
+          enableShadow: (selectedStatusFilter == statusChoices[0])
+              ? true
+              : false,
+          onTap: () {
+            setState(() {
+              isNotYetOkayList.clear();
+              isNowOkayList.clear();
+              selectedStatusFilter = statusChoices[0];
+            });
+          },
+        ),
+        MyCustButton(
+          buttonText: statusChoices[1],
+          widthPercentage: 0.35,
+          height: 35,
+          borderRadius: 50,
+          buttonTextFontSize: kDefaultFontSize - 2,
+          buttonTextSpacing: 1.2,
+          color: (selectedStatusFilter == statusChoices[1])
+              ? Colors.blue.shade400
+              : Colors.transparent,
+          borderColor: (selectedStatusFilter == statusChoices[1])
+              ? Colors.white
+              : const Color.fromARGB(230, 170, 210, 243),
+          buttonTextColor: (selectedStatusFilter == statusChoices[1])
+              ? Colors.white
+              : Colors.grey.shade700,
+          enableShadow: (selectedStatusFilter == statusChoices[1])
+              ? true
+              : false,
+          onTap: () {
+            setState(() {
+              isNotYetOkayList.clear();
+              isNowOkayList.clear();
+              selectedStatusFilter = statusChoices[1];
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  /// Returns a specific widget based on the data fetched from the databasbe.
   Widget returnSpecificWidget(String statusFilter) {
     // return early if either list is empty
     if (statusFilter == statusChoices[1] && isNowOkayList.isEmpty) {
-      return Expanded(
-        child: Center(
-          child: MyTextFormatter.p(
-            text: "No records found.\nLet's hope they'll be okay soon.\n:(",
-            fontsize: kDefaultFontSize + 2,
-            maxLines: 3,
-          ),
+      return Center(
+        child: MyTextFormatter.p(
+          text: "No records found.\nLet's hope they'll be okay soon.\n:(",
+          fontsize: kDefaultFontSize + 2,
+          maxLines: 3,
         ),
       );
     } else if (statusFilter == statusChoices[0] && isNotYetOkayList.isEmpty) {
-      return Expanded(
-        child: Center(
-          child: MyTextFormatter.p(
-            text: "Thank God, everyone is okay!",
-            fontsize: kDefaultFontSize + 4,
-            maxLines: 2,
-          ),
+      return Center(
+        child: MyTextFormatter.p(
+          text: "Thank God, everyone is okay!",
+          fontsize: kDefaultFontSize + 4,
+          maxLines: 2,
         ),
       );
     }
@@ -390,141 +460,139 @@ class _MedicalHistoryState extends State<MedicalHistory> {
     // the return by default is the Is Now Okay list
     switch (statusFilter) {
       case "Is Now Okay":
-        return Expanded(
-          child: Container(
-            width: MyDimensionAdapter.getWidth(context),
-            // height: MyDimensionAdapter.getHeight(context) * 0.8,
-            // color: Colors.green,
-            padding: const EdgeInsets.only(
-              // top: 0,
-              // bottom: 56,
-              left: 20,
-              right: 20,
+        return Container(
+          width: width,
+          // height: height * 0.8,
+          // color: Colors.green,
+          padding: const EdgeInsets.only(
+            // top: 0,
+            // bottom: 56,
+            left: 20,
+            right: 20,
+          ),
+          child: RawScrollbar(
+            thumbColor: Colors.blue.shade300,
+            padding: EdgeInsets.only(
+              right: -20,
+              // top: (kDefaultFontSize * 2) + 10,
             ),
-            child: RawScrollbar(
-              thumbColor: Colors.blue.shade300,
-              padding: EdgeInsets.only(
-                right: -20,
-                // top: (kDefaultFontSize * 2) + 10,
-              ),
-              thumbVisibility: true,
-              trackVisibility: true,
-              interactive: false, // prevents accidental touch scrolling
-              thickness: 4,
-              radius: Radius.circular(30),
-              child: ListView.builder(
-                padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
-                itemCount: isNowOkayList.length,
-                itemBuilder: (context, index) {
-                  final combinedItem = isNowOkayList[index];
-                  final record = combinedItem.medicalRecord;
-                  final patient = combinedItem.personalInfo;
+            thumbVisibility: true,
+            trackVisibility: true,
+            interactive: false, // prevents accidental touch scrolling
+            thickness: 4,
+            radius: Radius.circular(30),
+            child: ListView.builder(
+              padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
+              itemCount: isNowOkayList.length,
+              itemBuilder: (context, index) {
+                final combinedItem = isNowOkayList[index];
+                final record = combinedItem.medicalRecord;
+                final patient = combinedItem.personalInfo;
 
-                  // Display the data
-                  return MyCardInfoDisplayer2(
-                    // Handle cases where patient info might be missing
-                    profilePicture: patient?.picture ?? "",
-                    name: patient?.name ?? "Unknown Patient",
-                    diagnosis: record.diagnosis,
-                    treatment: record.treatment,
-                    medic: record.medic,
-                    fromDate: record.fromDate,
-                    untilDate: record.untilDate,
-                    onTap: () {
-                      // You can pass the combined data or just the patient info
-                      if (patient != null) {
-                        MyNavigator.goTo(
-                          context,
-                          Medication(
-                            bufferedPatientInfo: patient,
-                            recordID: record.recordID,
-                            medicationModel: record,
-                          ),
-                        );
-                      }
-                    },
-                    onLongPress: () {
-                      myAlertDialogue(
-                        context: context,
-                        alertTitle: "Confirm To Delete Record",
-                        alertContent:
-                            "\nAre you sure you want to delete ${patient?.name}'s record?",
-                        onApprovalPressed: () {
-                          MyMedicalRepository.deleteRecord(
-                            recordID: record.recordID!,
-                          );
-                          // setState(() {
-                          //   isNowOkayList.removeAt(index);
-                          // });
-                          Navigator.pop(context);
-                          Navigator.pop(context);
-                          MyNavigator.goTo(context, MedicalHistory());
-                        },
+                // Display the data
+                return MyCardInfoDisplayer2(
+                  // Handle cases where patient info might be missing
+                  profilePicture: patient?.picture ?? "",
+                  name: patient?.name ?? "Unknown Patient",
+                  diagnosis: record.diagnosis,
+                  treatment: record.treatment,
+                  medic: record.medic,
+                  fromDate: record.fromDate,
+                  untilDate: record.untilDate,
+                  onTap: () {
+                    // You can pass the combined data or just the patient info
+                    if (patient != null) {
+                      MyNavigator.goTo(
+                        context,
+                        Medication(
+                          bufferedPatientInfo: patient,
+                          recordID: record.recordID,
+                          medicationModel: record,
+                          isAccessedByMedicalStaff: true,
+                        ),
                       );
-                    },
-                  );
-                },
-              ),
+                    }
+                  },
+                  onLongPress: () {
+                    myAlertDialogue(
+                      context: context,
+                      alertTitle: "Confirm To Delete Record",
+                      alertContent:
+                          "\nAre you sure you want to delete ${patient?.name}'s record?",
+                      onApprovalPressed: () {
+                        MyMedicalRepository.deleteRecord(
+                          recordID: record.recordID!,
+                        );
+                        // setState(() {
+                        //   isNowOkayList.removeAt(index);
+                        // });
+                        Navigator.pop(context);
+                        Navigator.pop(context);
+                        MyNavigator.goTo(context, MedicalHistory());
+                      },
+                    );
+                  },
+                );
+              },
             ),
           ),
         );
       default:
-        return Expanded(
-          child: Container(
-            width: MyDimensionAdapter.getWidth(context),
-            // height: MyDimensionAdapter.getHeight(context) * 0.8,
-            // color: Colors.green,
-            padding: const EdgeInsets.only(
-              // top: 0,
-              // bottom: 56,
-              left: 20,
-              right: 20,
+        return Container(
+          width: width,
+          // height: MyDimensionAdapter.getHeight(context) * 0.8,
+          // color: Colors.green,
+          padding: const EdgeInsets.only(
+            // top: 0,
+            // bottom: 56,
+            left: 20,
+            right: 20,
+          ),
+          child: RawScrollbar(
+            thumbColor: Colors.blue.shade300,
+            padding: EdgeInsets.only(
+              right: -20,
+              // top: (kDefaultFontSize * 2) + 10,
             ),
-            child: RawScrollbar(
-              thumbColor: Colors.blue.shade300,
-              padding: EdgeInsets.only(
-                right: -20,
-                // top: (kDefaultFontSize * 2) + 10,
-              ),
-              thumbVisibility: true,
-              trackVisibility: true,
-              interactive: false, // prevents accidental touch scrolling
-              thickness: 4,
-              radius: Radius.circular(30),
-              child: ListView.builder(
-                padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
-                itemCount: isNotYetOkayList.length,
-                itemBuilder: (context, index) {
-                  final combinedItem = isNotYetOkayList[index];
-                  final record = combinedItem.medicalRecord;
-                  final patient = combinedItem.personalInfo;
+            thumbVisibility: true,
+            trackVisibility: true,
+            interactive: false, // prevents accidental touch scrolling
+            thickness: 4,
+            radius: Radius.circular(30),
+            child: ListView.builder(
+              padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
+              itemCount: isNotYetOkayList.length,
+              itemBuilder: (context, index) {
+                final combinedItem = isNotYetOkayList[index];
+                final record = combinedItem.medicalRecord;
+                final patient = combinedItem.personalInfo;
 
-                  // Display the data
-                  return MyCardInfoDisplayer2(
-                    // Handle cases where patient info might be missing
-                    profilePicture: patient?.picture ?? "",
-                    name: patient?.name ?? "Unknown Patient",
-                    diagnosis: record.diagnosis,
-                    treatment: record.treatment,
-                    medic: record.medic,
-                    fromDate: record.fromDate,
-                    untilDate: record.untilDate,
-                    onTap: () {
-                      // You can pass the combined data or just the patient info
-                      if (patient != null) {
-                        MyNavigator.goTo(
-                          context,
-                          Medication(
-                            bufferedPatientInfo: patient,
-                            recordID: record.recordID,
-                            medicationModel: record,
-                          ),
-                        );
-                      }
-                    },
-                  );
-                },
-              ),
+                // Display the data
+                return MyCardInfoDisplayer2(
+                  // Handle cases where patient info might be missing
+                  profilePicture: patient?.picture ?? "",
+                  name: patient?.name ?? "Unknown Patient",
+                  diagnosis: record.diagnosis,
+                  treatment: record.treatment,
+                  medic: record.medic,
+                  fromDate: record.fromDate,
+                  untilDate: record.untilDate,
+                  onTap: () {
+                    // You can pass the combined data or just the patient info
+                    if (patient != null) {
+                      MyNavigator.goTo(
+                        context,
+                        Medication(
+                          bufferedPatientInfo: patient,
+                          recordID: record.recordID,
+                          medicationModel: record,
+                          isAccessedByMedicalStaff: true,
+                        ),
+                      );
+                    }
+                  },
+                );
+              },
             ),
           ),
         );

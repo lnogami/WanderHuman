@@ -29,8 +29,12 @@ class MedicalPrivilege extends StatelessWidget {
                 context,
                 Icons.medication_outlined,
                 "Medication",
+                // "Remedy",
                 onTap: () {
-                  MyNavigator.goTo(context, Medication());
+                  MyNavigator.goTo(
+                    context,
+                    Medication(isAccessedByMedicalStaff: true),
+                  );
                 },
               ),
               SizedBox(height: 10),

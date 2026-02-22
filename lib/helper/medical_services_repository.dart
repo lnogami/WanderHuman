@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wanderhuman_app/model/medication_model.dart';
 
@@ -62,27 +64,34 @@ class MyMedicalRepository {
     }
   }
 
-  // parameters not yet applied
   static Future<List<MedicationModel>> getAllRecords({
     String? fieldName,
     String? isEqualTo,
   }) async {
     try {
-      QuerySnapshot querySnapshot = await _medicalCollectionReference
-          // .where("userType", isEqualTo: "Patient")
-          .get();
+      late QuerySnapshot querySnapshot;
+
+      if (fieldName != null && isEqualTo != null) {
+        querySnapshot = await _medicalCollectionReference
+            .where(fieldName, isEqualTo: isEqualTo)
+            .get();
+      } else {
+        querySnapshot = await _medicalCollectionReference.get();
+      }
 
       List<MedicationModel> medicalRecords = querySnapshot.docs.map((doc) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
         return MedicationModel.fromFirestore(doc.id, data);
       }).toList();
 
+      log("Medical List length: ${medicalRecords.length}");
+
       return medicalRecords;
     } catch (e) {
       print(
         "AN ERROR OCCURED WHILE WHILE FETCHING DATA FROM FIREBASE (getAllRecords): ${e.toString()}",
       );
-      throw Exception();
+      rethrow;
     }
   }
 

@@ -17,6 +17,7 @@ import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/view/components/date_picker.dart';
 import 'package:wanderhuman_app/view/components/dropdown_button.dart';
+import 'package:wanderhuman_app/view/components/lines.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/components/textfield.dart';
@@ -27,12 +28,14 @@ class Medication extends StatefulWidget {
   final PersonalInfo? bufferedPatientInfo;
   final MedicationModel? medicationModel;
   final String? recordID;
+  final bool isAccessedByMedicalStaff;
 
   const Medication({
     super.key,
     this.bufferedPatientInfo,
     this.recordID,
     this.medicationModel,
+    this.isAccessedByMedicalStaff = false,
   });
 
   @override
@@ -231,9 +234,19 @@ class _MedicationState extends State<Medication> {
         ),
         SizedBox(height: 25),
 
-        // acts as a header for the form
-        dateTimeTimer(),
+        // Acts as a header for the form. These will only appear if the Medication page is accessed from the Medication itself not from the MedicationHistory page
+        if (widget.bufferedPatientInfo == null) ...[
+          dateTimeTimer(),
+          MyLine(
+            length: MyDimensionAdapter.getWidth(context) * 0.85,
+            color: Colors.grey.shade400,
+            isVertical: false,
+            isRounded: true,
+            margin: 20,
+          ),
+        ],
 
+        SizedBox(height: 10),
         // MyDateTimeTimerHeader(),
         (widget.bufferedPatientInfo == null)
             /// if bufferecPatientInfo is not null, it means this Medication widget is accesed from MedicationHistory widget.
@@ -256,10 +269,6 @@ class _MedicationState extends State<Medication> {
                             // assigns the _selectedPatient
                             getSpecificPatient(patient!);
                             selectedNameValue = patient;
-                            // showMyAnimatedSnackBar(
-                            //   context: context,
-                            //   dataToDisplay: _selectedPatient!.name,
-                            // );
                             print("SELECTED NAME VALUE: $selectedNameValue");
                           });
                         } else {
@@ -298,8 +307,18 @@ class _MedicationState extends State<Medication> {
           prefixIcon: Icons.info_outline_rounded,
           textController: diagnosisController,
           borderRadius: 7,
-          borderColor: MyColorPalette.borderColor,
-          activeBorderColor: MyColorPalette.borderColor,
+          isReadOnly: // Indicates that this can't be edited if not accessed by a medical staff
+          (!widget.isAccessedByMedicalStaff)
+              ? true
+              : false,
+          borderColor: // Indicates that this can't be edited if not accessed by a medical staff
+          (!widget.isAccessedByMedicalStaff)
+              ? Colors.grey.shade400
+              : MyColorPalette.borderColor,
+          activeBorderColor: // Indicates that this can't be edited if not accessed by a medical staff
+          (!widget.isAccessedByMedicalStaff)
+              ? Colors.grey.shade400
+              : MyColorPalette.borderColor,
         ),
         treatmentArea(context),
 
@@ -314,20 +333,28 @@ class _MedicationState extends State<Medication> {
           buttonText: (isNowOkay == true)
               ? "Already in Good Condition"
               : "Not Yet Okay",
-          onTap: () async {
-            // by default, when registering a medication, it will be "Not Yet Okay".
-            //             it can only be change if this is viewed from Med History
-            if (widget.bufferedPatientInfo != null) {
-              setState(() {
-                isNowOkay = !isNowOkay;
-                if (isNowOkay != widget.medicationModel!.isNowOkay) {
-                  isAltered = true;
-                } else {
-                  isAltered = false;
+          onTap: // Indicates that this can't be edited if not accessed by a medical staff
+          (!widget.isAccessedByMedicalStaff)
+              ? () {
+                  showMyAnimatedSnackBar(
+                    context: context,
+                    dataToDisplay: "Can only be edited by a Medical Staff.",
+                  );
                 }
-              });
-            }
-          },
+              : () async {
+                  // by default, when registering a medication, it will be "Not Yet Okay".
+                  //             it can only be change if this is viewed from Med History
+                  if (widget.bufferedPatientInfo != null) {
+                    setState(() {
+                      isNowOkay = !isNowOkay;
+                      if (isNowOkay != widget.medicationModel!.isNowOkay) {
+                        isAltered = true;
+                      } else {
+                        isAltered = false;
+                      }
+                    });
+                  }
+                },
           widthPercentage: 0.8,
           borderColor: (isNowOkay == true)
               ? MyColorPalette.borderColor
@@ -344,7 +371,8 @@ class _MedicationState extends State<Medication> {
         ),
 
         SizedBox(height: 30),
-        buttonArea(context),
+        // Indicates that this can ONLY be edited if accessed by a medical staff
+        if (widget.isAccessedByMedicalStaff) buttonArea(context),
       ],
     );
   }
@@ -369,58 +397,68 @@ class _MedicationState extends State<Medication> {
               buttonText: (fromDate == "")
                   ? "From Date"
                   : MyDateFormatter.formatDate(dateTimeInString: fromDate),
-              onTap: () async {
-                // store a temporary original DateTime
-                DateTime? pickedFromDate = await myDatePicker(
-                  context,
-                  initialYear: DateTime.now().year,
-                );
-
-                // naay na pick nga date
-                if (pickedFromDate != null) {
-                  setState(() {
-                    fromDateTimeFormat = pickedFromDate;
-                    isAltered = true;
-                    // // then use it to format a Human Comprehensible date format
-                    // from = MyDateFormatter.formatDate(
-                    //   dateTimeInString: fromDateTimeFormat,
-                    // );
-                    print("pickedFromDate is not null: $pickedFromDate");
-                    print("BEFORE DATE: $fromDateTimeFormat");
-                  });
-
-                  // this is if the Medication is access through Medication (not from MedicationHistory)
-                  if (untilDateTimeFormat == null) {
-                    setState(() {
-                      fromDate = fromDateTimeFormat.toString();
-                      isAltered = true;
-                    });
-                  } else {
-                    if ((fromDateTimeFormat!.isAfter(untilDateTimeFormat!))) {
-                      showMyAnimatedSnackBar(
-                        context: context,
-                        dataToDisplay:
-                            "NOTICE: From Date must be before Until Date as it is the start of the medication durationn.",
+              onTap: // can't be edited if not accessed by a medical staff
+              (!widget.isAccessedByMedicalStaff)
+                  ? () {}
+                  : () async {
+                      // store a temporary original DateTime
+                      DateTime? pickedFromDate = await myDatePicker(
+                        context,
+                        initialYear: DateTime.now().year,
                       );
-                    }
-                    // else if (untilDateTimeFormat != null) {
-                    else {
-                      setState(() {
-                        fromDate = fromDateTimeFormat.toString();
-                        isAltered = true;
-                      });
-                      print("TRUEEEEEEEEEEEEEEEEEEEEEEEEE else if");
-                    }
-                  }
-                }
-              },
+
+                      // naay na pick nga date
+                      if (pickedFromDate != null) {
+                        setState(() {
+                          fromDateTimeFormat = pickedFromDate;
+                          isAltered = true;
+                          // // then use it to format a Human Comprehensible date format
+                          // from = MyDateFormatter.formatDate(
+                          //   dateTimeInString: fromDateTimeFormat,
+                          // );
+                          print("pickedFromDate is not null: $pickedFromDate");
+                          print("BEFORE DATE: $fromDateTimeFormat");
+                        });
+
+                        // this is if the Medication is access through Medication (not from MedicationHistory)
+                        if (untilDateTimeFormat == null) {
+                          setState(() {
+                            fromDate = fromDateTimeFormat.toString();
+                            isAltered = true;
+                          });
+                        } else {
+                          if ((fromDateTimeFormat!.isAfter(
+                            untilDateTimeFormat!,
+                          ))) {
+                            showMyAnimatedSnackBar(
+                              context: context,
+                              dataToDisplay:
+                                  "NOTICE: From Date must be before Until Date as it is the start of the medication durationn.",
+                            );
+                          }
+                          // else if (untilDateTimeFormat != null) {
+                          else {
+                            setState(() {
+                              fromDate = fromDateTimeFormat.toString();
+                              isAltered = true;
+                            });
+                            print("TRUEEEEEEEEEEEEEEEEEEEEEEEEE else if");
+                          }
+                        }
+                      }
+                    },
               widthPercentage: 0.38,
-              borderColor: MyColorPalette.borderColor,
+              borderColor: (!widget.isAccessedByMedicalStaff)
+                  ? Colors.grey.shade400
+                  : MyColorPalette.borderColor,
               borderRadius: 7,
               color: MyColorPalette.formColor,
               buttonTextFontSize: kDefaultFontSize + 1,
               buttonTextSpacing: 1,
-              buttonShadowColor: Colors.blue.shade200,
+              enableShadow: (!widget.isAccessedByMedicalStaff) ? false : true,
+              buttonShadowColor: (!widget.isAccessedByMedicalStaff)
+                  ? Colors.transparent
+                  : Colors.blue.shade200,
             ),
           ],
         ),
@@ -434,113 +472,67 @@ class _MedicationState extends State<Medication> {
               text: "Until When",
               fontsize: kDefaultFontSize - 2.5,
             ),
-            // MyCustButton(
-            //   buttonText: (untilDate == "")
-            //       ? "Until When"
-            //       : MyDateFormatter.formatDate(dateTimeInString: untilDate),
-            //   onTap: () async {
-            //     // store a temporary original DateTime
-            //     DateTime? tempUntil = await myDatePicker(
-            //       context,
-            //       initialYear: DateTime.now().year,
-            //     );
-
-            //     // then put it in fromDateTimeFormat
-            //     setState(() {
-            //       untilDateTimeFormat = tempUntil;
-            //     });
-
-            //     print("UNTIL DATE: $untilDateTimeFormat");
-
-            //     // finally, store the String formatted value to the field variable
-            //     // untilDateTimeFormat must not be before fromDateTimeFormat
-
-            //     if (fromDateTimeFormat == null) {
-            //       showMyAnimatedSnackBar(
-            //         context: context,
-            //         dataToDisplay: "NOTICE: Fill out the From Date first.",
-            //       );
-            //     } else if (!(untilDateTimeFormat!.isBefore(
-            //       fromDateTimeFormat!,
-            //     ))) {
-            //       print(
-            //         "TRUEEEEEEEEEEEEEEEEEEEEEEEEE, error! untilDate is before fromDate",
-            //       );
-            //       setState(() {
-            //         untilDate = untilDateTimeFormat.toString();
-            //         isAltered = true;
-            //       });
-            //     } else {
-            //       showMyAnimatedSnackBar(
-            //         context: context,
-            //         dataToDisplay:
-            //             "NOTICE: Until Date must not be before From Date as it is the end duration of medication.",
-            //       );
-            //       setState(() {
-            //         untilDate = "Until When";
-            //       });
-            //     }
-            //   },
-            //   widthPercentage: 0.38,
-            //   borderColor: MyColorPalette.borderColor,
-            //   borderRadius: 7,
-            //   color: MyColorPalette.formColor,
-            //   buttonTextFontSize: kDefaultFontSize + 1,
-            //   buttonTextSpacing: 1,
-            //   buttonShadowColor: Colors.blue.shade200,
-            // ),
             MyCustButton(
               buttonText: (untilDate == "")
                   ? "Until Date"
                   : MyDateFormatter.formatDate(dateTimeInString: untilDate),
-              onTap: () async {
-                // store a temporary original DateTime
-                DateTime? pickedUntilDate = await myDatePicker(
-                  context,
-                  initialYear: DateTime.now().year,
-                );
+              onTap: // can't be edited if not accessed by a medical staff
+              (!widget.isAccessedByMedicalStaff)
+                  ? () {}
+                  : () async {
+                      // store a temporary original DateTime
+                      DateTime? pickedUntilDate = await myDatePicker(
+                        context,
+                        initialYear: DateTime.now().year,
+                      );
 
-                // naay na pick nga date
-                if (pickedUntilDate != null) {
-                  setState(() {
-                    untilDateTimeFormat = pickedUntilDate;
-                    isAltered = true;
-                    // // then use it to format a Human Comprehensible date format
-                    // from = MyDateFormatter.formatDate(
-                    //   dateTimeInString: fromDateTimeFormat,
-                    // );
-                    print(
-                      "untilDateTimeFormat is not null: $untilDateTimeFormat",
-                    );
-                    print("UNTIL DATE: $untilDateTimeFormat");
-                  });
+                      // naay na pick nga date
+                      if (pickedUntilDate != null) {
+                        setState(() {
+                          untilDateTimeFormat = pickedUntilDate;
+                          isAltered = true;
+                          // // then use it to format a Human Comprehensible date format
+                          // from = MyDateFormatter.formatDate(
+                          //   dateTimeInString: fromDateTimeFormat,
+                          // );
+                          print(
+                            "untilDateTimeFormat is not null: $untilDateTimeFormat",
+                          );
+                          print("UNTIL DATE: $untilDateTimeFormat");
+                        });
 
-                  if ((untilDateTimeFormat!.isBefore(fromDateTimeFormat!))) {
-                    showMyAnimatedSnackBar(
-                      context: context,
-                      dataToDisplay:
-                          "NOTICE: From Date must be after From Date as it is the end of the medication duration.",
-                    );
-                  } else if (fromDateTimeFormat == null) {
-                    showMyAnimatedSnackBar(
-                      context: context,
-                      dataToDisplay: "NOTICE: Fill out the From Date first.",
-                    );
-                  } else {
-                    setState(() {
-                      untilDate = untilDateTimeFormat.toString();
-                      isAltered = true;
-                    });
-                    print("TRUEEEEEEEEEEEEEEEEEEEEEEEEE else");
-                  }
-                }
-              },
+                        if ((untilDateTimeFormat!.isBefore(
+                          fromDateTimeFormat!,
+                        ))) {
+                          showMyAnimatedSnackBar(
+                            context: context,
+                            dataToDisplay:
+                                "NOTICE: From Date must be after From Date as it is the end of the medication duration.",
+                          );
+                        } else if (fromDateTimeFormat == null) {
+                          showMyAnimatedSnackBar(
+                            context: context,
+                            dataToDisplay:
+                                "NOTICE: Fill out the From Date first.",
+                          );
+                        } else {
+                          setState(() {
+                            untilDate = untilDateTimeFormat.toString();
+                            isAltered = true;
+                          });
+                          print("TRUEEEEEEEEEEEEEEEEEEEEEEEEE else");
+                        }
+                      }
+                    },
               widthPercentage: 0.38,
-              borderColor: MyColorPalette.borderColor,
+              borderColor: (!widget.isAccessedByMedicalStaff)
+                  ? Colors.grey.shade400
+                  : MyColorPalette.borderColor,
               borderRadius: 7,
               color: MyColorPalette.formColor,
               buttonTextFontSize: kDefaultFontSize + 1,
               buttonTextSpacing: 1,
+              enableShadow: (!widget.isAccessedByMedicalStaff) ? false : true,
               buttonShadowColor: Colors.blue.shade200,
             ),
           ],
@@ -559,6 +551,10 @@ class _MedicationState extends State<Medication> {
           height: MyDimensionAdapter.getHeight(context) * 0.12,
           margin: EdgeInsets.only(top: 10),
           child: TextField(
+            readOnly: // can't be edited if not accessed by a medical staff
+            (!widget.isAccessedByMedicalStaff)
+                ? true
+                : false,
             // if expand is true, maxlines or minLines must be null
             maxLines: null,
             expands: true,
@@ -584,14 +580,20 @@ class _MedicationState extends State<Medication> {
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(7),
                 borderSide: BorderSide(
-                  color: MyColorPalette.borderColor,
+                  color: // Indicates that this can't be edited if not accessed by a medical staff
+                  (!widget.isAccessedByMedicalStaff)
+                      ? Colors.grey.shade400
+                      : MyColorPalette.borderColor,
                   width: 1,
                 ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(7),
                 borderSide: BorderSide(
-                  color: MyColorPalette.borderColor,
+                  color: // Indicates that this can't be edited if not accessed by a medical staff
+                  (!widget.isAccessedByMedicalStaff)
+                      ? Colors.grey.shade400
+                      : MyColorPalette.borderColor,
                   width: 2.5,
                 ),
               ),
@@ -605,7 +607,7 @@ class _MedicationState extends State<Medication> {
   Container dateTimeTimer() {
     return Container(
       width: MyDimensionAdapter.getWidth(context) * 0.85,
-      margin: EdgeInsets.only(bottom: 30),
+      // margin: EdgeInsets.only(bottom: 30),
       padding: EdgeInsets.only(bottom: 7),
       decoration: BoxDecoration(
         color: Colors.blue.shade50,
