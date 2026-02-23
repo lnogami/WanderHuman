@@ -120,7 +120,9 @@ class MainApp extends StatelessWidget {
                       ConnectionState.waiting) {
                     // we need to have a temporary scaffold here to have a surface for the loading visual
                     return Scaffold(
-                      body: const Center(child: CircularProgressIndicator()),
+                      body: SafeArea(
+                        child: const Center(child: CircularProgressIndicator()),
+                      ),
                     );
                   }
                   // will direct you to the NoRoleYetLandingPage if the user has no role yet

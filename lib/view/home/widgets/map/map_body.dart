@@ -24,6 +24,7 @@ import 'package:wanderhuman_app/view/components/info_dialogue.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/draw_geo/map_geofence_drawer.dart';
 // import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/bottom_modal_sheet_for_patient.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/listen_to_patients.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/map_functions/map_camera_animations.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/map_interactions.dart';
 import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 
@@ -199,6 +200,16 @@ class _MapBodyState extends State<MapBody> with RouteAware {
 
     return mp.MapWidget(
       onMapCreated: _onMapCreated,
+      // This will set the initial place of what the map displays while still processing the location data it needs.
+      cameraOptions: mp.CameraOptions(
+        center: mp.Point(
+          coordinates: mp.Position(
+            125.79742622088162,
+            7.4283929355574685,
+          ), // Coordinates for Tagum City
+        ),
+        zoom: 0,
+      ),
       // this is the styles of the map
       // static realistic view
       styleUri: mp.MapboxStyles.SATELLITE_STREETS,
@@ -553,28 +564,34 @@ class _MapBodyState extends State<MapBody> with RouteAware {
             // myPosition = position;
 
             // CameraOptios sets where the map is centered and how zoomed in it is.
-            mapboxMapController?.setCamera(
-              mp.CameraOptions(
-                // zoom: 15.0,
-                zoom: cameraZoomLevel,
-                center: mp.Point(
-                  coordinates: mp.Position(
-                    position.longitude,
-                    position.latitude,
-                  ),
-                ),
-              ),
-
-              // (deletable) this is just for testing purposes only
-              // mp.CameraOptions(
-              //   center: mp.Point(
-              //     coordinates: mp.Position(-74.0445, 40.6892),
-              //   ), // Statue of Liberty
-              //   zoom: 16.0,
-              //   pitch:
-              //       45.0, // Tilting the camera makes 3D landmarks much easier to see
-              // ),
+            MyMapCameraAnimations.myMapFlyTo(
+              mapboxController: mapboxMapController!,
+              position: mp.Position(position.longitude, position.latitude),
+              animationDurationInMilliseconds: 2000,
             );
+
+            // // CameraOptios sets where the map is centered and how zoomed in it is.
+            // mapboxMapController?.setCamera(
+            //   mp.CameraOptions(
+            //     // zoom: 15.0,
+            //     zoom: cameraZoomLevel,
+            //     center: mp.Point(
+            //       coordinates: mp.Position(
+            //         position.longitude,
+            //         position.latitude,
+            //       ),
+            //     ),
+            //   ),
+            //   // (deletable) this is just for testing purposes only
+            //   // mp.CameraOptions(
+            //   //   center: mp.Point(
+            //   //     coordinates: mp.Position(-74.0445, 40.6892),
+            //   //   ), // Statue of Liberty
+            //   //   zoom: 16.0,
+            //   //   pitch:
+            //   //       45.0, // Tilting the camera makes 3D landmarks much easier to see
+            //   // ),
+            // );
 
             updateLoggedInUserLocationToTheDatabase(position);
 

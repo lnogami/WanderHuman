@@ -10,6 +10,7 @@ class MyMapCameraAnimations {
     required Position position,
     // required String patientID,
     double zoomLevel = 15.0,
+    int animationDurationInMilliseconds = 700,
   }) async {
     try {
       double lng = position.lng.toDouble();
@@ -20,7 +21,7 @@ class MyMapCameraAnimations {
           center: Point(coordinates: Position(lng, lat)),
           zoom: zoomLevel,
         ),
-        MapAnimationOptions(duration: 700),
+        MapAnimationOptions(duration: animationDurationInMilliseconds),
       );
     } catch (e, stackTrace) {
       log("AN ERROR OCCURED IN myMapFlyTo method: $e. AT $stackTrace");

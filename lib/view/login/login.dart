@@ -1,3 +1,4 @@
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
@@ -34,6 +35,9 @@ class _LoginPageState extends State<LoginPage> {
   double rotationAngle = 0;
   int animationDuration = 300;
 
+  // for triggering a loading animation on the Login button
+  bool isLoggingIn = false;
+
   // FOR LOGIN
   Future<void> signInWithEmailAndPassword() async {
     try {
@@ -45,6 +49,8 @@ class _LoginPageState extends State<LoginPage> {
       print("LOGGED IN: $userCredential");
     } on FirebaseAuthException catch (e) {
       print("Error during login: ${e.message}");
+      // stop the button's animation
+      setState(() => isLoggingIn = false);
       showMyAnimatedSnackBar(
         // ignore: use_build_context_synchronously
         context: context,
@@ -133,7 +139,7 @@ class _LoginPageState extends State<LoginPage> {
                   color: Colors.blue.shade300,
                 ),
                 MyLayoutMaterial(
-                  distanceFromTop: 210,
+                  distanceFromTop: 130,
                   isSquare: true,
                   isSquareSize: MyDimensionAdapter.getHeight(context) * .65,
                   borderRadius: 120,
@@ -141,7 +147,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 // this is where the main content is
                 MyLayoutMaterial(
-                  distanceFromTop: 300,
+                  distanceFromTop: 320,
                   heightPercentage: 0.7,
                   isRotatable: false,
                   child: loginContentArea(),
@@ -149,18 +155,67 @@ class _LoginPageState extends State<LoginPage> {
 
                 // this is where the logo will be placed, and be animated if possible
                 Positioned(
-                  top: 200,
+                  top: 110,
                   child: ClipRRect(
                     borderRadius: BorderRadiusGeometry.circular(15),
                     child: AnimatedContainer(
-                      width: 100,
-                      height: 100,
+                      width: 150,
+                      height: 150,
                       transformAlignment: Alignment.center,
                       transform: Matrix4.rotationZ(rotationAngle),
-                      color: Colors.blue.shade300,
+                      // color: Colors.blue.shade300,
                       duration: Duration(milliseconds: animationDuration),
                       // onEnd: () {},
+                      child: Image.asset(
+                        "assets/app_icon/wander_human_app_logo.png",
+                      ),
                     ),
+                  ),
+                ),
+
+                Positioned(
+                  top: 265,
+                  // child: MyTextFormatter.h3(text: "WanderHuman", fontsize: 32),
+                  child: AnimatedTextKit(
+                    repeatForever: true,
+                    pause: Duration.zero,
+                    animatedTexts: [
+                      ColorizeAnimatedText(
+                        "WanderHuman",
+                        textStyle: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 32,
+                          // color: Colors.blue.shade400,
+                        ),
+                        colors: [
+                          Colors.blue.shade400,
+                          Colors.blue.shade100,
+                          // Colors.white,
+                          Colors.blue.shade200,
+                          Colors.blue.shade400,
+                          Colors.blue.shade600,
+                          Colors.blue.shade500,
+                          Colors.blue.shade400,
+                        ],
+                        speed: Duration(milliseconds: 500),
+                      ),
+                      // RotateAnimatedText(
+                      //   "WanderHuman",
+                      //   textStyle: TextStyle(
+                      //     fontWeight: FontWeight.bold,
+                      //     fontSize: 32,
+                      //     color: Colors.blue.shade400,
+                      //   ),
+                      // ),
+                      FadeAnimatedText(
+                        "WanderHuman",
+                        textStyle: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 32,
+                          color: Colors.blue.shade400,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -235,19 +290,22 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  MyCustButton loginButton() {
-    return MyCustButton(
-      onTap: () async {
-        await signInWithEmailAndPassword();
-        // print("LOGIN BUTTON PRESSEDDDDDDDDDDDDDDDDDDDDDDDDDD");
+  Widget loginButton() {
+    return (isLoggingIn)
+        ? CircularProgressIndicator.adaptive()
+        : MyCustButton(
+            onTap: () async {
+              setState(() => isLoggingIn = true);
+              await signInWithEmailAndPassword();
+              // print("LOGIN BUTTON PRESSEDDDDDDDDDDDDDDDDDDDDDDDDDD");
 
-        FocusManager.instance.primaryFocus?.unfocus();
-      },
-      buttonText: "LOGIN",
-      color: Colors.blue,
-      buttonTextFontWeight: FontWeight.w700,
-      buttonTextColor: Colors.white,
-    );
+              FocusManager.instance.primaryFocus?.unfocus();
+            },
+            buttonText: "LOGIN",
+            color: Colors.blue,
+            buttonTextFontWeight: FontWeight.w700,
+            buttonTextColor: Colors.white,
+          );
   }
 
   MyCustButton confirmSignUpButton() {

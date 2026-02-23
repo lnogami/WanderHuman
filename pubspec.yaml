@@ -7,6 +7,7 @@ environment:
   sdk: ^3.8.0
 
 dependencies:
+  animated_text_kit: ^4.3.0
   battery_plus: ^7.0.0
   cloud_firestore: ^6.0.1
   firebase_auth: ^6.0.1
@@ -38,15 +39,19 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/image/app_icon.png"
-  adaptive_icon_foreground: "assets/image/app_icon.png"
-  adaptive_icon_background: "assets/image/icon_bg.png"
+  image_path: "assets/app_icon/wander_human_app_logo.png"
+  adaptive_icon_foreground: "assets/app_icon/wander_human_fg.png"
+  adaptive_icon_background: "assets/app_icon/plain_bg_only.png"
+  # image_path: "assets/image/app_icon.png"
+  # adaptive_icon_foreground: "assets/image/app_icon.png"
+  # adaptive_icon_background: "assets/image/icon_bg.png"
 
 flutter:
   assets:
     - .env
     - assets/icons/
     - assets/icons/location_marker.png
+    - assets/app_icon/
   uses-material-design: true
   fonts:
     - family: Poppins
