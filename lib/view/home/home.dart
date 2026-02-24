@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/helper/realtime_temporary_test.dart';
@@ -84,114 +85,142 @@ class _HomePageState extends State<HomePage> {
         .watch<MyHomeGeofenceConfigurationProvider>()
         .isAboutToAddCenterPoint;
 
-    return Scaffold(
-      body: SafeArea(
-        child: (isLoading)
-            ? Center(child: CircularProgressIndicator())
-            : Stack(
-                alignment: Alignment.topCenter,
-                children: [
-                  // Map body
-                  Positioned(
-                    // child: Container()
-                    child: SizedBox(
-                      width: MyDimensionAdapter.getWidth(context),
-                      height: MyDimensionAdapter.getHeight(context),
-                      child: MapBody(
-                        loggedInUserData: context
-                            .watch<HomeAppBarProvider>()
-                            .loggedInUserData,
-                      ),
-                      // child: MyMapBody(),
-                    ),
-                  ),
+    return PopScope(
+      // 1. Set this to false to completely block the default back button behavior
+      canPop: false,
 
-                  // this only appears if the user is creating/viewing geofences
-                  Positioned(
-                    bottom: 0,
-                    child: AnimatedContainer(
-                      duration: Duration(milliseconds: 400),
-                      width: MyDimensionAdapter.getWidth(context),
-                      height:
-                          MyDimensionAdapter.getHeight(context) *
-                          ((isCreatingGeofence) ? 0.25 : 0),
-                      color: Colors.white70,
-                      child: SettingGeofenceBottomPanel(),
-                    ),
-                  ),
+      // 2. This triggers when the user presses the back button
+      onPopInvokedWithResult: (bool didPop, Object? result) async {
+        // If the system already popped the screen, do nothing
+        if (didPop) return;
 
-                  // this only appears if the user is creating/viewing geofences
-                  creatingOrViewingASafeZoneButtons(
-                    context,
-                    isCreatingGeofence: isCreatingGeofence,
-                    isAboutToAddCenterPoint: isAboutToAddCenterPoint,
-                  ),
+        // // 3. Show your custom confirmation dialog
+        // final bool shouldExit = await showExitDialog(context);
 
-                  // -----------------------
-                  // Emergency Contacts
-                  Positioned(
-                    top: MyDimensionAdapter.getHeight(context) * 0.12,
-                    left: 18,
-                    child: animatedOpacity(
-                      child: MyHomeEmergencyContactsButton(),
-                      isVisible: (!isCreatingGeofence && !isViewingGeofences),
-                    ),
-                  ),
+        // // 4. If they clicked "Yes", forcefully close the app
+        // if (shouldExit) {
+        //   SystemNavigator.pop();
+        // }
 
-                  // Set Geofence
-                  Positioned(
-                    top: MyDimensionAdapter.getHeight(context) * 0.2,
-                    left: 18,
-                    child: animatedOpacity(
-                      child: SetGeofence(),
-                      isVisible: (!isCreatingGeofence && !isViewingGeofences),
-                    ),
-                  ),
-
-                  // Temporary for testing realtime database only (deletable)
-                  Positioned(
-                    top: MyDimensionAdapter.getHeight(context) * 0.27,
-                    left: 18,
-                    child: animatedOpacity(
-                      child: IconButton(
-                        onPressed: () {
-                          MyNavigator.goTo(context, RealtimeTemporaryTest());
-                        },
-                        icon: Icon(
-                          Icons.data_saver_on_rounded,
-                          color: Colors.amber,
-                          size: 32,
+        // Show confirmation dialog
+        myAlertDialogue(
+          context: context,
+          alertTitle: "Confirm Exit",
+          alertContent: "Are you sure you want to exit WanderHuman?",
+          onApprovalPressed: () {
+            SystemNavigator.pop();
+          },
+        );
+      },
+      child: Scaffold(
+        body: SafeArea(
+          child: (isLoading)
+              ? Center(child: CircularProgressIndicator())
+              : Stack(
+                  alignment: Alignment.topCenter,
+                  children: [
+                    // Map body
+                    Positioned(
+                      // child: Container()
+                      child: SizedBox(
+                        width: MyDimensionAdapter.getWidth(context),
+                        height: MyDimensionAdapter.getHeight(context),
+                        child: MapBody(
+                          loggedInUserData: context
+                              .watch<HomeAppBarProvider>()
+                              .loggedInUserData,
                         ),
+                        // child: MyMapBody(),
                       ),
-                      isVisible: (!isCreatingGeofence && !isViewingGeofences),
                     ),
-                  ),
 
-                  // Dropdown
-                  Positioned(
-                    // top: MyDimensionAdapter.getHeight(context) * 0.18,
-                    top: MyDimensionAdapter.getHeight(context) * 0.12,
-                    right: 18,
-                    child: animatedOpacity(
-                      child: HomePatientListDropDown(),
-                      isVisible: (!isCreatingGeofence && !isViewingGeofences),
-                    ),
-                  ),
-
-                  // Appbar
-                  Positioned(
-                    top: 20,
-                    child: animatedOpacity(
-                      child: HomeAppBar(
-                        loggedInUserData: context
-                            .watch<HomeAppBarProvider>()
-                            .loggedInUserData,
+                    // this only appears if the user is creating/viewing geofences
+                    Positioned(
+                      bottom: 0,
+                      child: AnimatedContainer(
+                        duration: Duration(milliseconds: 400),
+                        width: MyDimensionAdapter.getWidth(context),
+                        height:
+                            MyDimensionAdapter.getHeight(context) *
+                            ((isCreatingGeofence) ? 0.25 : 0),
+                        color: Colors.white70,
+                        child: SettingGeofenceBottomPanel(),
                       ),
-                      isVisible: (!isCreatingGeofence && !isViewingGeofences),
                     ),
-                  ),
-                ],
-              ),
+
+                    // this only appears if the user is creating/viewing geofences
+                    creatingOrViewingASafeZoneButtons(
+                      context,
+                      isCreatingGeofence: isCreatingGeofence,
+                      isAboutToAddCenterPoint: isAboutToAddCenterPoint,
+                    ),
+
+                    // -----------------------
+                    // Emergency Contacts
+                    Positioned(
+                      top: MyDimensionAdapter.getHeight(context) * 0.12,
+                      left: 18,
+                      child: animatedOpacity(
+                        child: MyHomeEmergencyContactsButton(),
+                        isVisible: (!isCreatingGeofence && !isViewingGeofences),
+                      ),
+                    ),
+
+                    // Set Geofence
+                    Positioned(
+                      top: MyDimensionAdapter.getHeight(context) * 0.2,
+                      left: 18,
+                      child: animatedOpacity(
+                        child: SetGeofence(),
+                        isVisible: (!isCreatingGeofence && !isViewingGeofences),
+                      ),
+                    ),
+
+                    // Temporary for testing realtime database only (deletable)
+                    Positioned(
+                      top: MyDimensionAdapter.getHeight(context) * 0.27,
+                      left: 18,
+                      child: animatedOpacity(
+                        child: IconButton(
+                          onPressed: () {
+                            MyNavigator.goTo(context, RealtimeTemporaryTest());
+                          },
+                          icon: Icon(
+                            Icons.data_saver_on_rounded,
+                            color: Colors.amber,
+                            size: 32,
+                          ),
+                        ),
+                        isVisible: (!isCreatingGeofence && !isViewingGeofences),
+                      ),
+                    ),
+
+                    // Dropdown
+                    Positioned(
+                      // top: MyDimensionAdapter.getHeight(context) * 0.18,
+                      top: MyDimensionAdapter.getHeight(context) * 0.12,
+                      right: 18,
+                      child: animatedOpacity(
+                        child: HomePatientListDropDown(),
+                        isVisible: (!isCreatingGeofence && !isViewingGeofences),
+                      ),
+                    ),
+
+                    // Appbar
+                    Positioned(
+                      top: 20,
+                      child: animatedOpacity(
+                        child: HomeAppBar(
+                          loggedInUserData: context
+                              .watch<HomeAppBarProvider>()
+                              .loggedInUserData,
+                        ),
+                        isVisible: (!isCreatingGeofence && !isViewingGeofences),
+                      ),
+                    ),
+                  ],
+                ),
+        ),
       ),
     );
   }

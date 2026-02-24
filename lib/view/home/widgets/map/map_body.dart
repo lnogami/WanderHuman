@@ -178,7 +178,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
       userAnnotations: userAnnotations,
       pointAnnotationManager: pointAnnotationManager,
       context: context,
-      activeGeofences: activeGeofences,
+      // activeGeofences: activeGeofences,
     );
   }
 
@@ -227,12 +227,12 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     required mp.StyleLoadedEventData? event,
   }) async {
     // this works with MapboxStyles.STANDARD as it is dynamic (NOTE: this does not work with SATELLITE_STREETS)
-    mapboxMapController!.style.setStyleImportConfigProperty(
+    mapboxMapController?.style.setStyleImportConfigProperty(
       "basemap",
       "lightPreset",
       "night",
     );
-    mapboxMapController!.style.setStyleImportConfigProperty(
+    mapboxMapController?.style.setStyleImportConfigProperty(
       "basemap",
       "showLandmarkIcons",
       true,
@@ -281,7 +281,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
       pointAnnotationManager: pointAnnotationManager,
       // ignore: use_build_context_synchronously
       context: context,
-      activeGeofences: activeGeofences,
+      // activeGeofences: activeGeofences,
     );
 
     // This part of the code is for creating geofences

@@ -12,10 +12,15 @@ Future<PointAnnotationOptions> myPointAnnotationOptions({
   required String name,
   double? textSize,
   required Position myPosition,
+  bool isAPatient =
+      true, // true by default because this function is initialy for patients
 }) async {
   return PointAnnotationOptions(
-    textHaloColor: Colors.blue.toARGB32(),
-    textHaloWidth: 1.0,
+    // textHaloColor: Colors.blue.toARGB32(),
+    textHaloColor: (isAPatient)
+        ? Colors.blue.toARGB32()
+        : Colors.grey.shade800.toARGB32(),
+    textHaloWidth: (isAPatient) ? 1.0 : 1.5,
     textLetterSpacing: 0.08,
     image: await makeCircularImage(imageData!),
     ///// temporary (deletable)
@@ -23,7 +28,9 @@ Future<PointAnnotationOptions> myPointAnnotationOptions({
     iconSize: 0.35,
     // icon color is still static because I used a png image as marker
     iconColor: Colors.blue.toARGB32(),
-    textField: name, // THIS IS A PATIENT NAME
+    textField: (isAPatient)
+        ? name // THIS IS A PATIENT NAME
+        : "${name.split(" ").first} (staff)", // FOR STAFF NAME
     textSize: MySizes.mapTextFieldSize,
     textColor: Colors.white.toARGB32(),
     textOcclusionOpacity: 1,

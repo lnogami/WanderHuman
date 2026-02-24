@@ -75,6 +75,37 @@ class MyRealtimeActiveStatusRepository {
     }
   }
 
+  // Add this to realtime_active_status_repository.dart
+  static Stream<List<MyRealtimeActiveStatusModel>> streamAllActivePersons() {
+    return _activeStatusRef.onValue.map((DatabaseEvent event) {
+      List<MyRealtimeActiveStatusModel> activeDeviceIDList = [];
+      final DataSnapshot snapshot = event.snapshot;
+
+      if (snapshot.exists && snapshot.value != null) {
+        // 2. Parse the raw Map data just like your Future method
+        final Map<dynamic, dynamic> rawData = snapshot.value as Map;
+
+        rawData.forEach((key, value) {
+          if (value is Map) {
+            final Map<dynamic, dynamic> mapValue = value;
+
+            // 3. We only care about people who are currently active
+            if (mapValue["isActive"] == true) {
+              activeDeviceIDList.add(
+                MyRealtimeActiveStatusModel(
+                  userID: key.toString(),
+                  isActive: mapValue["isActive"],
+                ),
+              );
+            }
+          }
+        });
+      }
+
+      return activeDeviceIDList;
+    });
+  }
+
   // Update user/device status
   static Future<void> updateActiveStatus({
     required String userID,

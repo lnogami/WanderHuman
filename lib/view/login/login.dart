@@ -49,7 +49,7 @@ class _LoginPageState extends State<LoginPage> {
       print("LOGGED IN: $userCredential");
     } on FirebaseAuthException catch (e) {
       print("Error during login: ${e.message}");
-      // stop the button's animation
+      // stop the button's loading nimation
       setState(() => isLoggingIn = false);
       showMyAnimatedSnackBar(
         // ignore: use_build_context_synchronously

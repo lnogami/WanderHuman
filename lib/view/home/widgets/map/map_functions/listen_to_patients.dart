@@ -1,19 +1,305 @@
+// // import 'dart:developer';
+// import 'dart:async';
+// import 'dart:developer';
+// import 'dart:math' as math;
+// import 'dart:typed_data';
+
+// import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:flutter/material.dart';
+// import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mp;
+// import 'package:wanderhuman_app/helper/geofence_repository.dart';
+// import 'package:wanderhuman_app/helper/history_reposity.dart';
+// import 'package:wanderhuman_app/helper/personal_info_repository.dart';
+// import 'package:wanderhuman_app/helper/realtime_active_status_repository.dart';
+// import 'package:wanderhuman_app/helper/realtime_location_repository.dart';
+// import 'package:wanderhuman_app/model/geofence_model.dart';
+// import 'package:wanderhuman_app/model/personal_info.dart';
+// import 'package:wanderhuman_app/model/realtime_active_status_model.dart';
+// import 'package:wanderhuman_app/model/realtime_location_model.dart';
+// import 'package:wanderhuman_app/view/components/image_picker.dart';
+// import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
+// import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/bottom_modal_sheet_for_patient.dart';
+// import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/geo_logics/notifcation_alerts.dart';
+// import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/geo_logics/turf.dart';
+// import 'package:wanderhuman_app/view/home/widgets/map/map_functions/point_annotation_options.dart';
+
+// class ListenToPatients {
+//   static final List<PersonalInfo> _patientsList = [];
+//   // Keep track of subscriptions so we can cancel them later to save bandwidth
+//   static final Map<String, StreamSubscription> _locationSubscriptions = {};
+
+//   // // Geofence logic object
+//   // MyGeofenceLogic geofenceLogic = MyGeofenceLogic();
+
+//   static Future<void> _getAllPatients() async {
+//     if (_patientsList.isNotEmpty) _patientsList.clear();
+
+//     List<MyRealtimeActiveStatusModel> allActivePersons =
+//         await MyRealtimeActiveStatusRepository.getAllDeviceIDWithActiveStatus();
+
+//     for (var person in allActivePersons) {
+//       // skip if it is the currently logged in user
+//       if (person.userID == FirebaseAuth.instance.currentUser!.uid) continue;
+
+//       _patientsList.add(
+//         await MyPersonalInfoRepository.getSpecificPersonalInfo(
+//           userID: person.userID,
+//         ),
+//       );
+//     }
+//     // _patientsList = await MyPersonalInfoRepository.getAllPersonalInfoRecords(
+//     //   fieldName: "userType",
+//     //   valueToLookFor: "Patient",
+//     // );
+//   }
+
+//   /// Call this method to cancel all the subcriptions at once
+//   static void stopListening() {
+//     try {
+//       for (var patient in _patientsList) {
+//         _locationSubscriptions[patient.deviceID]?.cancel();
+//       }
+//       // Clear the map so we know they are gone
+//       _locationSubscriptions.clear();
+//       log(
+//         "Notice: 🛑 All patient location listeners were successfully stopped.",
+//       );
+//     } catch (e, stackTrace) {
+//       log(
+//         "ERROR ON STOPLISTENING METHOD in ListenToPatients class: $e. AT $stackTrace",
+//       );
+//     }
+//   }
+
+//   /// To listen to patients realtime location data
+//   static void listenToPatients({
+//     required Map<String, Map<String, dynamic>> annotationData,
+//     required Map<String, mp.PointAnnotation> userAnnotations,
+//     mp.PointAnnotationManager? pointAnnotationManager,
+//     required BuildContext context,
+//     List<MyGeofenceModel>? activeGeofences,
+//   }) async {
+//     try {
+//       // 1. Fetch all patients from Firestore (Personal Info)
+//       await _getAllPatients();
+
+//       List<MyGeofenceModel> activeGeofences =
+//           await MyGeofenceRepository.getActiveGeofences();
+
+//       // for debugging purposes only
+//       for (var p in _patientsList) {
+//         log("PATIENTSSSSSSSSSSSSSSSSSSSSSSSSS: ${p.name}");
+//         log("PATIENT IDDDDDDDDDDDDDDDDDDDDDDD: ${p.userID}");
+//         log("DEVICE IDDDDDDDDDDDDDDDDDDDDDDDD: ${p.deviceID}");
+//       }
+
+//       // Create a random number generator for ID generation for each patient so that each of them have different notifications.
+//       math.Random randomNumberGenerator = math.Random();
+//       // 2. Loop through patients and attach a REALTIME listener to each
+//       for (var patient in _patientsList) {
+//         String deviceID = patient.deviceID;
+//         int randomGeneratedID = randomNumberGenerator.nextInt(100);
+//         bool isAPatient =
+//             (patient.userType ==
+//             "Patient"); // this function is originally only for patients, but I have decided to adapt staffs too
+
+//         // Cancel existing subscription if it exists to avoid memory leaks
+//         await _locationSubscriptions[deviceID]?.cancel();
+
+//         _locationSubscriptions[deviceID] =
+//             MyRealtimeLocationReposity.getRealtimePatientLocationStream(
+//               deviceID: deviceID,
+//             ).listen((MyRealtimeLocationModel realtimeLocModel) async {
+//               try {
+//                 // Parse coordinates safely
+//                 double lng =
+//                     double.tryParse(realtimeLocModel.currentLocationLng) ?? 0.0;
+//                 double lat =
+//                     double.tryParse(realtimeLocModel.currentLocationLat) ?? 0.0;
+
+//                 // Prepare metadata for the Bottom Sheet
+//                 annotationData[deviceID] = {
+//                   'name': patient.name,
+//                   'patientID': realtimeLocModel.patientID,
+//                   'lng': lng,
+//                   'lat': lat,
+//                   'currentlyIn': realtimeLocModel.currentlyIn,
+//                   'isInSafeZone': realtimeLocModel.isInSafeZone,
+//                   'timeStamp': realtimeLocModel.timeStamp,
+//                   'deviceBatteryPercentage': realtimeLocModel
+//                       .deviceBatteryPercentage
+//                       .toString(),
+//                   'userID': patient.userID,
+//                   'profilePicture': patient.picture,
+//                   'age': patient.age,
+//                   'sex': patient.sex,
+//                   'contactInfo': patient.contactNumber,
+//                   'address': patient.address,
+//                   'notableBehavior': patient.notableBehavior,
+//                   'deviceID': patient.deviceID,
+//                   'email': patient.email,
+//                   'birthDate': patient.birthdate,
+//                   'userType': patient.userType, // newly added, not yet tested
+//                 };
+
+//                 // Decode the patient icon
+//                 final Uint8List patientIcon =
+//                     MyImageProcessor.decodeStringToUint8List(patient.picture);
+
+//                 // 3. MAPBOX UPDATE LOGIC
+//                 // Remove old annotation if it exists
+//                 if (userAnnotations.containsKey(deviceID)) {
+//                   await pointAnnotationManager?.delete(
+//                     userAnnotations[deviceID]!,
+//                   );
+//                 }
+
+//                 // Create new annotation at updated location
+//                 var newAnnotation = await pointAnnotationManager?.create(
+//                   await myPointAnnotationOptions(
+//                     name: patient.name,
+//                     myPosition: mp.Position(lng, lat),
+//                     imageData: patientIcon,
+//                     isAPatient: (patient.userType == "Patient"),
+//                   ),
+//                 );
+
+//                 // if the newAnnotation is not null, add it to a specific userAnnoation
+//                 if (newAnnotation != null) {
+//                   userAnnotations[deviceID] = newAnnotation;
+//                 }
+
+//                 // Patient exclusive function call, staffs not included
+//                 if (isAPatient) {
+//                   log("${patient.name} is a Patient");
+//                   // 4. Setup Tap Events (Do this once or update properly)
+//                   _setupMapTapEvents(
+//                     pointAnnotationManager: pointAnnotationManager!,
+//                     userAnnotations: userAnnotations,
+//                     annotationData: annotationData,
+//                     // ignore: use_build_context_synchronously
+//                     context: context,
+//                   );
+
+//                   // This will determine if a patient is inside a safe zone or not
+//                   var isInsideSafeZone =
+//                       await MyGeofenceLogic.isPatientInsideTheAssignedSafeZone(
+//                         userPosition: mp.Position(lng, lat),
+//                         activeGeofences: activeGeofences,
+//                         userID: patient.userID,
+//                       );
+
+//                   // // Notifies if the patient is not inside the safe zone
+//                   // if (!isInsideSafeZone) {
+//                   //   MyAlertNotification.triggerSafeZoneAlert(
+//                   //     patientName: patient.name,
+//                   //     randomGeneratedIDForAlert: randomGeneratedID,
+//                   //   );
+//                   // }
+
+//                   // Saves the lcation data of the patient to the database
+//                   await MyHistoryReposity.savePatientLocation(
+//                     locationData: realtimeLocModel,
+//                   );
+
+//                   // for debugging purposes only
+//                   log(
+//                     "🗺️ Patient ${patient.name} is inside the Safe Zone: --> $isInsideSafeZone",
+//                   );
+//                   log(
+//                     "POSITION of patient with ID ${patient.userID} is lng:$lng, lat:$lat",
+//                   );
+//                 }
+//                 // (deletable) fro debugging purposes only
+//                 else {
+//                   log("${patient.name} is NOTTT a Patient");
+//                 }
+//               } catch (e, stackTrace) {
+//                 log("ERROR UPDATING MARKER FOR $deviceID: $e. AT $stackTrace");
+//               }
+//             });
+//       }
+
+//       log(
+//         "Notice:✅ Successfully listening to ${_patientsList.length} patients realtime locations.",
+//       );
+//     } catch (e, stackTrace) {
+//       log("ERROR ON LISTENTOPATIENTS METHOD: $e. AT $stackTrace");
+//     }
+//   }
+
+//   static void _setupMapTapEvents({
+//     required Map<String, Map<String, dynamic>> annotationData,
+//     required Map<String, mp.PointAnnotation> userAnnotations,
+//     mp.PointAnnotationManager? pointAnnotationManager,
+//     required BuildContext context,
+//   }) {
+//     // set up tap events ONCE, outside the loop
+//     pointAnnotationManager?.tapEvents(
+//       onTap: (mp.PointAnnotation tappedAnnotation) {
+//         // find which document this annotation belongs to
+//         String? docId = userAnnotations.entries
+//             .firstWhere(
+//               (entry) => entry.value == tappedAnnotation,
+//               orElse: () => MapEntry('', tappedAnnotation),
+//             )
+//             .key;
+
+//         if (docId.isNotEmpty && annotationData.containsKey(docId)) {
+//           var data = annotationData[docId]!;
+//           // Only show the bottom nav sheet if it is a patient
+//           if (data["userType"] == "Patient") {
+//             showMyBottomNavigationSheet(
+//               context: context,
+//               patientID: data['patientID'] ?? "NO DATA ACQUIRED",
+//               name: data['name'] ?? "NO DATA ACQUIRED",
+//               sex: data['sex'] ?? "NO DATA ACQUIRED",
+//               age: data['age'] ?? "NO DATA ACQUIRED",
+//               contactInfo: data['contactInfo'] ?? "NO DATA ACQUIRED",
+//               address: data['address'] ?? "NO DATA ACQUIRED",
+//               notableBehavior: data['notableBehavior'] ?? "NO DATA ACQUIRED",
+//               profilePicture: data['profilePicture'] ?? "NO DATA ACQUIRED",
+//               currentlyIn: data['currentlyIn'] ?? "NO DATA ACQUIRED",
+//               batteryPercentage:
+//                   int.tryParse(data['deviceBatteryPercentage']) ?? 0,
+//               isCurrentlySafe: data['isInSafeZone'] ?? false,
+//               deviceID: data['deviceID'] ?? "NO DATA ACQUIRED",
+//               email: data['email'] ?? "NO DATA ACQUIRED",
+//               birthDate: data['birthDate'] ?? "NO DATA ACQUIRED",
+//             );
+//           } else {
+//             showMyAnimatedSnackBar(
+//               context: context,
+//               dataToDisplay:
+//                   "${data["name"]} is a ${data["userType"].toString().toUpperCase()}",
+//             );
+//           }
+//         }
+//       },
+//     );
+//   }
+// }
+
 // import 'dart:developer';
 import 'dart:async';
 import 'dart:developer';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mp;
 import 'package:wanderhuman_app/helper/geofence_repository.dart';
 import 'package:wanderhuman_app/helper/history_reposity.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
+import 'package:wanderhuman_app/helper/realtime_active_status_repository.dart';
 import 'package:wanderhuman_app/helper/realtime_location_repository.dart';
 import 'package:wanderhuman_app/model/geofence_model.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
+import 'package:wanderhuman_app/model/realtime_active_status_model.dart';
 import 'package:wanderhuman_app/model/realtime_location_model.dart';
 import 'package:wanderhuman_app/view/components/image_picker.dart';
+import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/bottom_modal_sheet_for_patient.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/geo_logics/notifcation_alerts.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/geo_logics/turf.dart';
@@ -21,30 +307,29 @@ import 'package:wanderhuman_app/view/home/widgets/map/map_functions/point_annota
 
 class ListenToPatients {
   static List<PersonalInfo> _patientsList = [];
-  // Keep track of subscriptions so we can cancel them later to save bandwidth
+
+  // Keep track of location subscriptions so we can cancel them individually
   static final Map<String, StreamSubscription> _locationSubscriptions = {};
 
-  // // Geofence logic object
-  // MyGeofenceLogic geofenceLogic = MyGeofenceLogic();
+  // Keep track of the MASTER active status subscription
+  static StreamSubscription? _activeStatusSubscription;
 
-  static Future<void> _getAllPatients() async {
-    _patientsList = await MyPersonalInfoRepository.getAllPersonalInfoRecords(
-      fieldName: "userType",
-      valueToLookFor: "Patient",
-    );
-  }
-
-  /// Call this method to cancel all the subcriptions at once
+  /// Call this method to cancel all the subscriptions at once when leaving the map
   static void stopListening() {
     try {
+      // 1. Stop listening for new logins/logouts
+      _activeStatusSubscription?.cancel();
+
+      // 2. Stop listening to individual locations
       for (var patient in _patientsList) {
         _locationSubscriptions[patient.deviceID]?.cancel();
       }
-      // Clear the map so we know they are gone
+
+      // 3. Clear memory
       _locationSubscriptions.clear();
-      log(
-        "Notice: 🛑 All patient location listeners were successfully stopped.",
-      );
+      _patientsList.clear();
+
+      log("Notice: 🛑 All map listeners were successfully stopped.");
     } catch (e, stackTrace) {
       log(
         "ERROR ON STOPLISTENING METHOD in ListenToPatients class: $e. AT $stackTrace",
@@ -52,160 +337,247 @@ class ListenToPatients {
     }
   }
 
-  /// To listen to patients realtime location data
+  /// Master function to initialize the map listeners
   static void listenToPatients({
     required Map<String, Map<String, dynamic>> annotationData,
     required Map<String, mp.PointAnnotation> userAnnotations,
     mp.PointAnnotationManager? pointAnnotationManager,
     required BuildContext context,
-    List<MyGeofenceModel>? activeGeofences,
   }) async {
     try {
-      // 1. Fetch all patients from Firestore (Personal Info)
-      await _getAllPatients();
-
       List<MyGeofenceModel> activeGeofences =
           await MyGeofenceRepository.getActiveGeofences();
 
-      // for debugging purposes only
-      for (var p in _patientsList) {
-        log("PATIENTSSSSSSSSSSSSSSSSSSSSSSSSS: ${p.name}");
-        log("PATIENT IDDDDDDDDDDDDDDDDDDDDDDD: ${p.userID}");
-        log("DEVICE IDDDDDDDDDDDDDDDDDDDDDDDD: ${p.deviceID}");
+      // Set up Tap Events ONCE globally
+      if (pointAnnotationManager != null) {
+        _setupMapTapEvents(
+          pointAnnotationManager: pointAnnotationManager,
+          userAnnotations: userAnnotations,
+          annotationData: annotationData,
+          context: context,
+        );
       }
 
-      // Create a random number generator for ID generation for each patient so that each of them have different notifications.
       math.Random randomNumberGenerator = math.Random();
-      // 2. Loop through patients and attach a REALTIME listener to each
-      for (var patient in _patientsList) {
-        String deviceID = patient.deviceID;
-        int randomGeneratedID = randomNumberGenerator.nextInt(100);
 
-        // Cancel existing subscription if it exists to avoid memory leaks
-        await _locationSubscriptions[deviceID]?.cancel();
+      // Listen to the Active Status database CONTINUOUSLY
+      _activeStatusSubscription =
+          MyRealtimeActiveStatusRepository.streamAllActivePersons().listen((
+            List<MyRealtimeActiveStatusModel> currentlyActivePersons,
+          ) async {
+            String currentUserUID = FirebaseAuth.instance.currentUser!.uid;
+            // 1. Check for NEW people who just came online
+            for (var person in currentlyActivePersons) {
+              if (person.userID == currentUserUID) continue; // Skip ourselves
 
-        _locationSubscriptions[deviceID] =
-            MyRealtimeLocationReposity.getRealtimePatientLocationStream(
-              deviceID: deviceID,
-            ).listen((MyRealtimeLocationModel realtimeLocModel) async {
-              try {
-                // Parse coordinates safely
-                double lng =
-                    double.tryParse(realtimeLocModel.currentLocationLng) ?? 0.0;
-                double lat =
-                    double.tryParse(realtimeLocModel.currentLocationLat) ?? 0.0;
+              int randomGeneratedID = randomNumberGenerator.nextInt(100);
+              // If they are NOT in our list yet, they just logged in!
+              bool isAlreadyTracked = _patientsList.any(
+                (p) => p.userID == person.userID,
+              );
 
-                // Prepare metadata for the Bottom Sheet
-                annotationData[deviceID] = {
-                  'name': patient.name,
-                  'patientID': realtimeLocModel.patientID,
-                  'lng': lng,
-                  'lat': lat,
-                  'currentlyIn': realtimeLocModel.currentlyIn,
-                  'isInSafeZone': realtimeLocModel.isInSafeZone,
-                  'timeStamp': realtimeLocModel.timeStamp,
-                  'deviceBatteryPercentage': realtimeLocModel
-                      .deviceBatteryPercentage
-                      .toString(),
-                  'userID': patient.userID,
-                  'profilePicture': patient.picture,
-                  'age': patient.age,
-                  'sex': patient.sex,
-                  'contactInfo': patient.contactNumber,
-                  'address': patient.address,
-                  'notableBehavior': patient.notableBehavior,
-                  'deviceID': patient.deviceID,
-                  'email': patient.email,
-                  'birthDate': patient.birthdate,
-                };
-
-                // Decode the patient icon
-                final Uint8List patientIcon =
-                    MyImageProcessor.decodeStringToUint8List(patient.picture);
-
-                // 3. MAPBOX UPDATE LOGIC
-                // Remove old annotation if it exists
-                if (userAnnotations.containsKey(deviceID)) {
-                  await pointAnnotationManager?.delete(
-                    userAnnotations[deviceID]!,
-                  );
-                }
-
-                // Create new annotation at updated location
-                var newAnnotation = await pointAnnotationManager?.create(
-                  await myPointAnnotationOptions(
-                    name: patient.name,
-                    myPosition: mp.Position(lng, lat),
-                    imageData: patientIcon,
-                  ),
-                );
-
-                // if the newAnnotation is not null, add it to a specific userAnnoation
-                if (newAnnotation != null) {
-                  userAnnotations[deviceID] = newAnnotation;
-                }
-
-                // 4. Setup Tap Events (Do this once or update properly)
-                _setupMapTapEvents(
-                  pointAnnotationManager: pointAnnotationManager!,
-                  userAnnotations: userAnnotations,
+              if (!isAlreadyTracked) {
+                log("🟢 New user online! Adding ${person.userID} to map...");
+                await _addPersonToMap(
+                  userID: person.userID,
                   annotationData: annotationData,
-                  // ignore: use_build_context_synchronously
+                  userAnnotations: userAnnotations,
+                  pointAnnotationManager: pointAnnotationManager,
                   context: context,
+                  activeGeofences: activeGeofences,
+                  randomGeneratedID: randomGeneratedID,
                 );
-
-                // This will determine if a patient is inside a safe zone or not
-                var isInsideSafeZone =
-                    await MyGeofenceLogic.isPatientInsideTheAssignedSafeZone(
-                      userPosition: mp.Position(lng, lat),
-                      activeGeofences: activeGeofences,
-                      userID: patient.userID,
-                    );
-
-                // // Notifies if the patient is not inside the safe zone
-                // if (!isInsideSafeZone) {
-                //   MyAlertNotification.triggerSafeZoneAlert(
-                //     patientName: patient.name,
-                //     randomGeneratedIDForAlert: randomGeneratedID,
-                //   );
-                // }
-
-                // Saves the lcation data of the patient to the database
-                await MyHistoryReposity.savePatientLocation(
-                  locationData: realtimeLocModel,
-                );
-
-                // for debugging purposes only
-                log(
-                  "🗺️ Patient ${patient.name} is inside the Safe Zone: --> $isInsideSafeZone",
-                );
-                log(
-                  "POSITION of patient with ID ${patient.userID} is lng:$lng, lat:$lat",
-                );
-              } catch (e, stackTrace) {
-                log("ERROR UPDATING MARKER FOR $deviceID: $e. AT $stackTrace");
               }
-            });
-      }
+            }
 
-      log(
-        "Notice:✅ Successfully listening to ${_patientsList.length} patients realtime locations.",
-      );
+            // 2. Check for OLD people who just went offline
+            List<String> offlineDeviceIDs = [];
+
+            for (var trackedPerson in _patientsList) {
+              // If a person in our list is NO LONGER in the database stream, they logged out
+              bool isStillOnline = currentlyActivePersons.any(
+                (active) => active.userID == trackedPerson.userID,
+              );
+
+              if (!isStillOnline) {
+                offlineDeviceIDs.add(trackedPerson.deviceID);
+              }
+            }
+
+            // Remove the offline people from the map
+            for (var offlineDeviceID in offlineDeviceIDs) {
+              await _removePersonFromMap(
+                deviceID: offlineDeviceID,
+                annotationData: annotationData,
+                userAnnotations: userAnnotations,
+                pointAnnotationManager: pointAnnotationManager,
+              );
+            }
+          });
+
+      log("Notice: ✅ Successfully initialized the Realtime Map Traffic Cop.");
     } catch (e, stackTrace) {
       log("ERROR ON LISTENTOPATIENTS METHOD: $e. AT $stackTrace");
     }
   }
 
+  /// HELPER 1: Starts tracking a NEW person and adds their icon
+  static Future<void> _addPersonToMap({
+    required String userID,
+    required Map<String, Map<String, dynamic>> annotationData,
+    required Map<String, mp.PointAnnotation> userAnnotations,
+    mp.PointAnnotationManager? pointAnnotationManager,
+    required BuildContext context,
+    required List<MyGeofenceModel> activeGeofences,
+    required int randomGeneratedID,
+  }) async {
+    try {
+      // 1. Fetch their info from database
+      PersonalInfo personInfo =
+          await MyPersonalInfoRepository.getSpecificPersonalInfo(
+            userID: userID,
+          );
+      _patientsList.add(personInfo);
+
+      String deviceID = personInfo.deviceID;
+      bool isAPatient = (personInfo.userType == "Patient");
+
+      // Decode their profile picture once
+      final Uint8List personIcon = MyImageProcessor.decodeStringToUint8List(
+        personInfo.picture,
+      );
+
+      // Cancel existing subscription if it somehow exists to avoid memory leaks
+      await _locationSubscriptions[deviceID]?.cancel();
+
+      // 2. Start their location stream
+      _locationSubscriptions[deviceID] =
+          MyRealtimeLocationReposity.getRealtimePatientLocationStream(
+            deviceID: deviceID,
+          ).listen((MyRealtimeLocationModel realtimeLocModel) async {
+            try {
+              // Parse coordinates safely
+              double lng =
+                  double.tryParse(realtimeLocModel.currentLocationLng) ?? 0.0;
+              double lat =
+                  double.tryParse(realtimeLocModel.currentLocationLat) ?? 0.0;
+
+              // Prepare metadata for the Bottom Sheet/Snackbars
+              annotationData[deviceID] = {
+                'name': personInfo.name,
+                'patientID': realtimeLocModel.patientID,
+                'lng': lng,
+                'lat': lat,
+                'currentlyIn': realtimeLocModel.currentlyIn,
+                'isInSafeZone': realtimeLocModel.isInSafeZone,
+                'timeStamp': realtimeLocModel.timeStamp,
+                'deviceBatteryPercentage': realtimeLocModel
+                    .deviceBatteryPercentage
+                    .toString(),
+                'userID': personInfo.userID,
+                'profilePicture': personInfo.picture,
+                'age': personInfo.age,
+                'sex': personInfo.sex,
+                'contactInfo': personInfo.contactNumber,
+                'address': personInfo.address,
+                'notableBehavior': personInfo.notableBehavior,
+                'deviceID': personInfo.deviceID,
+                'email': personInfo.email,
+                'birthDate': personInfo.birthdate,
+                'userType': personInfo.userType,
+              };
+
+              // 3. MAPBOX UPDATE LOGIC
+              // Remove old annotation if it exists
+              if (userAnnotations.containsKey(deviceID)) {
+                await pointAnnotationManager?.delete(
+                  userAnnotations[deviceID]!,
+                );
+              }
+
+              // Create new annotation at updated location
+              var newAnnotation = await pointAnnotationManager?.create(
+                await myPointAnnotationOptions(
+                  name: personInfo.name,
+                  myPosition: mp.Position(lng, lat),
+                  imageData: personIcon,
+                  isAPatient: isAPatient,
+                ),
+              );
+
+              if (newAnnotation != null) {
+                userAnnotations[deviceID] = newAnnotation;
+              }
+
+              // 4. Patient Exclusive Logic (Safe Zones & History)
+              if (isAPatient) {
+                var isInsideSafeZone =
+                    await MyGeofenceLogic.isPatientInsideTheAssignedSafeZone(
+                      userPosition: mp.Position(lng, lat),
+                      activeGeofences: activeGeofences,
+                      userID: personInfo.userID,
+                    );
+
+                await MyHistoryReposity.savePatientLocation(
+                  locationData: realtimeLocModel,
+                );
+
+                // Notifies if the patient is not inside the safe zone
+                if (!isInsideSafeZone) {
+                  MyAlertNotification.triggerSafeZoneAlert(
+                    patientName: personInfo.name,
+                    randomGeneratedIDForAlert: randomGeneratedID,
+                  );
+                }
+              }
+            } catch (e, stackTrace) {
+              log("ERROR UPDATING MARKER FOR $deviceID: $e. AT $stackTrace");
+            }
+          });
+    } catch (e) {
+      log("ERROR ADDING PERSON TO MAP: $e");
+    }
+  }
+
+  /// HELPER 2: Stops tracking a person and removes their icon
+  static Future<void> _removePersonFromMap({
+    required String deviceID,
+    required Map<String, Map<String, dynamic>> annotationData,
+    required Map<String, mp.PointAnnotation> userAnnotations,
+    mp.PointAnnotationManager? pointAnnotationManager,
+  }) async {
+    try {
+      log("🔴 Removing offline user (Device: $deviceID) from the map.");
+
+      // 1. Kill their location stream
+      await _locationSubscriptions[deviceID]?.cancel();
+      _locationSubscriptions.remove(deviceID);
+
+      // 2. Remove them from our local list
+      _patientsList.removeWhere((p) => p.deviceID == deviceID);
+
+      // 3. Delete their Mapbox Icon!
+      if (userAnnotations.containsKey(deviceID)) {
+        await pointAnnotationManager?.delete(userAnnotations[deviceID]!);
+        userAnnotations.remove(deviceID);
+      }
+
+      // 4. Clear their metadata
+      annotationData.remove(deviceID);
+    } catch (e) {
+      log("ERROR REMOVING PERSON FROM MAP: $e");
+    }
+  }
+
+  /// Sets up map tap events globally
   static void _setupMapTapEvents({
     required Map<String, Map<String, dynamic>> annotationData,
     required Map<String, mp.PointAnnotation> userAnnotations,
     mp.PointAnnotationManager? pointAnnotationManager,
     required BuildContext context,
   }) {
-    // set up tap events ONCE, outside the loop
     pointAnnotationManager?.tapEvents(
       onTap: (mp.PointAnnotation tappedAnnotation) {
-        // find which document this annotation belongs to
         String? docId = userAnnotations.entries
             .firstWhere(
               (entry) => entry.value == tappedAnnotation,
@@ -215,39 +587,35 @@ class ListenToPatients {
 
         if (docId.isNotEmpty && annotationData.containsKey(docId)) {
           var data = annotationData[docId]!;
-          showMyBottomNavigationSheet(
-            context: context,
-            patientID: data['patientID'] ?? "NO DATA ACQUIRED",
-            name: data['name'] ?? "NO DATA ACQUIRED",
-            sex: data['sex'] ?? "NO DATA ACQUIRED",
-            age: data['age'] ?? "NO DATA ACQUIRED",
-            contactInfo: data['contactInfo'] ?? "NO DATA ACQUIRED",
-            address: data['address'] ?? "NO DATA ACQUIRED",
-            notableBehavior: data['notableBehavior'] ?? "NO DATA ACQUIRED",
-            profilePicture: data['profilePicture'] ?? "NO DATA ACQUIRED",
-            currentlyIn: data['currentlyIn'] ?? "NO DATA ACQUIRED",
-            batteryPercentage:
-                int.tryParse(data['deviceBatteryPercentage']) ?? 0,
-            isCurrentlySafe: data['isInSafeZone'] ?? false,
-            deviceID: data['deviceID'] ?? "NO DATA ACQUIRED",
-            email: data['email'] ?? "NO DATA ACQUIRED",
-            birthDate: data['birthDate'] ?? "NO DATA ACQUIRED",
 
-            //'name': patient.name,
-            // 'patientID': realtimeLocModel.patientID,
-            // 'currentlyIn': realtimeLocModel.currentlyIn,
-            // 'isInSafeZone': realtimeLocModel.isInSafeZone,
-            // 'timeStamp': realtimeLocModel.timeStamp,
-            // 'deviceBatteryPercentage': realtimeLocModel
-            //     .deviceBatteryPercentage
-            //     .toString(),
-            // 'userID': patient.userID,
-            // 'age': patient.age,
-            // 'sex': patient.sex,
-            // 'contactInfo': patient.contactNumber,
-            // 'address': patient.address,
-            // 'notableBehavior': patient.notableBehavior,
-          );
+          bool isTappedPersonAPatient = (data['userType'] == "Patient");
+
+          if (isTappedPersonAPatient) {
+            showMyBottomNavigationSheet(
+              context: context,
+              patientID: data['patientID'] ?? "NO DATA ACQUIRED",
+              name: data['name'] ?? "NO DATA ACQUIRED",
+              sex: data['sex'] ?? "NO DATA ACQUIRED",
+              age: data['age'] ?? "NO DATA ACQUIRED",
+              contactInfo: data['contactInfo'] ?? "NO DATA ACQUIRED",
+              address: data['address'] ?? "NO DATA ACQUIRED",
+              notableBehavior: data['notableBehavior'] ?? "NO DATA ACQUIRED",
+              profilePicture: data['profilePicture'] ?? "NO DATA ACQUIRED",
+              currentlyIn: data['currentlyIn'] ?? "NO DATA ACQUIRED",
+              batteryPercentage:
+                  int.tryParse(data['deviceBatteryPercentage']) ?? 0,
+              isCurrentlySafe: data['isInSafeZone'] ?? false,
+              deviceID: data['deviceID'] ?? "NO DATA ACQUIRED",
+              email: data['email'] ?? "NO DATA ACQUIRED",
+              birthDate: data['birthDate'] ?? "NO DATA ACQUIRED",
+            );
+          } else {
+            showMyAnimatedSnackBar(
+              context: context,
+              dataToDisplay:
+                  "${data["name"]} is a ${data["userType"].toString().toUpperCase()}",
+            );
+          }
         }
       },
     );
