@@ -9,6 +9,7 @@ import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:geolocator/geolocator.dart' as gl;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mp;
 import 'package:provider/provider.dart';
+import 'package:wanderhuman_app/helper/audios/audio_player.dart';
 import 'package:wanderhuman_app/helper/geofence_repository.dart';
 import 'package:wanderhuman_app/helper/realtime_location_repository.dart';
 import 'package:wanderhuman_app/main.dart';
@@ -65,7 +66,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
   int numberOfActiveGeofences = 0;
 
   // Provider
-  double cameraZoomLevel = 15.0;
+  late MyHomeSettingsProvider myHomeSettingsProvider;
 
   // This two Managers are for temporary scenarios like when creating a safe zone (geofence)
   mp.PolygonAnnotationManager? markedPolygonAnnotationManager;
@@ -73,6 +74,11 @@ class _MapBodyState extends State<MapBody> with RouteAware {
 
   // This will check if the location is enabled or not, if not, a dialog box will appear to refresh the screen.
   bool isLocationServiceEnabled = false;
+
+  // Audio effects
+  final MyAudioPlayer _myAudioPlayer = MyAudioPlayer();
+  bool isIntroAudioPlayingForTheFirstTime = true;
+
   Future<void> checkLocationServiceStatus() async {
     isLocationServiceEnabled = await gl.Geolocator.isLocationServiceEnabled();
     // mounted refers to if the widget is still on the tree
@@ -103,7 +109,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
       // return if there are no active geofences
       if (activeGeofences.isEmpty) return;
 
-      polygonAnnotationManager = await mapboxMapController?.annotations
+      polygonAnnotationManager = await mapboxMapController!.annotations
           .createPolygonAnnotationManager();
 
       numberOfActiveGeofences = activeGeofences.length;
@@ -157,6 +163,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     routeObserver.unsubscribe(this);
     // this method will stop all the StreamSubscriptions to save resources
     ListenToPatients.stopListening();
+    _myAudioPlayer.dispose();
     super.dispose();
   }
 
@@ -196,18 +203,19 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     }
 
     // This will listen to changes
-    cameraZoomLevel = context.watch<MyHomeSettingsProvider>().zoomLevel;
+    // cameraZoomLevel = context.watch<MyHomeSettingsProvider>().zoomLevel;
+    myHomeSettingsProvider = context.watch<MyHomeSettingsProvider>();
 
     return mp.MapWidget(
       onMapCreated: _onMapCreated,
       // This will set the initial place of what the map displays while still processing the location data it needs.
       cameraOptions: mp.CameraOptions(
-        center: mp.Point(
-          coordinates: mp.Position(
-            125.79742622088162,
-            7.4283929355574685,
-          ), // Coordinates for Tagum City
-        ),
+        // center: mp.Point(
+        //   coordinates: mp.Position(
+        //     125.79742622088162,
+        //     7.4283929355574685,
+        //   ), // Coordinates for Tagum City
+        // ),
         zoom: 0,
       ),
       // this is the styles of the map
@@ -247,9 +255,9 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     });
 
     // manages the polygon annotations, this if for geofence related stuff
-    markedPolygonAnnotationManager = await mapboxMapController?.annotations
+    markedPolygonAnnotationManager = await mapboxMapController!.annotations
         .createPolygonAnnotationManager();
-    markedPointAnnotationManager = await mapboxMapController?.annotations
+    markedPointAnnotationManager = await mapboxMapController!.annotations
         .createPointAnnotationManager();
 
     // using addPostFrameCallback ensures it doesn't conflict with the build cycle
@@ -304,6 +312,17 @@ class _MapBodyState extends State<MapBody> with RouteAware {
       // //
       // setupGeofences();
     }
+
+    if (isLocationServiceEnabled) {
+      _myAudioPlayer.playLocalAudio("audios/introduction_audio.mp3");
+    }
+
+    // MyMapCameraAnimations.myMapFlyTo(
+    //   position: mp.Position(125.79742622088162, 7.4283929355574685),
+    //   mapboxController: mapboxMapController!,
+    //   zoomLevel: 15.0,
+    //   animationDurationInMilliseconds: 6250,
+    // );
   }
 
   // /// Add this to your state variables
@@ -535,7 +554,8 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     gl.LocationSettings locationSettings = gl.LocationSettings(
       // accuracy: gl.LocationAccuracy.best,
       accuracy: gl.LocationAccuracy.high,
-      distanceFilter: 100,
+      // distanceFilter: 100,
+      distanceFilter: (myHomeSettingsProvider.alwaysFollowYourAvatar) ? 0 : 100,
     );
 
     positionStreamOfTheCurrentLoggedInUser(locationSettings);
@@ -567,8 +587,11 @@ class _MapBodyState extends State<MapBody> with RouteAware {
             MyMapCameraAnimations.myMapFlyTo(
               mapboxController: mapboxMapController!,
               position: mp.Position(position.longitude, position.latitude),
-              animationDurationInMilliseconds: 2000,
+              animationDurationInMilliseconds:
+                  (isIntroAudioPlayingForTheFirstTime) ? 6250 : 700,
+              zoomLevel: myHomeSettingsProvider.zoomLevel,
             );
+            setState(() => isIntroAudioPlayingForTheFirstTime = false);
 
             // // CameraOptios sets where the map is centered and how zoomed in it is.
             // mapboxMapController?.setCamera(

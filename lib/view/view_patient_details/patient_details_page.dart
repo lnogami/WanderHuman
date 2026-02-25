@@ -134,21 +134,23 @@ class _PatientDetailsPageState extends State<PatientDetailsPage> {
               // The Button
               if (!isMedicalHistoryAreaVisible)
                 SliverToBoxAdapter(
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 20),
-                      child: MyCustButton(
-                        buttonText: "Show Medical History",
-                        widthPercentage: 0.67,
-                        color: Colors.blue.shade200,
-                        borderColor: Colors.white,
-                        buttonTextFontWeight: FontWeight.w500,
-                        // buttonTextColor: Colors.grey.shade800,
-                        buttonTextColor: Colors.white,
-                        buttonTextSpacing: 1.2,
-                        onTap: () {
-                          setState(() => isMedicalHistoryAreaVisible = true);
-                        },
+                  child: SafeArea(
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        child: MyCustButton(
+                          buttonText: "Show Medical History",
+                          widthPercentage: 0.67,
+                          color: Colors.blue.shade200,
+                          borderColor: Colors.white,
+                          buttonTextFontWeight: FontWeight.w500,
+                          // buttonTextColor: Colors.grey.shade800,
+                          buttonTextColor: Colors.white,
+                          buttonTextSpacing: 1.2,
+                          onTap: () {
+                            setState(() => isMedicalHistoryAreaVisible = true);
+                          },
+                        ),
                       ),
                     ),
                   ),
@@ -157,39 +159,96 @@ class _PatientDetailsPageState extends State<PatientDetailsPage> {
               // Medical History area is not visible by default, the user needs to click the button.
               if (isMedicalHistoryAreaVisible)
                 SliverToBoxAdapter(
-                  child: FutureBuilder(
-                    future: getCombinedRecords(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(
-                          child: CircularProgressIndicator.adaptive(),
-                        );
-                      } else if (snapshot.hasError) {
-                        return Center(
-                          child: MyTextFormatter.p(text: "There is a problem."),
-                        );
-                      } else if (!snapshot.hasData) {
-                        return Center(
-                          child: MyTextFormatter.p(text: "No data available."),
-                        );
-                      } else {
-                        return Center(
-                          child: Container(
-                            width: width * 0.8,
-                            // color: Colors.amber,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                MyTextFormatter.h3(
-                                  text: "Medical History",
-                                  fontsize: kDefaultFontSize + 9,
-                                ),
-                                SizedBox(height: 10),
+                  child: SafeArea(
+                    child: FutureBuilder(
+                      future: getCombinedRecords(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return Center(
+                            child: CircularProgressIndicator.adaptive(),
+                          );
+                        } else if (snapshot.hasError) {
+                          return Center(
+                            child: MyTextFormatter.p(
+                              text: "There is a problem.",
+                            ),
+                          );
+                        } else if (!snapshot.hasData) {
+                          return Center(
+                            child: MyTextFormatter.p(
+                              text: "No data available.",
+                            ),
+                          );
+                        } else {
+                          return Center(
+                            child: Container(
+                              width: width * 0.8,
+                              // color: Colors.amber,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  MyTextFormatter.h3(
+                                    text: "Medical History",
+                                    fontsize: kDefaultFontSize + 9,
+                                  ),
+                                  SizedBox(height: 10),
 
-                                if (isNotYetOkayList.isNotEmpty) ...[
+                                  if (isNotYetOkayList.isNotEmpty) ...[
+                                    MyTextFormatter.p(
+                                      text: "Not Yet Okay",
+                                      fontsize: kDefaultFontSize - 4,
+                                    ),
+                                    ListView.builder(
+                                      padding: EdgeInsets.all(0),
+                                      shrinkWrap: true,
+                                      physics:
+                                          const NeverScrollableScrollPhysics(),
+                                      itemCount: isNotYetOkayList.length,
+                                      itemBuilder: (context, index) {
+                                        final combinedItem =
+                                            isNotYetOkayList[index];
+                                        final record =
+                                            combinedItem.medicalRecord;
+                                        final patient =
+                                            combinedItem.personalInfo;
+
+                                        // Display the data
+                                        return MyCardInfoDisplayer2(
+                                          // Handle cases where patient info might be missing
+                                          // profilePicture: patient?.picture ?? "",
+                                          name:
+                                              patient?.name ??
+                                              "Unknown Patient",
+                                          diagnosis: record.diagnosis,
+                                          treatment: record.treatment,
+                                          medic: record.medic,
+                                          fromDate: record.fromDate,
+                                          untilDate: record.untilDate,
+                                          onTap: () {
+                                            // You can pass the combined data or just the patient info
+                                            if (patient != null) {
+                                              MyNavigator.goTo(
+                                                context,
+                                                Medication(
+                                                  bufferedPatientInfo: patient,
+                                                  recordID: record.recordID,
+                                                  medicationModel: record,
+                                                  isAccessedByMedicalStaff:
+                                                      false,
+                                                ),
+                                              );
+                                            }
+                                          },
+                                        );
+                                      },
+                                    ),
+                                    SizedBox(height: 10),
+                                  ],
+
                                   MyTextFormatter.p(
-                                    text: "Not Yet Okay",
+                                    text: "Already Okay",
                                     fontsize: kDefaultFontSize - 4,
                                   ),
                                   ListView.builder(
@@ -197,10 +256,9 @@ class _PatientDetailsPageState extends State<PatientDetailsPage> {
                                     shrinkWrap: true,
                                     physics:
                                         const NeverScrollableScrollPhysics(),
-                                    itemCount: isNotYetOkayList.length,
+                                    itemCount: isNowOkayList.length,
                                     itemBuilder: (context, index) {
-                                      final combinedItem =
-                                          isNotYetOkayList[index];
+                                      final combinedItem = isNowOkayList[index];
                                       final record = combinedItem.medicalRecord;
                                       final patient = combinedItem.personalInfo;
 
@@ -210,6 +268,7 @@ class _PatientDetailsPageState extends State<PatientDetailsPage> {
                                         // profilePicture: patient?.picture ?? "",
                                         name:
                                             patient?.name ?? "Unknown Patient",
+                                        // name: "jkajd dkajdkjw dkjawd",
                                         diagnosis: record.diagnosis,
                                         treatment: record.treatment,
                                         medic: record.medic,
@@ -224,7 +283,7 @@ class _PatientDetailsPageState extends State<PatientDetailsPage> {
                                                 bufferedPatientInfo: patient,
                                                 recordID: record.recordID,
                                                 medicationModel: record,
-                                                isAccessedByMedicalStaff: false,
+                                                isAccessedByMedicalStaff: true,
                                               ),
                                             );
                                           }
@@ -232,58 +291,14 @@ class _PatientDetailsPageState extends State<PatientDetailsPage> {
                                       );
                                     },
                                   ),
-                                  SizedBox(height: 10),
+                                  SizedBox(height: 20),
                                 ],
-
-                                MyTextFormatter.p(
-                                  text: "Already Okay",
-                                  fontsize: kDefaultFontSize - 4,
-                                ),
-                                ListView.builder(
-                                  padding: EdgeInsets.all(0),
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: isNowOkayList.length,
-                                  itemBuilder: (context, index) {
-                                    final combinedItem = isNowOkayList[index];
-                                    final record = combinedItem.medicalRecord;
-                                    final patient = combinedItem.personalInfo;
-
-                                    // Display the data
-                                    return MyCardInfoDisplayer2(
-                                      // Handle cases where patient info might be missing
-                                      // profilePicture: patient?.picture ?? "",
-                                      name: patient?.name ?? "Unknown Patient",
-                                      // name: "jkajd dkajdkjw dkjawd",
-                                      diagnosis: record.diagnosis,
-                                      treatment: record.treatment,
-                                      medic: record.medic,
-                                      fromDate: record.fromDate,
-                                      untilDate: record.untilDate,
-                                      onTap: () {
-                                        // You can pass the combined data or just the patient info
-                                        if (patient != null) {
-                                          MyNavigator.goTo(
-                                            context,
-                                            Medication(
-                                              bufferedPatientInfo: patient,
-                                              recordID: record.recordID,
-                                              medicationModel: record,
-                                              isAccessedByMedicalStaff: true,
-                                            ),
-                                          );
-                                        }
-                                      },
-                                    );
-                                  },
-                                ),
-                                SizedBox(height: 20),
-                              ],
+                              ),
                             ),
-                          ),
-                        );
-                      }
-                    },
+                          );
+                        }
+                      },
+                    ),
                   ),
                 ),
             ],

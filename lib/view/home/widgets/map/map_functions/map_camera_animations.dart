@@ -35,11 +35,16 @@ class MyMapCameraAnimations {
   static Future<void> myMapZoom({
     required MapboxMap mapboxController,
     required double zoomLevel,
+    Position? position,
+    int animationDurationInMilliseconds = 700,
   }) async {
     try {
       mapboxController.easeTo(
-        CameraOptions(zoom: zoomLevel),
-        MapAnimationOptions(duration: 700),
+        CameraOptions(
+          center: (position != null) ? Point(coordinates: position) : null,
+          zoom: zoomLevel,
+        ),
+        MapAnimationOptions(duration: animationDurationInMilliseconds),
       );
     } catch (e, stackTrace) {
       log("AN ERROR OCCURED IN myMapZoom method: $e. AT $stackTrace");

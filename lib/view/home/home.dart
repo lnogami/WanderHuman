@@ -6,11 +6,14 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/helper/realtime_temporary_test.dart';
+import 'package:wanderhuman_app/helper/settings_repositroy.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
+import 'package:wanderhuman_app/model/settings_model.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
 import 'package:wanderhuman_app/view-model/home_appbar_provider.dart';
 import 'package:wanderhuman_app/view-model/home_geofence_config_provider.dart';
+import 'package:wanderhuman_app/view-model/home_settings_provider.dart';
 import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
 import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
@@ -19,7 +22,7 @@ import 'package:wanderhuman_app/view/home/widgets/home_patient_list_dropdown.dar
 import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/draw_geo/saving_geofence_form.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/draw_geo/setting_geofence_bottom_panel.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/active_status.dart';
-import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/draw_geo/set_geofence_interface.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/set_geofence_interface.dart';
 import 'package:wanderhuman_app/view/home_appbar/home_appbar.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_body.dart';
 
@@ -61,10 +64,39 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> setupUserSettings() async {
+    late MySettingsModel userSettings;
+    // verifies if this person has no settings data yet
+    bool isSettingsForThisUserIsAvailable =
+        await MySettigsRepository.doesSettingsForThisUserExist(
+          userID: currentLoggedInUser,
+        );
+
+    // if there is no settings yet for this user, create one
+    if (!isSettingsForThisUserIsAvailable) {
+      userSettings = MySettingsModel(
+        userID: currentLoggedInUser,
+        zoomLevel: 15.0,
+        alwaysFollowYourAvatar: false,
+      );
+
+      await MySettigsRepository.addSettings(settings: userSettings);
+    } else {
+      userSettings = await MySettigsRepository.getSettingsOfTheUser(
+        userID: currentLoggedInUser,
+      );
+    }
+
+    if (context.mounted) {
+      context.read<MyHomeSettingsProvider>().initUserSettings(userSettings);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     initUserData();
+    setupUserSettings();
     ActiveStatus.setupOnDisconnectStatus();
   }
 
@@ -96,7 +128,6 @@ class _HomePageState extends State<HomePage> {
 
         // // 3. Show your custom confirmation dialog
         // final bool shouldExit = await showExitDialog(context);
-
         // // 4. If they clicked "Yes", forcefully close the app
         // if (shouldExit) {
         //   SystemNavigator.pop();
@@ -335,20 +366,36 @@ class _HomePageState extends State<HomePage> {
         // For creating the outside circle of the geofence
         ? GestureDetector(
             onTap: () {
-              myAlertDialogue(
-                context: context,
-                alertTitle: "Save Safezone",
-                alertContent:
-                    "Are you sure you want to save this safezone?\nYou wont be able to add coordinates to it, and if you want to add you need to close this first.",
-                onApprovalPressed: () {
-                  // toggle the isAboutToAddCenterPoint to true
-                  context
+              // don't proceed if the list of marked points is empty
+              if (context
                       .read<MyHomeGeofenceConfigurationProvider>()
-                      .toggleIsAboutToAddCenterPoint(true);
+                      .listOfMarkedPointAnnotations
+                      .length <
+                  3) {
+                showMyAnimatedSnackBar(
+                  context: context,
+                  dataToDisplay:
+                      "Mark the points where you want to be the borders of your safezone is.",
+                  bgColor: Colors.white,
+                );
+              }
+              // proceed only if there are marked coordinates
+              else {
+                myAlertDialogue(
+                  context: context,
+                  alertTitle: "Save Marked Coordinates",
+                  alertContent:
+                      "Are you sure you want to save this coordinates as your safezone's borders?\nYou wont be able to add more coordinates to it, if you want to add you need to close this first and start from the beginning.",
+                  onApprovalPressed: () {
+                    // toggle the isAboutToAddCenterPoint to true
+                    context
+                        .read<MyHomeGeofenceConfigurationProvider>()
+                        .toggleIsAboutToAddCenterPoint(true);
 
-                  Navigator.pop(context);
-                },
-              );
+                    Navigator.pop(context);
+                  },
+                );
+              }
             },
             child: Column(
               children: [

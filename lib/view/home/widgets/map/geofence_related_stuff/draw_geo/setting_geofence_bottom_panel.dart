@@ -154,6 +154,11 @@ class _SettingGeofenceBottomPanelState
                             "List of Positions Length: ${listOfPositions!.length}",
                           );
 
+                          // anticipate an error that might occur
+                          if (selectedIndex < 0) {
+                            setState(() => selectedIndex = 0);
+                          }
+
                           // This will remove the marked position at the selected index from the Provider
                           context
                               .read<MyHomeGeofenceConfigurationProvider>()
@@ -268,14 +273,14 @@ class _SettingGeofenceBottomPanelState
           MyTextFormatter.p(
             text: "WARNING NOTICE:",
             maxLines: 5,
-            color: Colors.grey.shade800,
+            color: Colors.grey.shade700,
             fontWeight: FontWeight.w600,
-            fontsize: kDefaultFontSize + 2,
+            fontsize: kDefaultFontSize + 4,
           ),
           MyTextFormatter.p(
             text: "DO NOT MARK OUTSIDE THE SAFEZONE.",
             maxLines: 5,
-            color: const Color.fromARGB(255, 173, 47, 37),
+            color: Colors.grey.shade600,
             fontWeight: FontWeight.w600,
             fontsize: kDefaultFontSize + 2,
           ),

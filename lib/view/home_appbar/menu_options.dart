@@ -94,7 +94,12 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
 
                     MyBottomPanel.showMyBottomPanel(
                       context: context,
-                      child: MySettingsInterface(),
+                      child: MySettingsInterface(
+                        loggedInUserID: context
+                            .read<HomeAppBarProvider>()
+                            .loggedInUserData
+                            .userID,
+                      ),
                     );
                   },
                 ),

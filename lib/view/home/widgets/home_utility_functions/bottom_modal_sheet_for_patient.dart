@@ -51,241 +51,239 @@ void showMyBottomNavigationSheet({
     context: context,
     backgroundColor: const Color.fromARGB(235, 255, 255, 255),
     builder: (context) {
-      return SafeArea(
-        child: Container(
-          width: MyDimensionAdapter.getWidth(context),
-          height: MyDimensionAdapter.getHeight(context) * 0.8,
-          decoration: BoxDecoration(
-            // color: Colors.purple[100],
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
+      return Container(
+        width: MyDimensionAdapter.getWidth(context),
+        height: MyDimensionAdapter.getHeight(context) * 0.8,
+        decoration: BoxDecoration(
+          // color: Colors.purple[100],
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
+        child: Column(
+          // alignment: Alignment.topCenter,
+          children: [
+            SizedBox(height: 5),
+            MyLine(
+              length: MyDimensionAdapter.getWidth(context) * 0.25,
+              isRounded: true,
+              isVertical: false,
+              thickness: 7,
             ),
-          ),
-          child: Column(
-            // alignment: Alignment.topCenter,
-            children: [
-              SizedBox(height: 5),
-              MyLine(
-                length: MyDimensionAdapter.getWidth(context) * 0.25,
-                isRounded: true,
-                isVertical: false,
-                thickness: 7,
-              ),
-              SizedBox(height: 20),
+            SizedBox(height: 20),
 
-              // Picture of the Patient
-              CircleAvatar(
-                backgroundColor: Colors.blue.withAlpha(200),
-                radius: 56,
-                child: MyImageDisplayer(base64ImageString: formattedImage),
-              ),
-              SizedBox(height: 10),
+            // Picture of the Patient
+            CircleAvatar(
+              backgroundColor: Colors.blue.withAlpha(200),
+              radius: 56,
+              child: MyImageDisplayer(base64ImageString: formattedImage),
+            ),
+            SizedBox(height: 10),
 
-              // Name of the Patient
-              MyTextFormatter.h3(text: name, fontsize: kDefaultFontSize + 10),
-              SizedBox(height: 10),
+            // Name of the Patient
+            MyTextFormatter.h3(text: name, fontsize: kDefaultFontSize + 10),
+            SizedBox(height: 10),
 
-              // Primary Details Area
-              Container(
-                width: MyDimensionAdapter.getWidth(context) * 0.8,
-                height: 60,
-                padding: EdgeInsets.fromLTRB(7, 7, 7, 4),
-                margin: EdgeInsets.only(bottom: 7),
-                decoration: BoxDecoration(
-                  color: Colors.white10,
-                  border: BoxBorder.all(color: Colors.white, width: 1.2),
-                  borderRadius: BorderRadius.circular(7),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color.fromARGB(31, 0, 42, 100),
-                      blurRadius: 4,
-                      blurStyle: BlurStyle.outer,
-                      offset: Offset(0, 1),
-                    ),
-                  ],
-                ),
-                // color: Colors.amber,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    flexibleSizedContainers(
-                      flex: 2,
-                      textLabel: "Age",
-                      textValue: age,
-                    ),
-                    verticalLine(context),
-                    flexibleSizedContainers(
-                      flex: 4,
-                      textLabel: "Sex",
-                      textValue: sex,
-                    ),
-                    verticalLine(context),
-                    flexibleSizedContainers(
-                      flex: 8,
-                      textLabel: "Guardian's Contact",
-                      textValue: contactInfo,
-                    ),
-                  ],
-                ),
+            // Primary Details Area
+            Container(
+              width: MyDimensionAdapter.getWidth(context) * 0.8,
+              height: 60,
+              padding: EdgeInsets.fromLTRB(7, 7, 7, 4),
+              margin: EdgeInsets.only(bottom: 7),
+              decoration: BoxDecoration(
+                color: Colors.white10,
+                border: BoxBorder.all(color: Colors.white, width: 1.2),
+                borderRadius: BorderRadius.circular(7),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color.fromARGB(31, 0, 42, 100),
+                    blurRadius: 4,
+                    blurStyle: BlurStyle.outer,
+                    offset: Offset(0, 1),
+                  ),
+                ],
               ),
+              // color: Colors.amber,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  flexibleSizedContainers(
+                    flex: 2,
+                    textLabel: "Age",
+                    textValue: age,
+                  ),
+                  verticalLine(context),
+                  flexibleSizedContainers(
+                    flex: 4,
+                    textLabel: "Sex",
+                    textValue: sex,
+                  ),
+                  verticalLine(context),
+                  flexibleSizedContainers(
+                    flex: 8,
+                    textLabel: "Guardian's Contact",
+                    textValue: contactInfo,
+                  ),
+                ],
+              ),
+            ),
 
-              // Address Area
-              Container(
-                width: MyDimensionAdapter.getWidth(context) * 0.80,
-                height: 75,
-                padding: EdgeInsets.fromLTRB(7, 7, 7, 4),
-                margin: EdgeInsets.only(bottom: 7),
-                decoration: BoxDecoration(
-                  color: Colors.white10,
-                  border: BoxBorder.all(color: Colors.white, width: 1.2),
-                  borderRadius: BorderRadius.circular(7),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color.fromARGB(31, 0, 42, 100),
-                      blurRadius: 4,
-                      blurStyle: BlurStyle.outer,
-                      offset: Offset(0, 1),
-                    ),
-                  ],
-                ),
-                // color: Colors.amber,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    flexibleSizedContainers(
-                      flex: 2,
-                      textValueSize: 15,
-                      isPossibleToContainLongValue: true,
-                      textLabel: "Address",
-                      textValue: address,
-                    ),
-                  ],
-                ),
+            // Address Area
+            Container(
+              width: MyDimensionAdapter.getWidth(context) * 0.80,
+              height: 75,
+              padding: EdgeInsets.fromLTRB(7, 7, 7, 4),
+              margin: EdgeInsets.only(bottom: 7),
+              decoration: BoxDecoration(
+                color: Colors.white10,
+                border: BoxBorder.all(color: Colors.white, width: 1.2),
+                borderRadius: BorderRadius.circular(7),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color.fromARGB(31, 0, 42, 100),
+                    blurRadius: 4,
+                    blurStyle: BlurStyle.outer,
+                    offset: Offset(0, 1),
+                  ),
+                ],
               ),
+              // color: Colors.amber,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  flexibleSizedContainers(
+                    flex: 2,
+                    textValueSize: 15,
+                    isPossibleToContainLongValue: true,
+                    textLabel: "Address",
+                    textValue: address,
+                  ),
+                ],
+              ),
+            ),
 
-              // Notable Trait Area
-              Container(
-                width: MyDimensionAdapter.getWidth(context) * 0.80,
-                height: 100,
-                padding: EdgeInsets.fromLTRB(7, 7, 7, 4),
-                margin: EdgeInsets.only(bottom: 7),
-                decoration: BoxDecoration(
-                  color: Colors.white10,
-                  border: BoxBorder.all(color: Colors.white, width: 1.2),
-                  borderRadius: BorderRadius.circular(7),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color.fromARGB(31, 0, 42, 100),
-                      blurRadius: 4,
-                      blurStyle: BlurStyle.outer,
-                      offset: Offset(0, 1),
-                    ),
-                  ],
-                ),
-                // color: Colors.amber,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    flexibleSizedContainers(
-                      flex: 2,
-                      textValueSize: 15,
-                      isPossibleToContainLongValue: true,
-                      textLabel: "Notable Behavior",
-                      // "Often found lying in bed, or sitting in the living room. Needs regular monitoring.",
-                      // textValue: notableBehavior,
-                      textValue: patientID,
-                    ),
-                  ],
-                ),
+            // Notable Trait Area
+            Container(
+              width: MyDimensionAdapter.getWidth(context) * 0.80,
+              height: 100,
+              padding: EdgeInsets.fromLTRB(7, 7, 7, 4),
+              margin: EdgeInsets.only(bottom: 7),
+              decoration: BoxDecoration(
+                color: Colors.white10,
+                border: BoxBorder.all(color: Colors.white, width: 1.2),
+                borderRadius: BorderRadius.circular(7),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color.fromARGB(31, 0, 42, 100),
+                    blurRadius: 4,
+                    blurStyle: BlurStyle.outer,
+                    offset: Offset(0, 1),
+                  ),
+                ],
               ),
+              // color: Colors.amber,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  flexibleSizedContainers(
+                    flex: 2,
+                    textValueSize: 15,
+                    isPossibleToContainLongValue: true,
+                    textLabel: "Notable Behavior",
+                    // "Often found lying in bed, or sitting in the living room. Needs regular monitoring.",
+                    // textValue: notableBehavior,
+                    textValue: patientID,
+                  ),
+                ],
+              ),
+            ),
 
-              Container(
-                width: MyDimensionAdapter.getWidth(context) * 0.8,
-                height: 60,
-                padding: EdgeInsets.fromLTRB(7, 7, 7, 4),
-                margin: EdgeInsets.only(bottom: 7),
-                decoration: BoxDecoration(
-                  color: Colors.white10,
-                  border: BoxBorder.all(color: Colors.white, width: 1.2),
-                  borderRadius: BorderRadius.circular(7),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color.fromARGB(31, 0, 42, 100),
-                      blurRadius: 4,
-                      blurStyle: BlurStyle.outer,
-                      offset: Offset(0, 1),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    fixedSizedContainers(
-                      width: MyDimensionAdapter.getWidth(context) * 0.12,
-                      textLabel: "Is Safe",
-                      textValue: (isCurrentlySafe) ? "YES" : "NO",
-                      valueColor: (isCurrentlySafe)
-                          ? Colors.blue.shade400
-                          : Colors.red.shade400,
-                    ),
-                    verticalLine(context),
-                    fixedSizedContainers(
-                      width: MyDimensionAdapter.getWidth(context) * 0.12,
-                      textLabel: "Battery",
-                      textValue: "${batteryPercentage.toString()}%",
-                    ),
-                    verticalLine(context),
-                    fixedSizedContainers(
-                      // flex: 16,
-                      width: MyDimensionAdapter.getWidth(context) * 0.45,
-                      textLabel: "Device ID",
-                      textValue: deviceID,
-                      textValueSize: kDefaultFontSize - 1,
-                    ),
-                  ],
-                ),
+            Container(
+              width: MyDimensionAdapter.getWidth(context) * 0.8,
+              height: 60,
+              padding: EdgeInsets.fromLTRB(7, 7, 7, 4),
+              margin: EdgeInsets.only(bottom: 7),
+              decoration: BoxDecoration(
+                color: Colors.white10,
+                border: BoxBorder.all(color: Colors.white, width: 1.2),
+                borderRadius: BorderRadius.circular(7),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color.fromARGB(31, 0, 42, 100),
+                    blurRadius: 4,
+                    blurStyle: BlurStyle.outer,
+                    offset: Offset(0, 1),
+                  ),
+                ],
               ),
+              child: Row(
+                children: [
+                  fixedSizedContainers(
+                    width: MyDimensionAdapter.getWidth(context) * 0.12,
+                    textLabel: "Is Safe",
+                    textValue: (isCurrentlySafe) ? "YES" : "NO",
+                    valueColor: (isCurrentlySafe)
+                        ? Colors.blue.shade400
+                        : Colors.red.shade400,
+                  ),
+                  verticalLine(context),
+                  fixedSizedContainers(
+                    width: MyDimensionAdapter.getWidth(context) * 0.12,
+                    textLabel: "Battery",
+                    textValue: "${batteryPercentage.toString()}%",
+                  ),
+                  verticalLine(context),
+                  fixedSizedContainers(
+                    // flex: 16,
+                    width: MyDimensionAdapter.getWidth(context) * 0.45,
+                    textLabel: "Device ID",
+                    textValue: deviceID,
+                    textValueSize: kDefaultFontSize - 1,
+                  ),
+                ],
+              ),
+            ),
 
-              // Button
-              MyCustButton(
-                buttonText: "Check Patient",
-                buttonTextColor: Colors.white,
-                buttonTextFontWeight: FontWeight.w600,
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) {
-                        return PatientDetailsPage(
-                          // patientID: patientID,
-                          // name: name,
-                          personalInfo: PersonalInfo(
-                            userID: patientID,
-                            userType: "Patient",
-                            name: name,
-                            age: age,
-                            sex: sex,
-                            birthdate: "",
-                            contactNumber: contactInfo,
-                            address: address,
-                            notableBehavior: notableBehavior,
-                            picture: profilePicture,
-                            createdAt: "",
-                            lastUpdatedAt: "",
-                            registeredBy: "",
-                            asignedCaregiver: "",
-                            deviceID: deviceID,
-                            email: email,
-                          ),
-                          batteryPercentage: batteryPercentage,
-                        );
-                      },
-                    ),
-                  );
-                },
-              ),
-              SizedBox(height: 16),
-            ],
-          ),
+            // Button
+            MyCustButton(
+              buttonText: "Check Patient",
+              buttonTextColor: Colors.white,
+              buttonTextFontWeight: FontWeight.w600,
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return PatientDetailsPage(
+                        // patientID: patientID,
+                        // name: name,
+                        personalInfo: PersonalInfo(
+                          userID: patientID,
+                          userType: "Patient",
+                          name: name,
+                          age: age,
+                          sex: sex,
+                          birthdate: "",
+                          contactNumber: contactInfo,
+                          address: address,
+                          notableBehavior: notableBehavior,
+                          picture: profilePicture,
+                          createdAt: "",
+                          lastUpdatedAt: "",
+                          registeredBy: "",
+                          asignedCaregiver: "",
+                          deviceID: deviceID,
+                          email: email,
+                        ),
+                        batteryPercentage: batteryPercentage,
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+            SizedBox(height: 16),
+          ],
         ),
       );
     },

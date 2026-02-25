@@ -43,56 +43,58 @@ class _SetGeofenceState extends State<SetGeofence> {
   void _bottomPanelContents(BuildContext context) {
     return MyBottomPanel.showMyBottomPanel(
       context: context,
-      child: Container(
-        width: MyDimensionAdapter.getWidth(context),
-        height: MyDimensionAdapter.getHeight(context) * 0.3,
-        padding: EdgeInsets.only(top: 20),
-        decoration: BoxDecoration(
-          color: Colors.white70,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(30),
-            topRight: Radius.circular(30),
+      child: SafeArea(
+        child: Container(
+          width: MyDimensionAdapter.getWidth(context),
+          height: MyDimensionAdapter.getHeight(context) * 0.3,
+          padding: EdgeInsets.only(top: 20),
+          decoration: BoxDecoration(
+            color: Colors.white70,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(30),
+              topRight: Radius.circular(30),
+            ),
           ),
-        ),
-        child: Column(
-          children: [
-            header(context),
-            SizedBox(height: 25),
-            MyCustButton(
-              buttonText: "New Geofence",
-              widthPercentage: 0.7,
-              buttonTextColor: Colors.white,
-              buttonTextFontWeight: FontWeight.w500,
-              buttonTextFontSize: kDefaultFontSize + 2,
-              onTap: () {
-                // this will make the bottom panel appear
-                context
-                    .read<MyHomeGeofenceConfigurationProvider>()
-                    .toggleGeofenceCreation(true);
+          child: Column(
+            children: [
+              header(context),
+              SizedBox(height: 25),
+              MyCustButton(
+                buttonText: "New Geofence",
+                widthPercentage: 0.7,
+                buttonTextColor: Colors.white,
+                buttonTextFontWeight: FontWeight.w500,
+                buttonTextFontSize: kDefaultFontSize + 2,
+                onTap: () {
+                  // this will make the bottom panel appear
+                  context
+                      .read<MyHomeGeofenceConfigurationProvider>()
+                      .toggleGeofenceCreation(true);
 
-                Navigator.pop(context);
-              },
-            ),
-            SizedBox(height: 10),
-            MyCustButton(
-              buttonText: "View Geofences",
-              widthPercentage: 0.7,
-              buttonTextColor: Colors.grey.shade600,
-              buttonTextFontWeight: FontWeight.w500,
-              buttonTextFontSize: kDefaultFontSize + 2,
-              borderColor: Colors.transparent,
-              height: 45,
-              color: Colors.white24,
-              enableShadow: false,
-              onTap: () {
-                Navigator.pop(context);
-                MyBottomPanel.showMyBottomPanel(
-                  context: context,
-                  child: ViewingGeofencesBottomPanel(),
-                );
-              },
-            ),
-          ],
+                  Navigator.pop(context);
+                },
+              ),
+              SizedBox(height: 10),
+              MyCustButton(
+                buttonText: "View Geofences",
+                widthPercentage: 0.7,
+                buttonTextColor: Colors.grey.shade600,
+                buttonTextFontWeight: FontWeight.w500,
+                buttonTextFontSize: kDefaultFontSize + 2,
+                borderColor: Colors.transparent,
+                height: 45,
+                color: Colors.white24,
+                enableShadow: false,
+                onTap: () {
+                  Navigator.pop(context);
+                  MyBottomPanel.showMyBottomPanel(
+                    context: context,
+                    child: ViewingGeofencesBottomPanel(),
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );

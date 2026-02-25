@@ -306,7 +306,7 @@ import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/geo
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/point_annotation_options.dart';
 
 class ListenToPatients {
-  static List<PersonalInfo> _patientsList = [];
+  static final List<PersonalInfo> _patientsList = [];
 
   // Keep track of location subscriptions so we can cancel them individually
   static final Map<String, StreamSubscription> _locationSubscriptions = {};
@@ -358,6 +358,7 @@ class ListenToPatients {
         );
       }
 
+      // This will jut generte a random number to act as an ID for each patient's notification
       math.Random randomNumberGenerator = math.Random();
 
       // Listen to the Active Status database CONTINUOUSLY
@@ -370,14 +371,18 @@ class ListenToPatients {
             for (var person in currentlyActivePersons) {
               if (person.userID == currentUserUID) continue; // Skip ourselves
 
+              // This will jut generte a random number to act as an ID for each patient's notification
               int randomGeneratedID = randomNumberGenerator.nextInt(100);
+
               // If they are NOT in our list yet, they just logged in!
               bool isAlreadyTracked = _patientsList.any(
                 (p) => p.userID == person.userID,
               );
 
               if (!isAlreadyTracked) {
-                log("🟢 New user online! Adding ${person.userID} to map...");
+                log(
+                  "🟢 New user online! Adding (Device ID: ${person.userID}) to map...",
+                );
                 await _addPersonToMap(
                   userID: person.userID,
                   annotationData: annotationData,
@@ -547,7 +552,7 @@ class ListenToPatients {
     mp.PointAnnotationManager? pointAnnotationManager,
   }) async {
     try {
-      log("🔴 Removing offline user (Device: $deviceID) from the map.");
+      log("🔴 Removing offline user (Device ID: $deviceID) from the map.");
 
       // 1. Kill their location stream
       await _locationSubscriptions[deviceID]?.cancel();

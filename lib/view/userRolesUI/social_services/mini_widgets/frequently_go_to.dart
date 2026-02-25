@@ -41,6 +41,9 @@ class _FrequentlyGoToAreaState extends State<FrequentlyGoToArea> {
         patientID,
       );
 
+      // (deletable) for debugging purposes only
+      log("$patientID's total logs: ${logs.length} ");
+
       if (logs.isEmpty) return {};
 
       // 2. Sort Oldest -> Newest

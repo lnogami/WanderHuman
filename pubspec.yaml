@@ -8,6 +8,7 @@ environment:
 
 dependencies:
   animated_text_kit: ^4.3.0
+  audioplayers: ^6.5.1
   battery_plus: ^7.0.0
   cloud_firestore: ^6.0.1
   firebase_auth: ^6.0.1
@@ -52,6 +53,7 @@ flutter:
     - assets/icons/
     - assets/icons/location_marker.png
     - assets/app_icon/
+    - assets/audios/
   uses-material-design: true
   fonts:
     - family: Poppins

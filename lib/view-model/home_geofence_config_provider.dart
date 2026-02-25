@@ -74,6 +74,7 @@ class MyHomeGeofenceConfigurationProvider extends ChangeNotifier {
   void clearAllCachedTemporaryData() {
     clearMarkedPositions();
     _centerPoint = Position(0, 0); // temporarily throw it somewhere else
+    // setCenterPoint(Position(0, 0)); // temporarily throw it somewhere else
     _markedPointAnnotationManager!.deleteAll();
     _markedPolygonAnnotationManager!.deleteAll();
     _listOfMarkedPointAnnotations.clear();

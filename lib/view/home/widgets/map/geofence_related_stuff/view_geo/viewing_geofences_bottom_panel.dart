@@ -673,7 +673,7 @@ class _ViewingGeofencesBottomPanelState
                   setState(() {
                     isSavingUpdate = true;
                   });
-                  // this will veryfiy if the patient is already registered in another active safezone
+                  // this will verify if the patient is already registered in another active safezone
                   bool alreadyExist = false;
                   String name = "";
                   for (var patient in addedParticipants) {

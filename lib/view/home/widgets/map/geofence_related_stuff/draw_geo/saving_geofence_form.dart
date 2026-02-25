@@ -13,6 +13,7 @@ import 'package:wanderhuman_app/utilities/properties/date_formatter.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
 import 'package:wanderhuman_app/view-model/home_geofence_config_provider.dart';
+import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
 import 'package:wanderhuman_app/view/components/appbar.dart';
 import 'package:wanderhuman_app/view/components/button.dart';
 import 'package:wanderhuman_app/view/components/info_dialogue.dart';
@@ -128,7 +129,44 @@ class _SavingGeofenceFormState extends State<SavingGeofenceForm> {
                       widthPercentage: 0.25,
                       buttonTextSpacing: 1.2,
                       onTap: () {
-                        Navigator.pop(context);
+                        // context
+                        //     .read<MyHomeGeofenceConfigurationProvider>()
+                        //     .toggleGeofenceCreation(false);
+                        // context
+                        //     .read<MyHomeGeofenceConfigurationProvider>()
+                        //     .toggleGeofenceViewing(false);
+                        // log(
+                        //   context
+                        //       .read<MyHomeGeofenceConfigurationProvider>()
+                        //       .listOfMarkedPositions[0]
+                        //       .length
+                        //       .toString(),
+                        // );
+                        // log("CLOSE BUTTONNNNNNNNNNNNNNNNNNNNNNNNN");
+                        // // clear all the temporary data in the provider
+                        // context
+                        //     .read<MyHomeGeofenceConfigurationProvider>()
+                        //     .clearAllCachedTemporaryData();
+                        // // This is to clear the polygonManager's data
+                        // log(
+                        //   context
+                        //       .read<MyHomeGeofenceConfigurationProvider>()
+                        //       .listOfMarkedPositions[0]
+                        //       .length
+                        //       .toString(),
+                        // );
+                        // // close the safe zone form
+                        // Navigator.pop(context);
+                        myAlertDialogue(
+                          context: context,
+                          alertTitle: "Confirm Cancel",
+                          alertContent:
+                              "Are you sure you want to cancel? \nThe app will restart in order to clear temporary resources.",
+                          onApprovalPressed: () {
+                            Phoenix.rebirth(context);
+                            log("RESTARTINGGGGGGGGGGGGGGGGGGGGGGGGGGGG");
+                          },
+                        );
                       },
                     ),
                     SizedBox(width: 10),
@@ -147,6 +185,15 @@ class _SavingGeofenceFormState extends State<SavingGeofenceForm> {
                                 "Participants to be added in the geofence: ${addedParticipants.length}",
                               );
 
+                              log("BEFOEREE EXECUTEDDDDDDDDDDDDDDDDD");
+                              // to check if the participant is already added in another active geofence
+                              bool isParticipantAlreadyAddedInActiveGeofence =
+                                  await checkValidPartipants(
+                                    addedParticipants: addedParticipants,
+                                    participants: participants,
+                                  );
+                              log("AFTERR EXECUTEDDDDDDDDDDDDDDDDD");
+
                               if (safeZoneNameController.text.isEmpty) {
                                 showMyAnimatedSnackBar(
                                   context: context,
@@ -156,17 +203,14 @@ class _SavingGeofenceFormState extends State<SavingGeofenceForm> {
                               } else {
                                 // animate the button to show the saving process occurs
                                 setState(() => isSaving = true);
-                                await saveExecution(context);
+
+                                // only save if the participant is not already added in another active geofence
+                                if (!isParticipantAlreadyAddedInActiveGeofence) {
+                                  await saveExecution(context);
+                                }
+
                                 setState(() => isSaving = false);
                               }
-
-                              // to return to the home page after saving the geofence
-                              context
-                                  .read<MyHomeGeofenceConfigurationProvider>()
-                                  .toggleGeofenceCreation(false);
-                              context
-                                  .read<MyHomeGeofenceConfigurationProvider>()
-                                  .toggleGeofenceViewing(false);
                             },
                           ),
                   ],
@@ -178,6 +222,31 @@ class _SavingGeofenceFormState extends State<SavingGeofenceForm> {
         ),
       ),
     );
+  }
+
+  /// Verifies if the participant does not already exist in an active geofence
+  Future<bool> checkValidPartipants({
+    required List<String> addedParticipants,
+    required List<PersonalInfo> participants,
+  }) async {
+    List<MyGeofenceModel> activeGeofences =
+        await MyGeofenceRepository.getActiveGeofences();
+    for (var participant in addedParticipants) {
+      String nameOfParticipant = participants
+          .firstWhere((person) => person.userID == participant)
+          .name;
+      for (var geofence in activeGeofences) {
+        if (geofence.registeredPatients.contains(participant)) {
+          showMyAnimatedSnackBar(
+            context: context,
+            dataToDisplay:
+                "$nameOfParticipant is already in an active geofence [${geofence.geofenceName}]",
+          );
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   Future<void> saveExecution(BuildContext context) async {
@@ -228,6 +297,14 @@ class _SavingGeofenceFormState extends State<SavingGeofenceForm> {
         Phoenix.rebirth(context);
         log("RESTARTINGGGGGGGGGGGGGGGGGGGGGGGGGGGG");
       },
+    );
+
+    // to return to the home page after saving the geofence
+    context.read<MyHomeGeofenceConfigurationProvider>().toggleGeofenceCreation(
+      false,
+    );
+    context.read<MyHomeGeofenceConfigurationProvider>().toggleGeofenceViewing(
+      false,
     );
   }
 
