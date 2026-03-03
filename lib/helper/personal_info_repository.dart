@@ -1,5 +1,7 @@
 // ignore_for_file: avoid_print
 
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 
@@ -110,11 +112,27 @@ class MyPersonalInfoRepository {
     try {
       // DocumentSnapshot queryDocumentSnapshot = await FirebaseFirestore.instance.collection("Personal Info").where("userID", isEqualTo: userID).get().then((value) => value.docs.first);
       // DocumentSnapshot queryDocumentSnapshot = await _personalInfoCollectionReference.doc(userID).get();
+      // List<PersonalInfo> tempIndividualRecord = await getAllPersonalInfoRecords(
+      //   fieldName: "userID",
+      //   valueToLookFor: userID,
+      // );
 
-      List<PersonalInfo> tempIndividualRecord = await getAllPersonalInfoRecords(
+      List<PersonalInfo> tempIndividualRecord;
+
+      // 1. First, try to find the user by their UserID
+      tempIndividualRecord = await getAllPersonalInfoRecords(
         fieldName: "userID",
         valueToLookFor: userID,
       );
+
+      // 2. ✅ FIX: Check if the list is empty.
+      // If it is, THEN try searching by DeviceID.
+      if (tempIndividualRecord.isEmpty) {
+        tempIndividualRecord = await getAllPersonalInfoRecords(
+          fieldName: "deviceID",
+          valueToLookFor: userID,
+        );
+      }
       PersonalInfo? personalInfo = tempIndividualRecord.firstOrNull;
 
       // return immediately if null
@@ -140,9 +158,11 @@ class MyPersonalInfoRepository {
         deviceID: personalInfo.deviceID,
         email: personalInfo.email,
       );
-    } catch (e) {
-      print("❌ AN EXCEPTION OCCURRED IN getSpecificPersonalInfo METHOD: $e");
-      throw Exception();
+    } catch (e, stackTrace) {
+      log(
+        "❌ AN EXCEPTION OCCURRED IN getSpecificPersonalInfo METHOD: $e, AT: $stackTrace",
+      );
+      rethrow;
     }
   }
 

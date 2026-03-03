@@ -190,6 +190,22 @@ class MyRealtimeLocationReposity {
     }
   }
 
+  static Future<void> updateASingleField({
+    required String deviceID,
+    required String fieldToUpdate,
+    required String value,
+  }) async {
+    try {
+      _realtimeLocationRef.child(deviceID).update({fieldToUpdate: value});
+      log("SUCCESSFULLY UPDATED A SINGLE FIELD (of Patient: $deviceID)");
+    } catch (e, stackTrace) {
+      log(
+        "ERROR WHILE UPDATING A SINGLE VALUE (of Patient: $deviceID): $e. AT $stackTrace",
+      );
+      rethrow;
+    }
+  }
+
   //----- User Device Status ---------------------------------------------------
 
   // /// Get user/device status in realtime stream

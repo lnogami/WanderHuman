@@ -127,20 +127,30 @@ class _MyMenuOptionsState extends State<MyMenuOptions> {
                           );
                         },
                       )
-                    : FutureBuilder(
-                        future: ActiveStatus.setActiveStatusToOffline(),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return CircularProgressIndicator();
-                          } else {
-                            signOut();
-                            return Icon(
-                              Icons.check_circle_outline_rounded,
-                              color: Colors.blue.shade400,
-                            );
-                          }
-                        },
+                    : SizedBox(
+                        width: MyDimensionAdapter.getWidth(context) * 0.35,
+                        child: FutureBuilder(
+                          future: ActiveStatus.setActiveStatusToOffline(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return Center(
+                                child: SizedBox(
+                                  width: 30,
+                                  height: 30,
+                                  child: CircularProgressIndicator(),
+                                ),
+                              );
+                            } else {
+                              signOut();
+                              return Icon(
+                                Icons.check_circle_outline_rounded,
+                                color: Colors.blue.shade400,
+                                size: 32,
+                              );
+                            }
+                          },
+                        ),
                       ),
                 SizedBox(height: 10),
               ],

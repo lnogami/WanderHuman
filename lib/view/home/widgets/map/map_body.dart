@@ -79,6 +79,8 @@ class _MapBodyState extends State<MapBody> with RouteAware {
   final MyAudioPlayer _myAudioPlayer = MyAudioPlayer();
   bool isIntroAudioPlayingForTheFirstTime = true;
 
+  late DateTime lastLoggedInUserUpdateToDatabase;
+
   Future<void> checkLocationServiceStatus() async {
     isLocationServiceEnabled = await gl.Geolocator.isLocationServiceEnabled();
     // mounted refers to if the widget is still on the tree
@@ -142,6 +144,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     setupMapboxAccessToken();
     checkAndRequestLocationPermission();
     checkLocationServiceStatus();
+    lastLoggedInUserUpdateToDatabase = DateTime.now();
 
     // setup all the active geofences (safezones)
     setupGeofences();
@@ -584,14 +587,21 @@ class _MapBodyState extends State<MapBody> with RouteAware {
             // myPosition = position;
 
             // CameraOptios sets where the map is centered and how zoomed in it is.
-            await MyMapCameraAnimations.myMapFlyTo(
-              mapboxController: mapboxMapController!,
-              position: mp.Position(position.longitude, position.latitude),
-              animationDurationInMilliseconds:
-                  (isIntroAudioPlayingForTheFirstTime) ? 6250 : 700,
-              zoomLevel: myHomeSettingsProvider.zoomLevel,
-            );
-            setState(() => isIntroAudioPlayingForTheFirstTime = false);
+            if (isIntroAudioPlayingForTheFirstTime ||
+                myHomeSettingsProvider.alwaysFollowYourAvatar) {
+              await MyMapCameraAnimations.myMapFlyTo(
+                mapboxController: mapboxMapController!,
+                position: mp.Position(position.longitude, position.latitude),
+                animationDurationInMilliseconds:
+                    (isIntroAudioPlayingForTheFirstTime)
+                    ? ((myHomeSettingsProvider.zoomLevel.toInt()) + 6250)
+                    : 700,
+                zoomLevel: myHomeSettingsProvider.zoomLevel,
+              );
+              Future.delayed(Duration(milliseconds: 6260), () {
+                setState(() => isIntroAudioPlayingForTheFirstTime = false);
+              });
+            }
 
             // // CameraOptios sets where the map is centered and how zoomed in it is.
             // mapboxMapController?.setCamera(
@@ -658,7 +668,21 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     gl.Position position,
   ) async {
     try {
-      return MyRealtimeLocationReposity.updateLocation(
+      // Check if 30 seconds have passed
+      if (DateTime.now()
+              .difference(lastLoggedInUserUpdateToDatabase)
+              .inSeconds <
+          30) {
+        log(
+          "SAVING LOCATION DATA TO FIREBASE WAS SKIPPED! TOO EARLY TO SAVE LOCATION DATA of THE CURRENT LOGGED IN USER!",
+        );
+        return;
+      } else {
+        log("SAVING LOGGED IN USER's LOCATION DATA TO FIREBASE!");
+      }
+
+      lastLoggedInUserUpdateToDatabase = DateTime.now();
+      MyRealtimeLocationReposity.updateLocation(
         deviceID: widget.loggedInUserData.userID,
         realtimeData: MyRealtimeLocationModel(
           deviceID: widget.loggedInUserData.userID,

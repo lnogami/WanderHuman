@@ -369,6 +369,17 @@ class ListenToPatients {
             String currentUserUID = FirebaseAuth.instance.currentUser!.uid;
             // 1. Check for NEW people who just came online
             for (var person in currentlyActivePersons) {
+              // String? personalID;
+              // // to handle transition with the custom tracking device
+              // if (person.userID == "") {
+              //   PersonalInfo personalInfo =
+              //       await MyPersonalInfoRepository.getAllPersonalInfoRecords(
+              //         fieldName: "deviceID",
+              //         valueToLookFor: person.userID,
+              //       ).then((value) => value.first);
+              //   personalID = personalInfo.userID;
+              // }
+
               if (person.userID == currentUserUID) continue; // Skip ourselves
 
               // This will jut generte a random number to act as an ID for each patient's notification
@@ -376,7 +387,12 @@ class ListenToPatients {
 
               // If they are NOT in our list yet, they just logged in!
               bool isAlreadyTracked = _patientsList.any(
-                (p) => p.userID == person.userID,
+                (p) =>
+                    // p.userID ==
+                    // (
+                    // // personalID ??
+                    // person.userID),
+                    p.userID == person.userID || p.deviceID == person.userID,
               );
 
               if (!isAlreadyTracked) {
@@ -384,6 +400,7 @@ class ListenToPatients {
                   "🟢 New user online! Adding (Device ID: ${person.userID}) to map...",
                 );
                 await _addPersonToMap(
+                  // userID: personalID ?? person.userID,
                   userID: person.userID,
                   annotationData: annotationData,
                   userAnnotations: userAnnotations,
@@ -437,12 +454,20 @@ class ListenToPatients {
     required int randomGeneratedID,
   }) async {
     try {
+      late PersonalInfo personInfo;
       // 1. Fetch their info from database
-      PersonalInfo personInfo =
-          await MyPersonalInfoRepository.getSpecificPersonalInfo(
-            userID: userID,
-          );
+
+      personInfo = await getPersonalInfo(userID);
+
       _patientsList.add(personInfo);
+
+      // for debugging purposes only
+      log("___________THESE ARE THE ACTIVE PERSONS IN THE LIST:");
+      for (var person in _patientsList) {
+        log(
+          "Name: ${person.name}, userID: ${person.userID}, deviceID: ${person.deviceID}",
+        );
+      }
 
       String deviceID = personInfo.deviceID;
       bool isAPatient = (personInfo.userType == "Patient");
@@ -543,6 +568,34 @@ class ListenToPatients {
           });
     } catch (e) {
       log("ERROR ADDING PERSON TO MAP: $e");
+    }
+  }
+
+  static Future<PersonalInfo> getPersonalInfo(String userID) async {
+    try {
+      log("(NORMAL) TRY WAS EXECUTEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD");
+      PersonalInfo personalInfo =
+          await MyPersonalInfoRepository.getSpecificPersonalInfo(
+            userID: userID,
+          );
+      return personalInfo;
+    } catch (e) {
+      // to handle transition with the custom tracking device
+      var personalInfo =
+          await MyPersonalInfoRepository.getAllPersonalInfoRecords(
+            fieldName: "deviceID",
+            valueToLookFor: userID,
+          ).then((value) => value.first);
+      log(
+        "CATCH WAS EXECUTEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD___ deviceID: $userID, patientID: ${personalInfo.userID}",
+      );
+      await MyRealtimeLocationReposity.updateASingleField(
+        deviceID: userID,
+        fieldToUpdate: "patientID",
+        value: personalInfo.userID,
+      );
+
+      return personalInfo;
     }
   }
 

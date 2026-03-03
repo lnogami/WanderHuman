@@ -103,6 +103,9 @@ class MyRealtimeLocationModel {
       print(
         "AN ERROR OCCUREDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD WHILE EXECUTING HistoryModel.fromFirestore: $e",
       );
+      print(
+        "Patient that cuases the error: patientiD --> ${data['patientID']},  deviceID --> ${data['deviceID']}",
+      );
       print("DATE TIME FORMATTTTTTTTTTTTTT: ${DateTime.now().toString()}");
       throw Exception();
     }

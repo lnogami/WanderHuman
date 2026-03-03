@@ -124,16 +124,19 @@ class _ManageStaffState extends State<ManageStaff> {
                             Positioned(
                               top: 3,
                               right: 3,
-                              child: CircleAvatar(
-                                radius: 8,
-                                backgroundColor: Colors.blue.shade400,
-                                child: FittedBox(
-                                  child: MyTextFormatter.h3(
-                                    text: staffWithNoRoles.length.toString(),
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
+                              child: (staffWithNoRoles.isEmpty)
+                                  ? SizedBox()
+                                  : CircleAvatar(
+                                      radius: 8,
+                                      backgroundColor: Colors.blue.shade400,
+                                      child: FittedBox(
+                                        child: MyTextFormatter.h3(
+                                          text: staffWithNoRoles.length
+                                              .toString(),
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
                             ),
                             IconButton(
                               highlightColor: Colors.blue.shade100,
