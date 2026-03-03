@@ -523,9 +523,11 @@ class ListenToPatients {
                       userID: personInfo.userID,
                     );
 
-                await MyHistoryReposity.savePatientLocation(
-                  locationData: realtimeLocModel,
-                );
+                // TODO: uncomment this to save realtime location data to history
+                // // Saves patient realtime location into the history
+                // await MyHistoryReposity.savePatientLocation(
+                //   locationData: realtimeLocModel,
+                // );
 
                 // Notifies if the patient is not inside the safe zone
                 if (!isInsideSafeZone) {

@@ -283,7 +283,7 @@ class _PatientDetailsPageState extends State<PatientDetailsPage> {
                                                 bufferedPatientInfo: patient,
                                                 recordID: record.recordID,
                                                 medicationModel: record,
-                                                isAccessedByMedicalStaff: true,
+                                                isAccessedByMedicalStaff: false,
                                               ),
                                             );
                                           }

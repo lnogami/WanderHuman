@@ -584,7 +584,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
             // myPosition = position;
 
             // CameraOptios sets where the map is centered and how zoomed in it is.
-            MyMapCameraAnimations.myMapFlyTo(
+            await MyMapCameraAnimations.myMapFlyTo(
               mapboxController: mapboxMapController!,
               position: mp.Position(position.longitude, position.latitude),
               animationDurationInMilliseconds:

@@ -7,7 +7,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart' as gl;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mp;
 import 'package:wakelock_plus/wakelock_plus.dart';
-import 'package:wanderhuman_app/view/home/widgets/map/map_functions/point_annotation_options.dart';
+import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
 import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/components/show_alert_dialog.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/patient_simulator/location_saver.dart';
@@ -21,9 +21,9 @@ class PatientSimulator extends StatefulWidget {
 
 class _PatientSimulatorState extends State<PatientSimulator> {
   // controller for the map
-  mp.MapboxMap? mbMapController;
+  // mp.MapboxMap? mbMapController;
 
-  mp.PointAnnotationManager? pointAnnotationManager;
+  // mp.PointAnnotationManager? pointAnnotationManager;
 
   // to listen to the user's location changes
   StreamSubscription? userPositionStream;
@@ -36,8 +36,8 @@ class _PatientSimulatorState extends State<PatientSimulator> {
   // for triggering the save
   DateTime? lastSaveTime;
 
-  // Store reference to current annotation
-  mp.PointAnnotation? currentAnnotation;
+  // // Store reference to current annotation
+  // mp.PointAnnotation? currentAnnotation;
 
   @override
   void initState() {
@@ -71,74 +71,23 @@ class _PatientSimulatorState extends State<PatientSimulator> {
 
   @override
   Widget build(BuildContext context) {
-    return mp.MapWidget(
-      onMapCreated: _onMapCreated,
-      // this is the style of the map
-      styleUri: mp.MapboxStyles.SATELLITE_STREETS,
-    );
-  }
+    // return mp.MapWidget(
+    //   onMapCreated: _onMapCreated,
+    //   // this is the style of the map
+    //   styleUri: mp.MapboxStyles.SATELLITE_STREETS,
+    // );
 
-  void _onMapCreated(mp.MapboxMap controller) async {
-    setState(() {
-      mbMapController = controller;
-    });
-
-    // to create a pointAnnotationManager
-    pointAnnotationManager = await mbMapController?.annotations
-        .createPointAnnotationManager();
-    //temporary ra ni (deletable)
-    // controller.annotations.createPointAnnotationManager();
-
-    // logic for displaying user position/location on the map
-    mbMapController?.location.updateSettings(
-      mp.LocationComponentSettings(enabled: true, pulsingEnabled: true),
-    );
-
-    // scaleBar indicator, indicator of how much the map is zoomed in/out
-    mbMapController!.scaleBar.updateSettings(
-      mp.ScaleBarSettings(
-        enabled: true,
-        position: mp.OrnamentPosition.BOTTOM_LEFT,
-        primaryColor: Colors.blue.toARGB32(),
-        showTextBorder: true,
-        textColor: Colors.blue.toARGB32(),
-        borderWidth: 1,
-        textBorderWidth: 0.2,
-        marginBottom: 8,
-        marginLeft: 8,
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircleAvatar(backgroundColor: Colors.blue),
+          SizedBox(height: 10),
+          MyTextFormatter.p(text: "Lng: ${myPosition?.longitude}"),
+          MyTextFormatter.p(text: "Lat: ${myPosition?.latitude}"),
+        ],
       ),
     );
-
-    // the mapbox logo can be moved, but cannot be hidden as per MapBox's Terms and Policy
-    mbMapController!.logo.updateSettings(
-      mp.LogoSettings(
-        position: mp.OrnamentPosition.BOTTOM_RIGHT,
-        marginRight: 25,
-      ),
-    );
-
-    // the stroked i icon next to MapBox icon
-    mbMapController!.attribution.updateSettings(
-      mp.AttributionSettings(
-        iconColor: const Color.fromARGB(100, 33, 149, 243).toARGB32(),
-        position: mp.OrnamentPosition.BOTTOM_RIGHT,
-      ),
-    );
-
-    // the compass icon in the map that only appears if the map is tilted
-    mbMapController!.compass.updateSettings(
-      mp.CompassSettings(marginTop: 80, marginRight: 15, opacity: 0.70),
-    );
-
-    // I AM NOT ALLOWED TO HIDE THE MAPBOX LOGO BECAUSE IT'S IN SERVICE TERMS AND POLICES.
-
-    bool isLocationServiceEnabled =
-        await gl.Geolocator.isLocationServiceEnabled();
-    // mounted refers to if the widget is still on the tree
-    if (mounted) {
-      // code to be added here to make this code appear again if the Location is still turned off.
-      showMyDialogBox(context, isLocationServiceEnabled);
-    }
   }
 
   //------------------------------------------------------------------------------
@@ -152,6 +101,14 @@ class _PatientSimulatorState extends State<PatientSimulator> {
       // Location services are not enabled
       return Future.error("Location services are disabled.");
       // return;
+    }
+
+    bool isLocationServiceEnabled =
+        await gl.Geolocator.isLocationServiceEnabled();
+    // mounted refers to if the widget is still on the tree
+    if (mounted) {
+      // code to be added here to make this code appear again if the Location is still turned off.
+      showMyDialogBox(context, isLocationServiceEnabled);
     }
 
     gl.LocationPermission permission = await gl.Geolocator.checkPermission();
@@ -196,115 +153,10 @@ class _PatientSimulatorState extends State<PatientSimulator> {
         gl.Geolocator.getPositionStream(
           locationSettings: locationSettings,
         ).listen((gl.Position? position) async {
-          if (position != null && mbMapController != null) {
-            // print(position);
-            // temporary
-            myPosition = position;
-            mbMapController?.setCamera(
-              mp.CameraOptions(
-                zoom: 18.0,
-                center: mp.Point(
-                  coordinates: mp.Position(
-                    position.longitude,
-                    position.latitude,
-                  ),
-                ),
-              ),
-            );
-
-            // (deltable)
-            // Timer.periodic(Duration(seconds: 5), (timer) {
-            //   showMyAnimatedSnackBar(
-            //     context: context,
-            //     dataToDisplay: "5 seconds passed",
-            //   );
-            // });
-
-            // (deletable)
-            // // for saving data to Firebase
-            // Timer.periodic(Duration(seconds: 30), (timer) {
-            //   showMyAnimatedSnackBar(
-            //     context: context,
-            //     dataToDisplay: "30 seconds passed",
-            //   );
-            // });
-
-            /* 
-              logic for adding annotations (marker),
-              diri sya ibutang para marender sya if naa nay narender nga
-              map og user postion
-            */
-
-            // load image as the marker
-            final Uint8List imageData = await imageToIconLoader(
-              // "assets/icons/isagi.jpg",
-              "assets/icons/pin.png",
-            );
-
-            /* 
-            NOTE: this was transferred to a separate file
-            ///// final Uint8List imageData = await converter();
-            // define markers
-            // mp.PointAnnotationOptions
-            // pointAnnotationOptions = mp.PointAnnotationOptions(
-            //   image: imageData,
-            //   ///// temporary (deletable)
-            //   ///// iconImage: "marker",
-            //   iconSize: 0.15,
-            //   // icon color is still static because I used a png image as marker
-            //   iconColor: Colors.blue.toARGB32(),
-            //   // THIS IS A PATIENT NAME
-            //   textField: "Hori Zontal",
-            //   textSize: 12.5,
-            //   textColor: Colors.blue.toARGB32(),
-            //   textOcclusionOpacity: 1,
-            //   isDraggable: true,
-            //   textAnchor: mp.TextAnchor.BOTTOM,
-            //   textOffset: [0, -1.2],
-            //   geometry: mp.Point(
-            //     coordinates: mp.Position(
-            //       // THIS IS THE PATIENTS CURRENT COORDINATES
-            //       // temporary coordinates
-            //       myPosition!.longitude,
-            //       myPosition!.latitude,
-            //     ),
-            //   ),
-            // );
-            */
-
-            mp.PointAnnotationOptions pointAnnotationOptions =
-                await myPointAnnotationOptions(
-                  imageData: imageData,
-                  name: "Hori Zontal",
-                  textSize: 12.5,
-                  myPosition: mp.Position(
-                    // THIS IS THE PATIENTS CURRENT COORDINATES
-                    // temporary coordinates
-                    myPosition!.longitude,
-                    myPosition!.latitude,
-                  ),
-                );
-
-            // Remove the old annotation before adding a new one
-            if (currentAnnotation != null) {
-              pointAnnotationManager?.delete(currentAnnotation!);
-            }
-
-            // add the marker to the map
-            final newAnnotation = await pointAnnotationManager?.create(
-              pointAnnotationOptions,
-            );
-            if (newAnnotation != null) {
-              currentAnnotation = newAnnotation;
-            }
-            // pointAnnotationManager?.createMulti(List<mp.PointAnnotation>);
-
-            // setting tap events to the marker
-            pointAnnotationManager?.tapEvents(
-              onTap: (mp.PointAnnotation tappedAnnotation) {
-                // bottomModalSheet(context);
-              },
-            );
+          if (position != null) {
+            setState(() {
+              myPosition = position;
+            });
 
             bool isSaved = await savePatientLocation(
               patientID: "${FirebaseAuth.instance.currentUser!.uid}_as_PATIENT",
@@ -323,37 +175,7 @@ class _PatientSimulatorState extends State<PatientSimulator> {
             }
           }
         });
-
-    // // Experimental Patient Simulation, not yet final
-    // Timer.periodic(Duration(seconds: 30), (timer) {
-    //   showMyAnimatedSnackBar(
-    //     context: context,
-    //     dataToDisplay: "30 seconds passed",
-    //   );
-
-    //   MyFirebaseServices.savePatientLocation(
-    //     PatientHistory(
-    //       patientID: "${FirebaseAuth.instance.currentUser!.uid}_as_PATIENT",
-    //       isInSafeZone: true,
-    //       currentlyIn: "Livingroom",
-    //       currentLocation: mp.Position(
-    //         myPosition!.longitude,
-    //         myPosition!.latitude,
-    //       ),
-    //       timeStamp: DateTime.timestamp(),
-    //       deviceBatteryPercentage: deviceBatteryPercentage.toString(),
-    //     ),
-    //   );
-    // });
   }
-
-  //// // this is a helper function to convert the image to Uint8List
-  //// Future< Uint8List> converter() {
-  ////  var cs = CustomMapMarker(
-  ////     imagePath: "assets/icons/pin.png",
-  ////   ).loadHQMarkerImage();
-  ////   return cs;
-  //// }
 
   /*
     this will convert the image to Uint8List

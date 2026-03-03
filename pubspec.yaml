@@ -20,6 +20,7 @@ dependencies:
   flutter_launcher_icons: ^0.14.4
   flutter_local_notifications: ^20.1.0
   flutter_login: ^5.1.0
+  flutter_native_splash: ^2.4.7
   flutter_phoenix: ^1.1.1
   geolocator: ^14.0.2
   # lottie: ^3.3.1
@@ -36,6 +37,21 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+
+flutter_native_splash:
+  android: true
+  ios: true
+
+  color: "#FFFFFF"
+  image: "assets/app_icon/splash_screen_smaller_logo.png"
+
+  # Fix for cropping: This ensures the image stays centered and doesn't stretch
+  android_gravity: center
+  ios_content_mode: center
+
+  android_12:
+    color: "#FFFFFF"
+    image: "assets/app_icon/splash_screen_smaller_logo.png"
 
 flutter_launcher_icons:
   android: true

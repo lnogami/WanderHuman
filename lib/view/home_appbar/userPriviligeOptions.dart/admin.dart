@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/components/option_container.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/patient_simulator/patient_simulator_container.dart';
 import 'package:wanderhuman_app/view/userRolesUI/admin/manage_staff.dart';
 
 class AdminPrivilege extends StatelessWidget {
@@ -24,19 +25,19 @@ class AdminPrivilege extends StatelessWidget {
                 bgColor: const Color.fromARGB(99, 216, 255, 219),
                 "Simulate",
                 onTap: () {
-                  // // Will uncomment later on
-                  // Navigator.of(context).pushReplacement(
-                  //   MaterialPageRoute(
-                  //     builder: (context) => PatientSimulatorContainer(),
-                  //   ),
-                  // );
-
-                  // tempoary code
-                  showMyAnimatedSnackBar(
-                    context: context,
-                    dataToDisplay:
-                        "Sorry, this functionality is offlimits for now.",
+                  // Will uncomment later on
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (context) => PatientSimulatorContainer(),
+                    ),
                   );
+
+                  // // tempoary code
+                  // showMyAnimatedSnackBar(
+                  //   context: context,
+                  //   dataToDisplay:
+                  //       "Sorry, this functionality is offlimits for now.",
+                  // );
                 },
               ),
               SizedBox(width: 5),

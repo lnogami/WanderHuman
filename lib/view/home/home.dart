@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
-import 'package:wanderhuman_app/helper/realtime_temporary_test.dart';
-import 'package:wanderhuman_app/helper/settings_repositroy.dart';
+// import 'package:wanderhuman_app/helper/realtime_temporary_test.dart';
+import 'package:wanderhuman_app/helper/settings_repository.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/model/settings_model.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
@@ -207,24 +207,24 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
 
-                    // Temporary for testing realtime database only (deletable)
-                    Positioned(
-                      top: MyDimensionAdapter.getHeight(context) * 0.27,
-                      left: 18,
-                      child: animatedOpacity(
-                        child: IconButton(
-                          onPressed: () {
-                            MyNavigator.goTo(context, RealtimeTemporaryTest());
-                          },
-                          icon: Icon(
-                            Icons.data_saver_on_rounded,
-                            color: Colors.amber,
-                            size: 32,
-                          ),
-                        ),
-                        isVisible: (!isCreatingGeofence && !isViewingGeofences),
-                      ),
-                    ),
+                    // // Temporary for testing realtime database only (deletable)
+                    // Positioned(
+                    //   top: MyDimensionAdapter.getHeight(context) * 0.27,
+                    //   left: 18,
+                    //   child: animatedOpacity(
+                    //     child: IconButton(
+                    //       onPressed: () {
+                    //         MyNavigator.goTo(context, RealtimeTemporaryTest());
+                    //       },
+                    //       icon: Icon(
+                    //         Icons.data_saver_on_rounded,
+                    //         color: Colors.amber,
+                    //         size: 32,
+                    //       ),
+                    //     ),
+                    //     isVisible: (!isCreatingGeofence && !isViewingGeofences),
+                    //   ),
+                    // ),
 
                     // Dropdown
                     Positioned(

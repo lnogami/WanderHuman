@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
-import 'package:wanderhuman_app/helper/history_reposity.dart';
+import 'package:wanderhuman_app/helper/realtime_location_repository.dart';
 import 'package:wanderhuman_app/model/realtime_location_model.dart';
 import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 
@@ -51,20 +51,36 @@ Future<bool> savePatientLocation({
         patientLastLocation.lat != currentPositon.lat;
 
     if (certainSecondsHasPassed || locationChanged) {
-      MyHistoryReposity.savePatientLocation(
-        locationData: MyRealtimeLocationModel(
-          deviceID: "No Data Retrieved",
-          patientID: patientID, // place holder
-          isInSafeZone: false, // place holder
-          currentlyIn: "No Data Retrieved", // place holder
-          isCurrentlySafe: true,
-          // currentLocation: currentPositon, // place holder
-          currentLocationLng: currentPositon.lng.toString(), // place holder
-          currentLocationLat: currentPositon.lat.toString(), // place holder
-          timeStamp: lastSaved.toString(), // place holder
-          deviceBatteryPercentage: 100, // place holder
-          bPM: "100",
-          requestBPM: true,
+      // MyHistoryReposity.savePatientLocation(
+      //   locationData: MyRealtimeLocationModel(
+      //     deviceID: "No Data Retrieved",
+      //     patientID: patientID, // place holder
+      //     isInSafeZone: false, // place holder
+      //     currentlyIn: "No Data Retrieved", // place holder
+      //     isCurrentlySafe: true,
+      //     // currentLocation: currentPositon, // place holder
+      //     currentLocationLng: currentPositon.lng.toString(), // place holder
+      //     currentLocationLat: currentPositon.lat.toString(), // place holder
+      //     timeStamp: lastSaved.toString(), // place holder
+      //     deviceBatteryPercentage: 100, // place holder
+      //     bPM: "100",
+      //     requestBPM: false,
+      //   ),
+      // );
+      MyRealtimeLocationReposity.updateLocation(
+        deviceID: patientID,
+        realtimeData: MyRealtimeLocationModel(
+          deviceID: patientID,
+          patientID: patientID,
+          isInSafeZone: true, //
+          isCurrentlySafe: true, //
+          currentlyIn: "NO DATA FOR THIS TESTING",
+          currentLocationLng: currentPositon.lng.toString(),
+          currentLocationLat: currentPositon.lat.toString(),
+          timeStamp: lastSaved.toString(),
+          deviceBatteryPercentage: deviceBatteryPercentage,
+          bPM: "NO DATA FOR THIS TESTING",
+          requestBPM: false,
         ),
       );
       showMyAnimatedSnackBar(

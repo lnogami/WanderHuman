@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:wanderhuman_app/helper/settings_repositroy.dart';
+import 'package:wanderhuman_app/helper/settings_repository.dart';
 import 'package:wanderhuman_app/model/settings_model.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
