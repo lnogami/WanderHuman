@@ -19,6 +19,7 @@ import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_emergency_contacts_button.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_patient_list_dropdown.dart';
+import 'package:wanderhuman_app/view/home/widgets/home_vignette_design.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/draw_geo/saving_geofence_form.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/draw_geo/setting_geofence_bottom_panel.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/active_status.dart';
@@ -162,6 +163,24 @@ class _HomePageState extends State<HomePage> {
                               .loggedInUserData,
                         ),
                         // child: MyMapBody(),
+                      ),
+                    ),
+
+                    // Danger indicator
+                    Positioned.fill(
+                      // child: RectangularVignette(
+                      //   fadeColor: Colors.red.withAlpha(100),
+                      //   edgeThickness:
+                      //       0.15, // 25% of the screen fades from each side
+                      // ),
+                      child: AnimatedWarningVignette(
+                        isActive:
+                            (context
+                                .watch<MyHomeGeofenceConfigurationProvider>()
+                                .patientsInDanger
+                                .isNotEmpty)
+                            ? true
+                            : false,
                       ),
                     ),
 

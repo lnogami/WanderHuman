@@ -11,6 +11,7 @@ import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
 import 'package:wanderhuman_app/view-model/home_appbar_provider.dart';
 import 'package:wanderhuman_app/view-model/home_geofence_config_provider.dart';
+import 'package:wanderhuman_app/view-model/home_miscellaneous_provider.dart';
 import 'package:wanderhuman_app/view-model/home_settings_provider.dart';
 import 'package:wanderhuman_app/view-model/my_mapbox_ref_provider.dart';
 import 'package:wanderhuman_app/view/home/home.dart';
@@ -70,6 +71,10 @@ class MainApp extends StatelessWidget {
         ),
         // newly added (not yet tested as of Feb14, 2026)
         ChangeNotifierProvider(create: (context) => MyHomeSettingsProvider()),
+        // newly added (not yet tested as of Mar03, 2026)
+        ChangeNotifierProvider(
+          create: (context) => MyHomeMiscellaneousProvider(),
+        ),
       ],
       child: MaterialApp(
         navigatorObservers: [routeObserver], // registering the route observer

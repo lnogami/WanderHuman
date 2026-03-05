@@ -19,6 +19,7 @@ import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/model/realtime_location_model.dart';
 import 'package:wanderhuman_app/utilities/properties/date_formatter.dart';
 import 'package:wanderhuman_app/view-model/home_geofence_config_provider.dart';
+import 'package:wanderhuman_app/view-model/home_miscellaneous_provider.dart';
 import 'package:wanderhuman_app/view-model/home_settings_provider.dart';
 import 'package:wanderhuman_app/view-model/my_mapbox_ref_provider.dart';
 import 'package:wanderhuman_app/view/components/info_dialogue.dart';
@@ -600,6 +601,9 @@ class _MapBodyState extends State<MapBody> with RouteAware {
               );
               Future.delayed(Duration(milliseconds: 6260), () {
                 setState(() => isIntroAudioPlayingForTheFirstTime = false);
+                context
+                    .read<MyHomeMiscellaneousProvider>()
+                    .setIsIntroAnimationDone(true);
               });
             }
 

@@ -22,7 +22,10 @@ class MyHomeGeofenceConfigurationProvider extends ChangeNotifier {
   Position? _centerPoint;
   // after adding all the points for the polygon, add a center point
   bool _isAboutToAddCenterPoint = false;
+  // will contain all the patients in danger (who wandered outside the safe zone)
+  final List<String> _patientsInDanger = [];
 
+  // Getters
   bool get isCreatingGeofence => _isCreatingGeofence;
   bool get isViewingGeofences => _isViewingGeofences;
   bool get isAboutToAddCenterPoint => _isAboutToAddCenterPoint;
@@ -35,7 +38,9 @@ class MyHomeGeofenceConfigurationProvider extends ChangeNotifier {
   List<PointAnnotation> get listOfMarkedPointAnnotations =>
       _listOfMarkedPointAnnotations;
   Position? get centerPoint => _centerPoint;
+  List<String> get patientsInDanger => _patientsInDanger;
 
+  // Setters
   // For when creating a new geofence.
   void toggleGeofenceCreation(bool value) {
     _isCreatingGeofence = value;
@@ -141,5 +146,22 @@ class MyHomeGeofenceConfigurationProvider extends ChangeNotifier {
     log(
       "Successfully set center point to lng: ${position.lng}, lat: ${position.lat}",
     );
+  }
+
+  void addPatientToInDangerList(String patientID) {
+    // if the patient is already in the dangerList, don't add it again
+    if (!(_patientsInDanger.contains(patientID))) {
+      _patientsInDanger.add(patientID);
+      notifyListeners();
+
+      log("Patient: $patientID is now in danger list.");
+    }
+  }
+
+  void removePatientFromDangerList(String patientID) {
+    _patientsInDanger.remove(patientID);
+    notifyListeners();
+
+    log("Patient: $patientID is now out of danger list.");
   }
 }
