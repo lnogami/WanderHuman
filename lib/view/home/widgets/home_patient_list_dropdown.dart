@@ -17,7 +17,6 @@ import 'package:wanderhuman_app/view-model/my_mapbox_ref_provider.dart';
 import 'package:wanderhuman_app/view/components/image_displayer.dart';
 import 'package:wanderhuman_app/view/components/image_picker.dart';
 import 'package:wanderhuman_app/view/components/lines.dart';
-import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/components/tooltip.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/map_camera_animations.dart';
 
@@ -73,7 +72,9 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
       tempPatientList.add(person);
       // store the coordinates of the patient in a temporary map
       tempPatientLocations[person.userID] =
-          await MyRealtimeLocationReposity.getLocation(deviceID: person.userID);
+          await MyRealtimeLocationReposity.getLocation(
+            deviceID: person.deviceID,
+          );
       // store the decoded image in a temporary buffer
       tempDecodedImagesBuffer[person.userID] =
           MyImageProcessor.decodeStringToUint8List(person.picture);
@@ -212,22 +213,34 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
 
     return GestureDetector(
       onTap: () {
-        // to handle a scenario where a patient's location is the default 0
-        if (patientLocations[personalInfo.userID]!.lng < 1 &&
-            patientLocations[personalInfo.userID]!.lat < 1) {
-          showMyAnimatedSnackBar(
-            context: context,
-            dataToDisplay: "Something went wrong.",
-          );
-        } else {
-          MyMapCameraAnimations.myMapFlyTo(
-            mapboxController: _mapControllerRef,
-            // position: Position(125.7989268, 7.4233187),
-            position: patientLocations[personalInfo.userID]!,
-            zoomLevel: context.read<MyHomeSettingsProvider>().zoomLevel,
-            // patientID: personalInfo.userID,
-          );
-        }
+        // // to handle a scenario where a patient's location is the default 0
+        // if (patientLocations[personalInfo.userID]!.lng < 1 &&
+        //     patientLocations[personalInfo.userID]!.lat < 1) {
+        //   showMyAnimatedSnackBar(
+        //     context: context,
+        //     dataToDisplay: "Something went wrong.",
+        //   );
+        // } else {
+        // MyMapCameraAnimations.myMapFlyTo(
+        //   mapboxController: _mapControllerRef,
+        //   // position: Position(125.7989268, 7.4233187),
+        //   position: patientLocations[personalInfo.userID]!,
+        //   zoomLevel: context.read<MyHomeSettingsProvider>().zoomLevel,
+        //   // patientID: personalInfo.userID,
+        // );
+        // }
+
+        MyMapCameraAnimations.myMapFlyTo(
+          mapboxController: _mapControllerRef,
+          // position: Position(125.7989268, 7.4233187),
+          position: patientLocations[personalInfo.userID]!,
+          zoomLevel: context.read<MyHomeSettingsProvider>().zoomLevel,
+          // patientID: personalInfo.userID,
+        );
+
+        log(
+          "============= ${personalInfo.name}'s location is lng: ${patientLocations[personalInfo.userID]!.lng} lat: ${patientLocations[personalInfo.userID]!.lat}",
+        );
 
         setState(() {
           selectedIndividualID = personalInfo.userID;

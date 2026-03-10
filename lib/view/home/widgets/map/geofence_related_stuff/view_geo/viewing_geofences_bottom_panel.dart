@@ -3,6 +3,7 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:provider/provider.dart';
 import 'package:wanderhuman_app/helper/geofence_repository.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
@@ -16,6 +17,7 @@ import 'package:wanderhuman_app/view-model/home_settings_provider.dart';
 import 'package:wanderhuman_app/view-model/my_mapbox_ref_provider.dart';
 import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
 import 'package:wanderhuman_app/view/components/button.dart';
+import 'package:wanderhuman_app/view/components/info_dialogue.dart';
 import 'package:wanderhuman_app/view/components/lines.dart';
 import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/components/textfield.dart';
@@ -45,21 +47,51 @@ class _ViewingGeofencesBottomPanelState
 
   List<PersonalInfo> listOfPatients = [];
   List<String> addedParticipants = [];
-  TextEditingController geofenceNameController = TextEditingController();
+  final TextEditingController geofenceNameController = TextEditingController();
+  Map<String, String> bufferedAllStaffNames = {};
+  String nameOfTheGeofenceCreator = "";
   bool isAllParticipantsSelected = false;
   bool isSavingUpdate = false;
 
-  Future<void> getAllPatients() async {
-    final tempVar = await MyPersonalInfoRepository.getAllPersonalInfoRecords(
-      fieldName: "userType",
-      valueToLookFor: "Patient",
-    );
-    setState(() => listOfPatients = tempVar);
+  // (deletable)
+  // Future<void> getAllPatients() async {
+  //   final tempVar = await MyPersonalInfoRepository.getAllPersonalInfoRecords(
+  //     fieldName: "userType",
+  //     valueToLookFor: "Patient",
+  //   );
+  //   setState(() => listOfPatients = tempVar);
+  //   log("All Patients Fetched: ${listOfPatients.length}");
+  // }
+
+  Future<void> getAllStaffAndPatients() async {
+    // Staffs
+    final Map<String, String> staffTempVar = {};
+    if (staffTempVar.isNotEmpty) staffTempVar.clear();
+    // Patients
+    final List<PersonalInfo> patientsTempVar = [];
+    if (patientsTempVar.isNotEmpty) patientsTempVar.clear();
+
+    final persons = await MyPersonalInfoRepository.getAllPersonalInfoRecords();
+
+    for (var person in persons) {
+      // All except patient
+      if (person.userType != "Patient") {
+        staffTempVar[person.userID] = person.name;
+      }
+      // Patients only
+      else {
+        patientsTempVar.add(person);
+      }
+    }
+    setState(() {
+      bufferedAllStaffNames = staffTempVar;
+      listOfPatients = patientsTempVar;
+    });
     log("All Patients Fetched: ${listOfPatients.length}");
   }
 
   Future<void> getAllGeofences() async {
-    await getAllPatients();
+    await getAllStaffAndPatients();
 
     // Get all the geofences from the database
     final tempVar = await MyGeofenceRepository.getAllGeofences();
@@ -119,117 +151,123 @@ class _ViewingGeofencesBottomPanelState
   @override
   Widget build(BuildContext context) {
     width = MyDimensionAdapter.getWidth(context);
-    return AnimatedContainer(
-      duration: Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      width: width,
-      height:
-          MyDimensionAdapter.getHeight(context) * ((isExpanded) ? 0.85 : 0.25),
-      color: Colors.white60,
-      child: (allGeofences.isEmpty)
-          // If there are no geofences, this will appear as default
-          ? ifNoGeofenceIsInExistenceShowDefaultPanel()
-          // If there are geofences, this will appear instead
-          : Column(
-              children: [
-                (isLoadingResources)
-                    // a circular progress indicator
-                    ? ifResourcesIsStillBeingLoaded(context)
-                    // Scrollable List of Geofences (Safe Zones)
-                    // The widget that's visible when all resources has been fetched
-                    : SizedBox(
-                        width: width,
-                        height: MyDimensionAdapter.getHeight(context) * 0.24,
-                        // color: Colors.amber,
-                        child: RawScrollbar(
-                          radius: Radius.circular(50),
-                          interactive: false,
-                          thumbVisibility: true,
-                          trackVisibility: true,
-                          trackColor: Colors.grey.shade300,
-                          thumbColor: Colors.blue.shade200,
-                          thickness: 4,
-                          // padding: EdgeInsets.only(right: -20, top: 5, bottom: 5),
-                          padding: EdgeInsets.only(
-                            // right: (width * -0.095),
-                            top: 10,
-                            bottom: 15,
-                          ),
-                          controller: scrollController,
-                          child: ListWheelScrollView(
-                            // key: ValueKey(listOfPositions!.length),
-                            perspective: 0.005,
+    return SafeArea(
+      child: AnimatedContainer(
+        duration: Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        width: width,
+        height:
+            MyDimensionAdapter.getHeight(context) *
+            ((isExpanded) ? 0.85 : 0.25),
+        color: Colors.white60,
+        child: (allGeofences.isEmpty)
+            // If there are no geofences, this will appear as default
+            ? ifNoGeofenceIsInExistenceShowDefaultPanel()
+            // If there are geofences, this will appear instead
+            : Column(
+                children: [
+                  (isLoadingResources)
+                      // a circular progress indicator
+                      ? ifResourcesIsStillBeingLoaded(context)
+                      // Scrollable List of Geofences (Safe Zones)
+                      // The widget that's visible when all resources has been fetched
+                      : SizedBox(
+                          width: width,
+                          height: MyDimensionAdapter.getHeight(context) * 0.24,
+                          // color: Colors.amber,
+                          child: RawScrollbar(
+                            radius: Radius.circular(50),
+                            interactive: false,
+                            thumbVisibility: true,
+                            trackVisibility: true,
+                            trackColor: Colors.grey.shade300,
+                            thumbColor: Colors.blue.shade200,
+                            thickness: 4,
+                            // padding: EdgeInsets.only(right: -20, top: 5, bottom: 5),
+                            padding: EdgeInsets.only(
+                              // right: (width * -0.095),
+                              top: 10,
+                              bottom: 15,
+                            ),
                             controller: scrollController,
-                            // squeeze: 2,
-                            // useMagnifier: true,
-                            // offAxisFraction: 1,
-                            // perspective: RenderListWheelViewport.,
-                            diameterRatio: 1.3,
-                            itemExtent:
-                                MyDimensionAdapter.getHeight(context) * 0.1,
-                            onSelectedItemChanged: (value) {
-                              setState(() {
-                                // get the current selected geofence
-                                selectedGeofence = allGeofences[value];
-                                selectedGeofenceIndex = value;
-                                isCurrentlySelectedGeofenceActive =
-                                    selectedGeofence.isActive;
-                                geofenceNameController.text =
-                                    selectedGeofence.geofenceName;
-                                // clear the addedParticipants list first before adding new value to it
-                                addedParticipants.clear();
-                                addedParticipants.addAll(
-                                  selectedGeofence.registeredPatients,
-                                );
-                                // this will set isAllParticipantsSelected to true or false
-                                if (listOfPatients.length ==
-                                    addedParticipants.length) {
-                                  isAllParticipantsSelected = true;
-                                } else {
-                                  isAllParticipantsSelected = false;
-                                }
-                              });
+                            child: ListWheelScrollView(
+                              // key: ValueKey(listOfPositions!.length),
+                              perspective: 0.005,
+                              controller: scrollController,
+                              // squeeze: 2,
+                              // useMagnifier: true,
+                              // offAxisFraction: 1,
+                              // perspective: RenderListWheelViewport.,
+                              diameterRatio: 1.3,
+                              itemExtent:
+                                  MyDimensionAdapter.getHeight(context) * 0.1,
+                              onSelectedItemChanged: (value) {
+                                setState(() {
+                                  // get the current selected geofence
+                                  selectedGeofence = allGeofences[value];
+                                  selectedGeofenceIndex = value;
+                                  isCurrentlySelectedGeofenceActive =
+                                      selectedGeofence.isActive;
+                                  geofenceNameController.text =
+                                      selectedGeofence.geofenceName;
+                                  nameOfTheGeofenceCreator =
+                                      bufferedAllStaffNames[selectedGeofence
+                                          .createdBy]!;
+                                  // clear the addedParticipants list first before adding new value to it
+                                  addedParticipants.clear();
+                                  addedParticipants.addAll(
+                                    selectedGeofence.registeredPatients,
+                                  );
+                                  // this will set isAllParticipantsSelected to true or false
+                                  if (listOfPatients.length ==
+                                      addedParticipants.length) {
+                                    isAllParticipantsSelected = true;
+                                  } else {
+                                    isAllParticipantsSelected = false;
+                                  }
+                                });
 
-                              MyMapCameraAnimations.myMapFlyTo(
-                                mapboxController: context
-                                    .read<MyMapboxRefProvider>()
-                                    .getMapboxMapController!,
-                                position: selectedGeofence.centerCoordinates,
-                                zoomLevel: context
-                                    .read<MyHomeSettingsProvider>()
-                                    .zoomLevel,
-                              );
-                            },
-                            children: myIterator(),
+                                MyMapCameraAnimations.myMapFlyTo(
+                                  mapboxController: context
+                                      .read<MyMapboxRefProvider>()
+                                      .getMapboxMapController!,
+                                  position: selectedGeofence.centerCoordinates,
+                                  zoomLevel: context
+                                      .read<MyHomeSettingsProvider>()
+                                      .zoomLevel,
+                                );
+                              },
+                              children: myIterator(),
+                            ),
                           ),
                         ),
-                      ),
-                MyLine(length: width * 0.8, isVertical: false, margin: 0),
-                //
-                if (isExpanded)
-                  Expanded(
-                    child: RawScrollbar(
-                      controller: infoFieldsScrollController,
-                      radius: Radius.circular(50),
-                      interactive: false,
-                      thumbVisibility: true,
-                      trackVisibility: true,
-                      trackColor: Colors.grey.shade300,
-                      thumbColor: Colors.blue.shade200,
-                      thickness: 4,
-                      padding: EdgeInsets.only(top: 15, bottom: 10),
-                      child: SingleChildScrollView(
+                  MyLine(length: width * 0.8, isVertical: false, margin: 0),
+                  //
+                  if (isExpanded)
+                    Expanded(
+                      child: RawScrollbar(
                         controller: infoFieldsScrollController,
-                        child: SizedBox(
-                          width: width,
-                          // color: Colors.amber,
-                          child: infoFields(selectedGeofence),
+                        radius: Radius.circular(50),
+                        interactive: false,
+                        thumbVisibility: true,
+                        trackVisibility: true,
+                        trackColor: Colors.grey.shade300,
+                        thumbColor: Colors.blue.shade200,
+                        thickness: 4,
+                        padding: EdgeInsets.only(top: 15, bottom: 10),
+                        child: SingleChildScrollView(
+                          controller: infoFieldsScrollController,
+                          child: SizedBox(
+                            width: width,
+                            // color: Colors.amber,
+                            child: infoFields(selectedGeofence),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-              ],
-            ),
+                ],
+              ),
+      ),
     );
   }
 
@@ -320,7 +358,7 @@ class _ViewingGeofencesBottomPanelState
             borderRadius: 7,
             isReadOnly: true,
             textController: TextEditingController()
-              ..text = geofence?.createdBy ?? "",
+              ..text = bufferedAllStaffNames[geofence?.createdBy] ?? "",
             borderColor: Colors.grey.shade400,
             activeBorderColor: Colors.grey.shade400,
           ),
@@ -645,6 +683,116 @@ class _ViewingGeofencesBottomPanelState
     );
   }
 
+  // Row saveAndCancelButtons() {
+  //   return Row(
+  //     mainAxisAlignment: MainAxisAlignment.center,
+  //     spacing: 5,
+  //     children: [
+  //       MyCustButton(
+  //         buttonText: "Cancel",
+  //         color: Colors.transparent,
+  //         enableShadow: false,
+  //         borderColor: Colors.transparent,
+  //         widthPercentage: 0.25,
+  //         buttonTextSpacing: 1.2,
+  //         onTap: () {
+  //           Navigator.pop(context);
+  //         },
+  //       ),
+  //       (isSavingUpdate)
+  //           ? CircularProgressIndicator.adaptive()
+  //           : MyCustButton(
+  //               buttonText: "Save Changes",
+  //               buttonTextSpacing: 1.2,
+  //               buttonTextColor: Colors.white,
+  //               buttonTextFontSize: kDefaultFontSize + 2,
+  //               onTap: () async {
+  //                 // to start the animation of the button
+  //                 setState(() {
+  //                   isSavingUpdate = true;
+  //                 });
+  //                 // this will verify if the patient is already registered in another active safezone
+  //                 bool alreadyExist = false;
+  //                 String name = "";
+  //                 for (var patient in addedParticipants) {
+  //                   if (await MyGeofenceRepository.isPatientAlreadyRegisteredInAnActiveGeofence(
+  //                     patientID: patient,
+  //                     geofenceIDToBeExcluded: selectedGeofence.geofenceID,
+  //                   )) {
+  //                     alreadyExist = true;
+  //                     final patientName =
+  //                         await MyPersonalInfoRepository.getSpecificPersonalInfo(
+  //                           userID: patient,
+  //                         );
+  //                     name = patientName.name;
+  //                   }
+  //                 }
+  //                 // can only update if the patient is not already registered in another safezone OR if the safezone will be inactive
+  //                 if (!alreadyExist || !isCurrentlySelectedGeofenceActive) {
+  //                   myAlertDialogue(
+  //                     context: context,
+  //                     alertTitle: "Confirm Update",
+  //                     alertContent:
+  //                         "Are you sure you want to save these changes?",
+  //                     onApprovalPressed: () async {
+  //                       // to start the animation of the button
+  //                       // setState(() {
+  //                       //   isSavingUpdate = true;
+  //                       // });
+  //                       await MyGeofenceRepository.updateGeofence(
+  //                         id: selectedGeofence.geofenceID,
+  //                         geofenceModel: MyGeofenceModel(
+  //                           geofenceID: selectedGeofence.geofenceID,
+  //                           geofenceName: geofenceNameController.text,
+  //                           geofenceCoordinates:
+  //                               selectedGeofence.geofenceCoordinates,
+  //                           centerCoordinates:
+  //                               selectedGeofence.centerCoordinates,
+  //                           createdAt: selectedGeofence.createdAt,
+  //                           createdBy: selectedGeofence.createdBy,
+  //                           registeredPatients: addedParticipants,
+  //                           isActive: isCurrentlySelectedGeofenceActive,
+  //                         ),
+  //                       );
+
+  //                       log(
+  //                         "Successfully Updated Geofence with ID: ${selectedGeofence.geofenceID}",
+  //                       );
+
+  //                       Navigator.pop(context);
+  //                       Future.delayed(Duration(milliseconds: 500), () {
+  //                         // to animate a closing panel effect after saving changes
+  //                         isExpanded = false;
+  //                         // to refresh the fetched geofences
+  //                         getAllGeofences();
+  //                         myInfoDialogue(
+  //                           context: context,
+  //                           alertTitle: "Update Successful",
+  //                           alertContent: "Restart to implement changes.",
+  //                           onPressText: "Restart",
+  //                           onPress: () => Phoenix.rebirth(context),
+  //                         );
+  //                       });
+  //                     },
+  //                   );
+  //                 } else {
+  //                   showMyAnimatedSnackBar(
+  //                     context: context,
+  //                     dataToDisplay:
+  //                         "Patient $name is already registered in another safezone",
+  //                   );
+  //                 }
+
+  //                 // to stop the animation of the button
+  //                 setState(() {
+  //                   isSavingUpdate = false;
+  //                 });
+  //               },
+  //             ),
+  //     ],
+  //   );
+  // }
+
   Row saveAndCancelButtons() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -669,11 +817,7 @@ class _ViewingGeofencesBottomPanelState
                 buttonTextColor: Colors.white,
                 buttonTextFontSize: kDefaultFontSize + 2,
                 onTap: () async {
-                  // to start the animation of the button
-                  setState(() {
-                    isSavingUpdate = true;
-                  });
-                  // this will verify if the patient is already registered in another active safezone
+                  // Verify if the patient is already registered in another active safezone
                   bool alreadyExist = false;
                   String name = "";
                   for (var patient in addedParticipants) {
@@ -690,7 +834,7 @@ class _ViewingGeofencesBottomPanelState
                     }
                   }
 
-                  // can only update if the patient is not already registered in another safezone OR if the safezone will be inactive
+                  // Only update if the patient is not already registered OR if the safezone will be inactive
                   if (!alreadyExist || !isCurrentlySelectedGeofenceActive) {
                     myAlertDialogue(
                       context: context,
@@ -698,10 +842,15 @@ class _ViewingGeofencesBottomPanelState
                       alertContent:
                           "Are you sure you want to save these changes?",
                       onApprovalPressed: () async {
-                        // to start the animation of the button
-                        // setState(() {
-                        //   isSavingUpdate = true;
-                        // });
+                        // 1. Safely pop the DIALOGUE first (not the panel) using rootNavigator
+                        Navigator.of(context, rootNavigator: true).pop();
+
+                        // 2. Start the spinning animation ONLY when the user clicks "Yes"
+                        setState(() {
+                          isSavingUpdate = true;
+                        });
+
+                        // 3. Save to database
                         await MyGeofenceRepository.updateGeofence(
                           id: selectedGeofence.geofenceID,
                           geofenceModel: MyGeofenceModel(
@@ -722,13 +871,25 @@ class _ViewingGeofencesBottomPanelState
                           "Successfully Updated Geofence with ID: ${selectedGeofence.geofenceID}",
                         );
 
-                        Navigator.pop(context);
-                        Future.delayed(Duration(milliseconds: 500), () {
-                          // to animate a closing panel effect after saving changes
+                        // 4. Update the UI state and stop spinning
+                        setState(() {
                           isExpanded = false;
-                          // to refresh the fetched geofences
-                          getAllGeofences();
+                          isSavingUpdate = false;
                         });
+
+                        // 5. Refresh data
+                        await getAllGeofences();
+
+                        // 6. Safely show the Info Dialogue if the user hasn't closed the panel manually
+                        if (mounted) {
+                          myInfoDialogue(
+                            context: context,
+                            alertTitle: "Update Successful",
+                            alertContent: "Restart to implement changes.",
+                            onPressText: "Restart",
+                            onPress: () => Phoenix.rebirth(context),
+                          );
+                        }
                       },
                     );
                   } else {
@@ -738,11 +899,6 @@ class _ViewingGeofencesBottomPanelState
                           "Patient $name is already registered in another safezone",
                     );
                   }
-
-                  // to stop the animation of the button
-                  setState(() {
-                    isSavingUpdate = false;
-                  });
                 },
               ),
       ],

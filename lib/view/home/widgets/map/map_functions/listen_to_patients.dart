@@ -424,7 +424,9 @@ class ListenToPatients {
             for (var trackedPerson in _patientsList) {
               // If a person in our list is NO LONGER in the database stream, they logged out
               bool isStillOnline = currentlyActivePersons.any(
-                (active) => active.userID == trackedPerson.userID,
+                (active) =>
+                    active.userID == trackedPerson.deviceID ||
+                    active.userID == trackedPerson.userID,
               );
 
               if (!isStillOnline) {
@@ -590,6 +592,9 @@ class ListenToPatients {
                           mapboxController: mapboxRef!,
                           position: mp.Position(lng, lat),
                           animationDurationInMilliseconds: 1200,
+                          zoomLevel: context
+                              .read<MyHomeSettingsProvider>()
+                              .zoomLevel,
                         );
                       }
                     },
@@ -635,6 +640,9 @@ class ListenToPatients {
           await MyPersonalInfoRepository.getSpecificPersonalInfo(
             userID: userID,
           );
+      log(
+        "${personalInfo.name}'s user ID: ${personalInfo.userID}, device ID: ${personalInfo.deviceID}",
+      );
       return personalInfo;
     } catch (e) {
       // to handle transition with the custom tracking device
@@ -644,8 +652,9 @@ class ListenToPatients {
             valueToLookFor: userID,
           ).then((value) => value.first);
       log(
-        "CATCH WAS EXECUTEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD___ deviceID: $userID, patientID: ${personalInfo.userID}",
+        "------CATCH WAS EXECUTEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD___ deviceID: $userID, patientID: ${personalInfo.userID}",
       );
+
       await MyRealtimeLocationReposity.updateASingleField(
         deviceID: userID,
         fieldToUpdate: "patientID",

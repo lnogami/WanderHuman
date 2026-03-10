@@ -79,7 +79,9 @@ class MyGeofenceLogic {
           // since we only need the outside (boundary) part of the polygon we only provided the outerRing or the first List of Position (List<Position>)
           final polygon = turf.Polygon(coordinates: [outerRing]);
 
-          log("Patient ID: $userID | Safezone Name: ${geofence.geofenceName}");
+          log(
+            "Patient ID: $userID is currently insdie --> Safezone Name: ${geofence.geofenceName}",
+          );
 
           // lastly, check if the point is inside this specific geofence
           if (turf.booleanPointInPolygon(userCoordinate, polygon)) {

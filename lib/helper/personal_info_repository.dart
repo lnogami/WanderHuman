@@ -125,7 +125,7 @@ class MyPersonalInfoRepository {
         valueToLookFor: userID,
       );
 
-      // 2. ✅ FIX: Check if the list is empty.
+      // 2. FIX: Check if the list is empty.
       // If it is, THEN try searching by DeviceID.
       if (tempIndividualRecord.isEmpty) {
         tempIndividualRecord = await getAllPersonalInfoRecords(
