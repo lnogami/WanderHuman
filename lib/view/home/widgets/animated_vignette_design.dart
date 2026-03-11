@@ -114,7 +114,7 @@ class _AnimatedWarningVignetteState extends State<AnimatedWarningVignette>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 680),
     )..repeat(reverse: true); // This creates the "pulse"
 
     _thicknessAnimation = Tween<double>(

@@ -462,6 +462,13 @@ class ListenToPatients {
     required int randomGeneratedID,
   }) async {
     try {
+      // Providers
+      var settingsProvider = context.read<MyHomeSettingsProvider>();
+      var geofenceProvider = context
+          .read<MyHomeGeofenceConfigurationProvider>();
+      var miscellaneousProvider = context.read<MyHomeMiscellaneousProvider>();
+      var mapboxRefProvider = context.read<MyMapboxRefProvider>();
+
       late PersonalInfo personInfo;
       // 1. Fetch their info from database
 
@@ -547,6 +554,99 @@ class ListenToPatients {
                 userAnnotations[deviceID] = newAnnotation;
               }
 
+              // // 4. Patient Exclusive Logic (Safe Zones & History)
+              // if (isAPatient) {
+              //   var isInsideSafeZone =
+              //       await MyGeofenceLogic.isPatientInsideTheAssignedSafeZone(
+              //         userPosition: mp.Position(lng, lat),
+              //         activeGeofences: activeGeofences,
+              //         userID: personInfo.userID,
+              //       );
+              //
+              //   // TODO: uncomment this to save realtime location data to history
+              //   // // Saves patient realtime location into the history
+              //   // await MyHistoryReposity.savePatientLocation(
+              //   //   locationData: realtimeLocModel,
+              //   // );
+              //
+              //   mp.MapboxMap? mapboxRef = context
+              //       .read<MyMapboxRefProvider>()
+              //       .getMapboxMapController;
+              //   bool isIntroAnimationDone = context
+              //       .read<MyHomeMiscellaneousProvider>()
+              //       .isIntroAnimationDone;
+              //   // Notifies if the patient is not inside the safe zone
+              //   if (!isInsideSafeZone) {
+              //
+              //   // TODO: uncomment this to to enable the phone vibration
+              //     // // Vibration
+              //     // MyAlertNotification.triggerSafeZoneAlert(
+              //     //   patientName: personInfo.name,
+              //     //   randomGeneratedIDForAlert: randomGeneratedID,
+              //     // );
+              //
+              //     // Alarm Audio
+              //     context.read<MyHomeMiscellaneousProvider>().playAlarmAudio();
+              //
+              //     // Will help to indicate a pulsing red warning animation
+              //     context
+              //         .read<MyHomeGeofenceConfigurationProvider>()
+              //         .addPatientToInDangerList(personInfo.userID);
+              //
+              //     // Will move the camera to the patient who is in danger (outside safe zone)
+              //     Future.delayed(
+              //       Duration(milliseconds: (isIntroAnimationDone) ? 0 : 5500),
+              //       () {
+              //         // only move the camera if this setting is enabled
+              //         if (!(context
+              //             .read<MyHomeSettingsProvider>()
+              //             .alwaysFollowYourAvatar)) {
+              //           MyMapCameraAnimations.myMapFlyTo(
+              //             mapboxController: mapboxRef!,
+              //             position: mp.Position(lng, lat),
+              //             animationDurationInMilliseconds: 1200,
+              //             zoomLevel: context
+              //                 .read<MyHomeSettingsProvider>()
+              //                 .zoomLevel,
+              //           );
+              //         }
+              //       },
+              //     );
+              //   } else {
+              //     if (context
+              //         .read<MyHomeGeofenceConfigurationProvider>()
+              //         .patientsInDanger
+              //         .contains(personInfo.userID)) {
+              //       // this will help make the danger animation stop
+              //       context
+              //           .read<MyHomeGeofenceConfigurationProvider>()
+              //           .removePatientFromDangerList(personInfo.userID);
+              //
+              //       context
+              //           .read<MyHomeMiscellaneousProvider>()
+              //           .stopAlarmAudio();
+              //
+              //       log(
+              //         "-----Number of Patients who are in Danger: ${context.read<MyHomeGeofenceConfigurationProvider>().patientsInDanger.length}",
+              //       );
+              //
+              //       if (context.mounted) {
+              //         MyMapCameraAnimations.myMapFlyTo(
+              //           mapboxController: mapboxRef!,
+              //           position: mp.Position(lng, lat),
+              //           animationDurationInMilliseconds: 1200,
+              //           zoomLevel: context
+              //               .read<MyHomeSettingsProvider>()
+              //               .zoomLevel,
+              //         );
+              //       }
+              //     }
+              //   }
+              //   log(
+              //     "WARNINGGGGG!!! Patient ${personInfo.name}, patientID: ${personInfo.userID} is IN DANGER!",
+              //   );
+              // }
+
               // 4. Patient Exclusive Logic (Safe Zones & History)
               if (isAPatient) {
                 var isInsideSafeZone =
@@ -562,62 +662,66 @@ class ListenToPatients {
                 //   locationData: realtimeLocModel,
                 // );
 
-                mp.MapboxMap? mapboxRef = context
-                    .read<MyMapboxRefProvider>()
-                    .getMapboxMapController;
-                bool isIntroAnimationDone = context
-                    .read<MyHomeMiscellaneousProvider>()
-                    .isIntroAnimationDone;
+                mp.MapboxMap? mapboxRef =
+                    mapboxRefProvider.getMapboxMapController;
+                bool isIntroAnimationDone =
+                    miscellaneousProvider.isIntroAnimationDone;
+
                 // Notifies if the patient is not inside the safe zone
                 if (!isInsideSafeZone) {
-                  // Vibration
-                  MyAlertNotification.triggerSafeZoneAlert(
-                    patientName: personInfo.name,
-                    randomGeneratedIDForAlert: randomGeneratedID,
-                  );
+                  // TODO: uncomment this to to enable the phone vibration
+                  // // Vibration
+                  // MyAlertNotification.triggerSafeZoneAlert(
+                  //   patientName: personInfo.name,
+                  //   randomGeneratedIDForAlert: randomGeneratedID,
+                  // );
+
+                  // Alarm Audio
+                  miscellaneousProvider.playAlarmAudio();
+
                   // Will help to indicate a pulsing red warning animation
-                  context
-                      .read<MyHomeGeofenceConfigurationProvider>()
-                      .addPatientToInDangerList(personInfo.userID);
+                  geofenceProvider.addPatientToInDangerList(personInfo.userID);
 
                   // Will move the camera to the patient who is in danger (outside safe zone)
                   Future.delayed(
                     Duration(milliseconds: (isIntroAnimationDone) ? 0 : 5500),
                     () {
                       // only move the camera if this setting is enabled
-                      if (!(context
-                          .read<MyHomeSettingsProvider>()
-                          .alwaysFollowYourAvatar)) {
+                      if (!(settingsProvider.alwaysFollowYourAvatar)) {
                         MyMapCameraAnimations.myMapFlyTo(
                           mapboxController: mapboxRef!,
                           position: mp.Position(lng, lat),
                           animationDurationInMilliseconds: 1200,
-                          zoomLevel: context
-                              .read<MyHomeSettingsProvider>()
-                              .zoomLevel,
+                          zoomLevel: settingsProvider.zoomLevel,
                         );
                       }
                     },
                   );
                 } else {
-                  if (context
-                      .read<MyHomeGeofenceConfigurationProvider>()
-                      .patientsInDanger
-                      .contains(personInfo.userID)) {
+                  if (geofenceProvider.patientsInDanger.contains(
+                    personInfo.userID,
+                  )) {
                     // this will help make the danger animation stop
-                    context
-                        .read<MyHomeGeofenceConfigurationProvider>()
-                        .removePatientFromDangerList(personInfo.userID);
+                    geofenceProvider.removePatientFromDangerList(
+                      personInfo.userID,
+                    );
+
+                    miscellaneousProvider.stopAlarmAudio();
 
                     log(
-                      "-----Number of Patients who are in Danger: ${context.read<MyHomeGeofenceConfigurationProvider>().patientsInDanger.length}",
+                      "-----Number of Patients who are in Danger: ${geofenceProvider.patientsInDanger.length}",
                     );
 
-                    MyMapCameraAnimations.myMapFlyTo(
-                      mapboxController: mapboxRef!,
-                      position: mp.Position(lng, lat),
-                      animationDurationInMilliseconds: 1200,
-                    );
+                    if (context.mounted) {
+                      MyMapCameraAnimations.myMapFlyTo(
+                        mapboxController: mapboxRef!,
+                        position: mp.Position(lng, lat),
+                        animationDurationInMilliseconds: 1200,
+                        zoomLevel: context
+                            .read<MyHomeSettingsProvider>()
+                            .zoomLevel,
+                      );
+                    }
                   }
                 }
                 log(
