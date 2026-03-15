@@ -54,6 +54,7 @@ class MyAlertNotification {
   static Future<void> triggerSafeZoneAlert({
     String? patientName,
     int? randomGeneratedIDForAlert,
+    bool isForBreachingSafeZoneAlert = true,
   }) async {
     try {
       dev.log(
@@ -65,33 +66,49 @@ class MyAlertNotification {
       }
 
       // B. Define Notification Details
-      const AndroidNotificationDetails androidDetails =
-          AndroidNotificationDetails(
-            'safe_zone_channel_id', // ID (Must be unique)
-            'Safe Zone Alerts', // Name (Visible to user in settings)
-            channelDescription: 'Alerts when the patient leaves the safe zone',
-            importance: Importance.max, // MAX makes it pop up on screen
-            priority: Priority.high, // HIGH ensures it makes sound
-            playSound: true,
-            enableVibration: true,
-          );
+      const AndroidNotificationDetails
+      androidDetails = AndroidNotificationDetails(
+        'safe_zone_channel_id', // ID (Must be unique)
+        'Safe Zone Alerts', // Name (Visible to user in settings)
+        // channelDescription: 'Alerts when the patient leaves the safe zone',
+        channelDescription:
+            'Alerts when the patient leaves the safe zone or is in danger inside safe zone.',
+        importance: Importance.max, // MAX makes it pop up on screen
+        priority: Priority.high, // HIGH ensures it makes sound
+        playSound: true,
+        enableVibration: true,
+      );
 
       const NotificationDetails platformDetails = NotificationDetails(
         android: androidDetails,
         iOS: DarwinNotificationDetails(presentSound: true),
       );
 
-      // C. Show the notification
-      await _notifications.show(
-        // ID (0 means this notification replaces previous ones with ID 0)
-        id: randomGeneratedIDForAlert ?? 0,
-        title: "NOTICE! 🚨",
-        // title: '🚨 SAFE ZONE ALERT 🚨',
-        body: (patientName != null)
-            ? "$patientName has wandered outside the safe zone!"
-            : 'The patient has wandered outside the safe zone!',
-        notificationDetails: platformDetails,
-      );
+      // Show the notification
+      if (isForBreachingSafeZoneAlert) {
+        // Notification for breaching the safe zone
+        await _notifications.show(
+          // ID (0 means this notification replaces previous ones with ID 0)
+          id: randomGeneratedIDForAlert ?? 0,
+          title: "NOTICE! 🚨",
+          // title: '🚨 SAFE ZONE ALERT 🚨',
+          body: (patientName != null)
+              ? "$patientName has wandered outside the safe zone!"
+              : 'The patient has wandered outside the safe zone!',
+          notificationDetails: platformDetails,
+        );
+      } else {
+        // Notification if in danger inside the safe zone
+        await _notifications.show(
+          // ID (0 means this notification replaces previous ones with ID 0)
+          id: randomGeneratedIDForAlert ?? 0,
+          title: "NOTICE! In Danger! 🚨",
+          body: (patientName != null)
+              ? "$patientName is currently in danger inside safe zone!"
+              : 'The patient is currently in danger inside safe zone!',
+          notificationDetails: platformDetails,
+        );
+      }
     } catch (e, stackTrace) {
       dev.log(
         "AN ERROR OCCURED WHEN TRIGGERING NOTIFICATION: $e,  AT: $stackTrace",

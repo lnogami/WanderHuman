@@ -14,11 +14,14 @@ Future<PointAnnotationOptions> myPointAnnotationOptions({
   required Position myPosition,
   bool isAPatient =
       true, // true by default because this function is initialy for patients
+  required bool isCurrentlySafe,
 }) async {
   return PointAnnotationOptions(
     // textHaloColor: Colors.blue.toARGB32(),
     textHaloColor: (isAPatient)
-        ? Colors.blue.toARGB32()
+        ? (isCurrentlySafe)
+              ? Colors.blue.toARGB32()
+              : Colors.red.toARGB32()
         : Colors.grey.shade800.toARGB32(),
     textHaloWidth: (isAPatient) ? 1.0 : 1.5,
     textLetterSpacing: 0.08,
@@ -27,7 +30,7 @@ Future<PointAnnotationOptions> myPointAnnotationOptions({
     ///// iconImage: "marker",
     iconSize: 0.35,
     // icon color is still static because I used a png image as marker
-    iconColor: Colors.blue.toARGB32(),
+    iconColor: Colors.blue.toARGB32(), // if image is not applicable
     textField: (isAPatient)
         ? name // THIS IS A PATIENT NAME
         : "${name.split(" ").first} (staff)", // FOR STAFF NAME

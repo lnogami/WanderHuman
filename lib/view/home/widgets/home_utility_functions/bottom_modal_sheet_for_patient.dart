@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
@@ -53,7 +54,7 @@ void showMyBottomNavigationSheet({
     builder: (context) {
       return Container(
         width: MyDimensionAdapter.getWidth(context),
-        height: MyDimensionAdapter.getHeight(context) * 0.8,
+        height: MyDimensionAdapter.getHeight(context) * 0.835,
         decoration: BoxDecoration(
           // color: Colors.purple[100],
           borderRadius: const BorderRadius.only(
@@ -69,7 +70,7 @@ void showMyBottomNavigationSheet({
               length: MyDimensionAdapter.getWidth(context) * 0.25,
               isRounded: true,
               isVertical: false,
-              thickness: 7,
+              thickness: 4,
             ),
             SizedBox(height: 20),
 
@@ -82,8 +83,30 @@ void showMyBottomNavigationSheet({
             SizedBox(height: 10),
 
             // Name of the Patient
-            MyTextFormatter.h3(text: name, fontsize: kDefaultFontSize + 10),
+            MyTextFormatter.h3(
+              text: name,
+              fontsize: kDefaultFontSize + 10,
+              lineHeight: 1,
+            ),
             SizedBox(height: 10),
+            // Row(
+            //   mainAxisAlignment: MainAxisAlignment.center,
+            //   crossAxisAlignment: CrossAxisAlignment.center,
+            //   children: [
+            //     MyTextFormatter.p(
+            //       text: "is currently in ",
+            //       fontsize: kDefaultFontSize - 4,
+            //       color: Colors.grey.shade600,
+            //     ),
+            //     MyTextFormatter.p(
+            //       text: currentlyIn,
+            //       fontsize: kDefaultFontSize - 4,
+            //       fontWeight: FontWeight.w600,
+            //       color: Colors.grey.shade700,
+            //     ),
+            //   ],
+            // ),
+            // SizedBox(height: 15),
 
             // Primary Details Area
             Container(
@@ -192,8 +215,7 @@ void showMyBottomNavigationSheet({
                     isPossibleToContainLongValue: true,
                     textLabel: "Notable Behavior",
                     // "Often found lying in bed, or sitting in the living room. Needs regular monitoring.",
-                    // textValue: notableBehavior,
-                    textValue: patientID,
+                    textValue: notableBehavior,
                   ),
                 ],
               ),
@@ -218,15 +240,19 @@ void showMyBottomNavigationSheet({
                 ],
               ),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  fixedSizedContainers(
-                    width: MyDimensionAdapter.getWidth(context) * 0.12,
-                    textLabel: "Is Safe",
-                    textValue: (isCurrentlySafe) ? "YES" : "NO",
-                    valueColor: (isCurrentlySafe)
-                        ? Colors.blue.shade400
-                        : Colors.red.shade400,
-                  ),
+                  //// (deletable) old code, updated version is the isCurrentlySafeArea(context, isCurrentlySafe),
+                  // fixedSizedContainers(
+                  //   width: MyDimensionAdapter.getWidth(context) * 0.12,
+                  //   textLabel: "Is Safe",
+                  //   textValue: (isCurrentlySafe) ? "YES" : "NO",
+                  //   valueColor: (isCurrentlySafe)
+                  //       ? Colors.blue.shade400
+                  //       : Colors.red.shade400,
+                  // ),
+                  isCurrentlySafeArea(context, isCurrentlySafe),
                   verticalLine(context),
                   fixedSizedContainers(
                     width: MyDimensionAdapter.getWidth(context) * 0.12,
@@ -240,6 +266,45 @@ void showMyBottomNavigationSheet({
                     textLabel: "Device ID",
                     textValue: deviceID,
                     textValueSize: kDefaultFontSize - 1,
+                  ),
+                ],
+              ),
+            ),
+
+            Container(
+              width: MyDimensionAdapter.getWidth(context) * 0.80,
+              padding: EdgeInsets.only(top: 1.5, bottom: 1.5),
+              margin: EdgeInsets.only(bottom: 15),
+              decoration: BoxDecoration(
+                color: Colors.white10,
+                border: BoxBorder.all(color: Colors.white, width: 1.2),
+                borderRadius: BorderRadius.circular(7),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color.fromARGB(31, 0, 42, 100),
+                    blurRadius: 4,
+                    blurStyle: BlurStyle.outer,
+                    offset: Offset(0, 1),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  MyTextFormatter.p(
+                    // TODO: to be change, OUTSIDE is temporary, unknown beacon values yet.
+                    text: (currentlyIn.toUpperCase() == "OUTSIDE")
+                        ? "is currently in "
+                        : "is currently ",
+                    fontsize: kDefaultFontSize - 4,
+                    color: Colors.grey.shade700,
+                  ),
+                  MyTextFormatter.p(
+                    text: currentlyIn,
+                    fontsize: kDefaultFontSize - 2,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade800,
                   ),
                 ],
               ),
@@ -287,6 +352,38 @@ void showMyBottomNavigationSheet({
         ),
       );
     },
+  );
+}
+
+Container isCurrentlySafeArea(BuildContext context, bool isCurrentlySafe) {
+  return Container(
+    width: MyDimensionAdapter.getWidth(context) * 0.12,
+    child: Column(
+      children: [
+        MyTextFormatter.p(text: "Is Safe", fontsize: kDefaultFontSize - 4),
+        (isCurrentlySafe)
+            ? MyTextFormatter.p(
+                text: "YES",
+                color: Colors.blue.shade400,
+                fontsize: kDefaultFontSize + 2,
+                fontWeight: FontWeight.w600,
+              )
+            : AnimatedTextKit(
+                repeatForever: true,
+                pause: Duration(milliseconds: 0),
+                animatedTexts: [
+                  FlickerAnimatedText(
+                    "NO",
+                    textStyle: TextStyle(
+                      color: Colors.red.shade300,
+                      fontSize: kDefaultFontSize + 2,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+      ],
+    ),
   );
 }
 

@@ -469,9 +469,8 @@ class ListenToPatients {
       var miscellaneousProvider = context.read<MyHomeMiscellaneousProvider>();
       var mapboxRefProvider = context.read<MyMapboxRefProvider>();
 
-      late PersonalInfo personInfo;
       // 1. Fetch their info from database
-
+      late PersonalInfo personInfo;
       personInfo = await getPersonalInfo(userID);
 
       _patientsList.add(personInfo);
@@ -515,6 +514,7 @@ class ListenToPatients {
                 'lat': lat,
                 'currentlyIn': realtimeLocModel.currentlyIn,
                 'isInSafeZone': realtimeLocModel.isInSafeZone,
+                'isCurrentlySafe': realtimeLocModel.isCurrentlySafe,
                 'timeStamp': realtimeLocModel.timeStamp,
                 'deviceBatteryPercentage': realtimeLocModel
                     .deviceBatteryPercentage
@@ -547,6 +547,7 @@ class ListenToPatients {
                   myPosition: mp.Position(lng, lat),
                   imageData: personIcon,
                   isAPatient: isAPatient,
+                  isCurrentlySafe: realtimeLocModel.isCurrentlySafe,
                 ),
               );
 
@@ -554,6 +555,7 @@ class ListenToPatients {
                 userAnnotations[deviceID] = newAnnotation;
               }
 
+              //// (deletable) just in case the new code implementation below does not work properly
               // // 4. Patient Exclusive Logic (Safe Zones & History)
               // if (isAPatient) {
               //   var isInsideSafeZone =
@@ -667,14 +669,17 @@ class ListenToPatients {
                 bool isIntroAnimationDone =
                     miscellaneousProvider.isIntroAnimationDone;
 
-                // Notifies if the patient is not inside the safe zone
-                if (!isInsideSafeZone) {
+                // Notifies if the patient is not inside the safe zone or is the patient safe
+                if (!isInsideSafeZone || !realtimeLocModel.isCurrentlySafe) {
                   // TODO: uncomment this to to enable the phone vibration
-                  // // Vibration
-                  // MyAlertNotification.triggerSafeZoneAlert(
-                  //   patientName: personInfo.name,
-                  //   randomGeneratedIDForAlert: randomGeneratedID,
-                  // );
+                  // Vibration
+                  MyAlertNotification.triggerSafeZoneAlert(
+                    patientName: personInfo.name,
+                    randomGeneratedIDForAlert: randomGeneratedID,
+                    isForBreachingSafeZoneAlert: (!isInsideSafeZone)
+                        ? true
+                        : false,
+                  );
 
                   // Alarm Audio
                   miscellaneousProvider.playAlarmAudio();
@@ -727,6 +732,9 @@ class ListenToPatients {
                 log(
                   "WARNINGGGGG!!! Patient ${personInfo.name}, patientID: ${personInfo.userID} is IN DANGER!",
                 );
+
+                // (deletale) experimental
+                // if(!realtimeLocModel.isCurrentlySafe){}
               }
             } catch (e, stackTrace) {
               log("ERROR UPDATING MARKER FOR $deviceID: $e. AT $stackTrace");
@@ -834,7 +842,7 @@ class ListenToPatients {
               currentlyIn: data['currentlyIn'] ?? "NO DATA ACQUIRED",
               batteryPercentage:
                   int.tryParse(data['deviceBatteryPercentage']) ?? 0,
-              isCurrentlySafe: data['isInSafeZone'] ?? false,
+              isCurrentlySafe: data['isCurrentlySafe'] ?? false,
               deviceID: data['deviceID'] ?? "NO DATA ACQUIRED",
               email: data['email'] ?? "NO DATA ACQUIRED",
               birthDate: data['birthDate'] ?? "NO DATA ACQUIRED",
