@@ -1,14 +1,20 @@
+import 'dart:developer';
 import 'dart:typed_data';
 
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
+import 'package:wanderhuman_app/helper/realtime_active_status_repository.dart';
+import 'package:wanderhuman_app/helper/realtime_location_repository.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
+import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
 import 'package:wanderhuman_app/view/components/button.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/components/image_displayer.dart';
 import 'package:wanderhuman_app/view/components/image_picker.dart';
 import 'package:wanderhuman_app/view/components/lines.dart';
+import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
+import 'package:wanderhuman_app/view/components/tooltip.dart';
 import 'package:wanderhuman_app/view/view_patient_details/patient_details_page.dart';
 
 void showMyBottomNavigationSheet({
@@ -252,7 +258,11 @@ void showMyBottomNavigationSheet({
                   //       ? Colors.blue.shade400
                   //       : Colors.red.shade400,
                   // ),
-                  isCurrentlySafeArea(context, isCurrentlySafe),
+                  isCurrentlySafeArea(
+                    context,
+                    isCurrentlySafe: isCurrentlySafe,
+                    deviceID: deviceID,
+                  ),
                   verticalLine(context),
                   fixedSizedContainers(
                     width: MyDimensionAdapter.getWidth(context) * 0.12,
@@ -295,8 +305,8 @@ void showMyBottomNavigationSheet({
                   MyTextFormatter.p(
                     // TODO: to be change, OUTSIDE is temporary, unknown beacon values yet.
                     text: (currentlyIn.toUpperCase() == "OUTSIDE")
-                        ? "is currently in "
-                        : "is currently ",
+                        ? "is currently "
+                        : "is currently in ",
                     fontsize: kDefaultFontSize - 4,
                     color: Colors.grey.shade700,
                   ),
@@ -355,20 +365,56 @@ void showMyBottomNavigationSheet({
   );
 }
 
-Container isCurrentlySafeArea(BuildContext context, bool isCurrentlySafe) {
+Container isCurrentlySafeArea(
+  BuildContext context, {
+  required bool isCurrentlySafe,
+  required String deviceID,
+}) {
   return Container(
     width: MyDimensionAdapter.getWidth(context) * 0.12,
+    // height: MyDimensionAdapter.getHeight(context) * 0.12,
     child: Column(
       children: [
         MyTextFormatter.p(text: "Is Safe", fontsize: kDefaultFontSize - 4),
         (isCurrentlySafe)
-            ? MyTextFormatter.p(
-                text: "YES",
-                color: Colors.blue.shade400,
-                fontsize: kDefaultFontSize + 2,
-                fontWeight: FontWeight.w600,
+            ? MyCustTooltip(
+                triggerMode: TooltipTriggerMode.tap,
+                message:
+                    "Tap this again when the patient is in danger to assess the situation.",
+                child: MyTextFormatter.p(
+                  text: "YES",
+                  color: Colors.blue.shade400,
+                  fontsize: kDefaultFontSize + 2,
+                  fontWeight: FontWeight.w600,
+                ),
               )
             : AnimatedTextKit(
+                onTap: () {
+                  myAlertDialogue(
+                    context: context,
+                    alertTitle: "Confirm Patient Status",
+                    alertContent: "Confirm that this patient is now okay?",
+                    onApprovalButtonText: "Acknowledge",
+                    onCancelButtonText: "Not yet",
+                    onApprovalPressed: () async {
+                      await MyRealtimeLocationReposity.updateASingleField(
+                        deviceID: deviceID,
+                        fieldToUpdate: "isCurrentlySafe",
+                        value: "true",
+                        isABooleanValue: true,
+                      );
+
+                      log(
+                        "SUCCESSFULLY UPDATED PATIENT STATUS TO SAFEEEEEEEEEEE",
+                      );
+
+                      // ignore: use_build_context_synchronously
+                      Navigator.pop(context); // removes the dialog box
+                      // ignore: use_build_context_synchronously
+                      Navigator.pop(context); // removes the bottom sheet
+                    },
+                  );
+                },
                 repeatForever: true,
                 pause: Duration(milliseconds: 0),
                 animatedTexts: [

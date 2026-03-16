@@ -194,9 +194,17 @@ class MyRealtimeLocationReposity {
     required String deviceID,
     required String fieldToUpdate,
     required String value,
+    bool isABooleanValue = false,
   }) async {
     try {
-      _realtimeLocationRef.child(deviceID).update({fieldToUpdate: value});
+      if (isABooleanValue) {
+        bool valueToBoolConvertedValue = bool.parse(value);
+        _realtimeLocationRef.child(deviceID).update({
+          fieldToUpdate: valueToBoolConvertedValue,
+        });
+      } else {
+        _realtimeLocationRef.child(deviceID).update({fieldToUpdate: value});
+      }
       log("SUCCESSFULLY UPDATED A SINGLE FIELD (of Patient: $deviceID)");
     } catch (e, stackTrace) {
       log(
