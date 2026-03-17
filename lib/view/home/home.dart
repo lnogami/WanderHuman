@@ -290,6 +290,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Close and Save geofence button
   Positioned creatingOrViewingASafeZoneButtons(
     BuildContext context, {
     required bool isCreatingGeofence,
@@ -319,36 +320,45 @@ class _HomePageState extends State<HomePage> {
             children: [
               GestureDetector(
                 onTap: () {
-                  context
-                      .read<MyHomeGeofenceConfigurationProvider>()
-                      .toggleGeofenceCreation(false);
-                  context
-                      .read<MyHomeGeofenceConfigurationProvider>()
-                      .toggleGeofenceViewing(false);
-                  log(
-                    context
-                        .read<MyHomeGeofenceConfigurationProvider>()
-                        .listOfMarkedPositions[0]
-                        .length
-                        .toString(),
-                  );
-                  log("CLOSE BUTTONNNNNNNNNNNNNNNNNNNNNNNNN");
-                  // // This is to clear the list of marked positions
-                  // context
-                  //     .read<MyHomeGeofenceConfigurationProvider>()
-                  //     .clearMarkedPositions();
+                  MyHomeGeofenceConfigurationProvider
+                  geofenceConfigurationProvider = context
+                      .read<MyHomeGeofenceConfigurationProvider>();
 
-                  // clear all the temporary data in the provider
-                  context
-                      .read<MyHomeGeofenceConfigurationProvider>()
-                      .clearAllCachedTemporaryData();
-                  // This is to clear the polygonManager's data
-                  log(
-                    context
-                        .read<MyHomeGeofenceConfigurationProvider>()
-                        .listOfMarkedPositions[0]
-                        .length
-                        .toString(),
+                  myAlertDialogue(
+                    context: context,
+                    alertTitle: "Confirm Cancel",
+                    alertContent:
+                        "Are you sure you want to cancel? \nThe recent activity data will be deleted.",
+                    onApprovalPressed: () {
+                      geofenceConfigurationProvider.toggleGeofenceCreation(
+                        false,
+                      );
+                      geofenceConfigurationProvider.toggleGeofenceViewing(
+                        false,
+                      );
+
+                      // for debugging purposes only
+                      log(
+                        geofenceConfigurationProvider
+                            .listOfMarkedPositions[0]
+                            .length
+                            .toString(),
+                      );
+                      log("CLOSE BUTTONNNNNNNNNNNNNNNNNNNNNNNNN");
+
+                      // clear all the temporary data in the provider
+                      geofenceConfigurationProvider
+                          .clearAllCachedTemporaryData();
+
+                      log(
+                        geofenceConfigurationProvider
+                            .listOfMarkedPositions[0]
+                            .length
+                            .toString(),
+                      );
+
+                      Navigator.pop(context); // closes dialog box
+                    },
                   );
                 },
                 child: Column(

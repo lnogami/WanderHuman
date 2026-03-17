@@ -129,42 +129,21 @@ class _SavingGeofenceFormState extends State<SavingGeofenceForm> {
                       widthPercentage: 0.25,
                       buttonTextSpacing: 1.2,
                       onTap: () {
-                        // context
-                        //     .read<MyHomeGeofenceConfigurationProvider>()
-                        //     .toggleGeofenceCreation(false);
-                        // context
-                        //     .read<MyHomeGeofenceConfigurationProvider>()
-                        //     .toggleGeofenceViewing(false);
-                        // log(
-                        //   context
-                        //       .read<MyHomeGeofenceConfigurationProvider>()
-                        //       .listOfMarkedPositions[0]
-                        //       .length
-                        //       .toString(),
-                        // );
-                        // log("CLOSE BUTTONNNNNNNNNNNNNNNNNNNNNNNNN");
-                        // // clear all the temporary data in the provider
-                        // context
-                        //     .read<MyHomeGeofenceConfigurationProvider>()
-                        //     .clearAllCachedTemporaryData();
-                        // // This is to clear the polygonManager's data
-                        // log(
-                        //   context
-                        //       .read<MyHomeGeofenceConfigurationProvider>()
-                        //       .listOfMarkedPositions[0]
-                        //       .length
-                        //       .toString(),
-                        // );
-                        // // close the safe zone form
-                        // Navigator.pop(context);
                         myAlertDialogue(
                           context: context,
                           alertTitle: "Confirm Cancel",
                           alertContent:
-                              "Are you sure you want to cancel? \nThe app will restart in order to clear temporary resources.",
+                              // "Are you sure you want to cancel? \nThe app will restart in order to clear temporary resources.",
+                              "Are you sure you want to cancel? \nThe recent activity data will be deleted.",
                           onApprovalPressed: () {
-                            Phoenix.rebirth(context);
-                            log("RESTARTINGGGGGGGGGGGGGGGGGGGGGGGGGGGG");
+                            // Phoenix.rebirth(context);
+                            // log("RESTARTINGGGGGGGGGGGGGGGGGGGGGGGGGGGG");
+
+                            context
+                                .read<MyHomeGeofenceConfigurationProvider>()
+                                .clearAllCachedTemporaryData();
+                            Navigator.pop(context); // close dialog box
+                            Navigator.pop(context); // close saving geo.. form
                           },
                         );
                       },

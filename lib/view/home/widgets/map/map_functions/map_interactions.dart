@@ -7,8 +7,6 @@ import 'package:wanderhuman_app/view-model/home_geofence_config_provider.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/draw_geo/map_geofence_drawer.dart';
 
 class MyMapInteractions {
-  static PointAnnotationManager? _centerPointAnnotationManager;
-
   /// Tap interection within the map itself.
   /// polygonManager is for creating a polygon of the geofence area
   static void tapInteraction({
@@ -86,12 +84,18 @@ class MyMapInteractions {
     required BuildContext context,
     required MapContentGestureContext mapContext,
   }) async {
-    // if _centerPointAnnotationManager is null, assign a value
-    _centerPointAnnotationManager ??= await mapboxMapController.annotations
-        .createPointAnnotationManager();
+    MyHomeGeofenceConfigurationProvider geofenceConfigProvider = context
+        .read<MyHomeGeofenceConfigurationProvider>();
+
+    // set a PointAnnotationManager
+    if (geofenceConfigProvider.centerPointAnnotationManager == null) {
+      geofenceConfigProvider.setCenterPointManager(
+        await mapboxMapController.annotations.createPointAnnotationManager(),
+      );
+    }
 
     // to prevent having more than one centerpoint
-    _centerPointAnnotationManager!.deleteAll();
+    geofenceConfigProvider.centerPointAnnotationManager?.deleteAll();
 
     // // delete the polygonManager data because it is not need here anymore
     // if (polygonManager != null) polygonManager.deleteAll();
@@ -102,7 +106,7 @@ class MyMapInteractions {
     );
 
     MyMapGeofenceDrawer.markPressedPoints(
-      pointManager: _centerPointAnnotationManager!,
+      pointManager: geofenceConfigProvider.centerPointAnnotationManager!,
       tappedPoint: Point(coordinates: (mapContext.point.coordinates)),
       context: context,
       isACenterPoint: true,

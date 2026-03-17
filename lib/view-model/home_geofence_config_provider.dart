@@ -22,6 +22,7 @@ class MyHomeGeofenceConfigurationProvider extends ChangeNotifier {
   Position? _centerPoint;
   // after adding all the points for the polygon, add a center point
   bool _isAboutToAddCenterPoint = false;
+  PointAnnotationManager? _markedCenterPointAnnotationManager;
   // will contain all the patients in danger (who wandered outside the safe zone)
   final List<String> _patientsInDanger = [];
 
@@ -38,6 +39,8 @@ class MyHomeGeofenceConfigurationProvider extends ChangeNotifier {
   List<PointAnnotation> get listOfMarkedPointAnnotations =>
       _listOfMarkedPointAnnotations;
   Position? get centerPoint => _centerPoint;
+  PointAnnotationManager? get centerPointAnnotationManager =>
+      _markedCenterPointAnnotationManager;
   List<String> get patientsInDanger => _patientsInDanger;
 
   // Setters
@@ -78,8 +81,9 @@ class MyHomeGeofenceConfigurationProvider extends ChangeNotifier {
   /// For clearing the cached data after saving, to avoid using it.
   void clearAllCachedTemporaryData() {
     clearMarkedPositions();
-    _centerPoint = Position(0, 0); // temporarily throw it somewhere else
+    // _centerPoint = Position(0, 0); // temporarily throw it somewhere else
     // setCenterPoint(Position(0, 0)); // temporarily throw it somewhere else
+    _markedCenterPointAnnotationManager?.deleteAll();
     _markedPointAnnotationManager!.deleteAll();
     _markedPolygonAnnotationManager!.deleteAll();
     _listOfMarkedPointAnnotations.clear();
@@ -103,6 +107,13 @@ class MyHomeGeofenceConfigurationProvider extends ChangeNotifier {
     log(
       "Successfully initialized PolygonAnnotationManager and PointAnnotationManager for geofence creation",
     );
+  }
+
+  void setCenterPointManager(PointAnnotationManager centerPointManager) {
+    _markedCenterPointAnnotationManager = centerPointManager;
+    notifyListeners();
+
+    log("Successfully assigned a PointManager for markedCenterPoint");
   }
 
   /// This will be used for storing a copy of the created PointAnnotation in the [_markedPolygonAnnotationManager]

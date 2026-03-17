@@ -83,6 +83,7 @@ void myAlertDialogue({
   String alertTitle = "Alert",
   String alertContent = "Are you sure?",
   Color barrierColor = const Color.fromARGB(180, 60, 84, 104),
+  bool isDismissible = true,
   required VoidCallback onApprovalPressed,
   String onApprovalButtonText = "Yes",
   // Color onApprovalButtonColor = MyColorPalette.splashColor,
@@ -93,7 +94,7 @@ void myAlertDialogue({
   showCupertinoDialog(
     barrierColor: barrierColor,
     context: context,
-    barrierDismissible: true,
+    barrierDismissible: isDismissible,
     builder: (context) {
       return CupertinoAlertDialog(
         title: Text(alertTitle),
