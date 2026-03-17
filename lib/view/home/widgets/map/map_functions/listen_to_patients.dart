@@ -284,14 +284,12 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:math' as math;
-import 'dart:typed_data';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mp;
 import 'package:provider/provider.dart';
 import 'package:wanderhuman_app/helper/geofence_repository.dart';
-import 'package:wanderhuman_app/helper/history_reposity.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/helper/realtime_active_status_repository.dart';
 import 'package:wanderhuman_app/helper/realtime_location_repository.dart';
@@ -299,11 +297,11 @@ import 'package:wanderhuman_app/model/geofence_model.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/model/realtime_active_status_model.dart';
 import 'package:wanderhuman_app/model/realtime_location_model.dart';
+import 'package:wanderhuman_app/view-model/home_active_persons_provider.dart';
 import 'package:wanderhuman_app/view-model/home_geofence_config_provider.dart';
 import 'package:wanderhuman_app/view-model/home_miscellaneous_provider.dart';
 import 'package:wanderhuman_app/view-model/home_settings_provider.dart';
 import 'package:wanderhuman_app/view-model/my_mapbox_ref_provider.dart';
-import 'package:wanderhuman_app/view/components/image_picker.dart';
 import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/bottom_modal_sheet_for_patient.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/geo_logics/notifcation_alerts.dart';
@@ -312,13 +310,16 @@ import 'package:wanderhuman_app/view/home/widgets/map/map_functions/map_camera_a
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/point_annotation_options.dart';
 
 class ListenToPatients {
-  static final List<PersonalInfo> _patientsList = [];
+  // static final List<PersonalInfo> _patientsList = [];
 
   // Keep track of location subscriptions so we can cancel them individually
   static final Map<String, StreamSubscription> _locationSubscriptions = {};
 
   // Keep track of the MASTER active status subscription
   static StreamSubscription? _activeStatusSubscription;
+
+  // Provider
+  static late MyHomeActivePersonsProvider _activePersonsProvider;
 
   /// Call this method to cancel all the subscriptions at once when leaving the map
   static void stopListening() {
@@ -327,13 +328,16 @@ class ListenToPatients {
       _activeStatusSubscription?.cancel();
 
       // 2. Stop listening to individual locations
-      for (var patient in _patientsList) {
+      for (var patient in _activePersonsProvider.activePersons) {
         _locationSubscriptions[patient.deviceID]?.cancel();
       }
 
       // 3. Clear memory
       _locationSubscriptions.clear();
-      _patientsList.clear();
+      // _patientsList.clear();
+      _activePersonsProvider.activePersons.clear();
+      _activePersonsProvider.personCurrentPosition.clear();
+      _activePersonsProvider.decodedImagesBuffer.clear();
 
       log("Notice: 🛑 All map listeners were successfully stopped.");
     } catch (e, stackTrace) {
@@ -351,6 +355,9 @@ class ListenToPatients {
     required BuildContext context,
   }) async {
     try {
+      // Provider
+      _activePersonsProvider = context.read<MyHomeActivePersonsProvider>();
+
       List<MyGeofenceModel> activeGeofences =
           await MyGeofenceRepository.getActiveGeofences();
 
@@ -368,82 +375,102 @@ class ListenToPatients {
       math.Random randomNumberGenerator = math.Random();
 
       // Listen to the Active Status database CONTINUOUSLY
-      _activeStatusSubscription =
-          MyRealtimeActiveStatusRepository.streamAllActivePersons().listen((
-            List<MyRealtimeActiveStatusModel> currentlyActivePersons,
-          ) async {
-            String currentUserUID = FirebaseAuth.instance.currentUser!.uid;
-            // 1. Check for NEW people who just came online
-            for (var person in currentlyActivePersons) {
-              // String? personalID;
-              // // to handle transition with the custom tracking device
-              // if (person.userID == "") {
-              //   PersonalInfo personalInfo =
-              //       await MyPersonalInfoRepository.getAllPersonalInfoRecords(
-              //         fieldName: "deviceID",
-              //         valueToLookFor: person.userID,
-              //       ).then((value) => value.first);
-              //   personalID = personalInfo.userID;
-              // }
+      _activeStatusSubscription = MyRealtimeActiveStatusRepository.streamAllActivePersons().listen((
+        List<MyRealtimeActiveStatusModel> currentlyActivePersons,
+      ) async {
+        String currentUserUID = FirebaseAuth.instance.currentUser!.uid;
+        // 1. Check for NEW people who just came online
+        for (var person in currentlyActivePersons) {
+          // String? personalID;
+          // // to handle transition with the custom tracking device
+          // if (person.userID == "") {
+          //   PersonalInfo personalInfo =
+          //       await MyPersonalInfoRepository.getAllPersonalInfoRecords(
+          //         fieldName: "deviceID",
+          //         valueToLookFor: person.userID,
+          //       ).then((value) => value.first);
+          //   personalID = personalInfo.userID;
+          // }
 
-              if (person.userID == currentUserUID) continue; // Skip ourselves
+          // A special logic for the logged in user
+          if (person.userID == currentUserUID) {
+            // // Skip the entire specifal logic if the logged in user is already in the list
+            // if (_activePersonsProvider.activePersons.any((p) {
+            //   return p.userID == currentUserUID;
+            // })) {
+            //   continue;
+            // }
 
-              // This will jut generte a random number to act as an ID for each patient's notification
-              int randomGeneratedID = randomNumberGenerator.nextInt(100);
-
-              // If they are NOT in our list yet, they just logged in!
-              bool isAlreadyTracked = _patientsList.any(
-                (p) =>
-                    // p.userID ==
-                    // (
-                    // // personalID ??
-                    // person.userID),
-                    p.userID == person.userID || p.deviceID == person.userID,
-              );
-
-              if (!isAlreadyTracked) {
-                log(
-                  "🟢 New user online! Adding (Device ID: ${person.userID}) to map...",
+            var tempMyDetails =
+                await MyPersonalInfoRepository.getSpecificPersonalInfo(
+                  userID: currentUserUID,
                 );
-                await _addPersonToMap(
-                  // userID: personalID ?? person.userID,
-                  userID: person.userID,
-                  annotationData: annotationData,
-                  userAnnotations: userAnnotations,
-                  pointAnnotationManager: pointAnnotationManager,
-                  context: context,
-                  activeGeofences: activeGeofences,
-                  randomGeneratedID: randomGeneratedID,
-                );
-              }
-            }
+            // State management purposes
+            _activePersonsProvider.addActivePerson(tempMyDetails);
+            _activePersonsProvider.decodeAndAddImageInBuffer(
+              tempMyDetails.userID,
+              tempMyDetails.picture,
+            );
 
-            // 2. Check for OLD people who just went offline
-            List<String> offlineDeviceIDs = [];
+            continue; // Skip ourselves from being included in the map interface
+          }
 
-            for (var trackedPerson in _patientsList) {
-              // If a person in our list is NO LONGER in the database stream, they logged out
-              bool isStillOnline = currentlyActivePersons.any(
-                (active) =>
-                    active.userID == trackedPerson.deviceID ||
-                    active.userID == trackedPerson.userID,
-              );
+          // This will jut generte a random number to act as an ID for each patient's notification
+          int randomGeneratedID = randomNumberGenerator.nextInt(100);
 
-              if (!isStillOnline) {
-                offlineDeviceIDs.add(trackedPerson.deviceID);
-              }
-            }
+          // If they are NOT in our list yet, they just logged in!
+          bool isAlreadyTracked = _activePersonsProvider.activePersons.any(
+            (p) => p.userID == person.userID || p.deviceID == person.userID,
+          );
 
-            // Remove the offline people from the map
-            for (var offlineDeviceID in offlineDeviceIDs) {
-              await _removePersonFromMap(
-                deviceID: offlineDeviceID,
-                annotationData: annotationData,
-                userAnnotations: userAnnotations,
-                pointAnnotationManager: pointAnnotationManager,
-              );
-            }
-          });
+          if (!isAlreadyTracked) {
+            log(
+              "🟢 New user online! Adding (Device ID: ${person.userID}) to map...",
+            );
+            await _addPersonToMap(
+              // userID: personalID ?? person.userID,
+              userID: person.userID,
+              annotationData: annotationData,
+              userAnnotations: userAnnotations,
+              pointAnnotationManager: pointAnnotationManager,
+              context: context,
+              activeGeofences: activeGeofences,
+              randomGeneratedID: randomGeneratedID,
+            );
+          }
+        }
+
+        // 2. Check for OLD people who just went offline
+        List<String> offlineDeviceIDs = [];
+
+        for (var trackedPerson in _activePersonsProvider.activePersons) {
+          // If a person in our list is NO LONGER in the database stream, they logged out
+          bool isStillOnline = currentlyActivePersons.any(
+            (active) =>
+                active.userID == trackedPerson.deviceID ||
+                active.userID == trackedPerson.userID,
+          );
+
+          if (!isStillOnline) {
+            offlineDeviceIDs.add(trackedPerson.deviceID);
+          }
+        }
+
+        // Remove the offline people from the map
+        for (var offlineDeviceID in offlineDeviceIDs) {
+          await _removePersonFromMap(
+            deviceID: offlineDeviceID,
+            annotationData: annotationData,
+            userAnnotations: userAnnotations,
+            pointAnnotationManager: pointAnnotationManager,
+            // For state management purposes
+            userID: _activePersonsProvider.activePersons
+                .firstWhere((p) => p.deviceID == offlineDeviceID)
+                .userID,
+            context: context,
+          );
+        }
+      });
 
       log("Notice: ✅ Successfully initialized the Realtime Map Traffic Cop.");
     } catch (e, stackTrace) {
@@ -468,16 +495,25 @@ class ListenToPatients {
           .read<MyHomeGeofenceConfigurationProvider>();
       var miscellaneousProvider = context.read<MyHomeMiscellaneousProvider>();
       var mapboxRefProvider = context.read<MyMapboxRefProvider>();
+      // var activePersonsProvider = context.read<MyHomeActivePersonsProvider>();
 
       // 1. Fetch their info from database
       late PersonalInfo personInfo;
       personInfo = await getPersonalInfo(userID);
 
-      _patientsList.add(personInfo);
+      // _patientsList.add(personInfo);
+      _activePersonsProvider.addActivePerson(personInfo);
+
+      // State management purposes
+      _activePersonsProvider.addActivePerson(personInfo);
+      _activePersonsProvider.decodeAndAddImageInBuffer(
+        personInfo.userID,
+        personInfo.picture,
+      );
 
       // for debugging purposes only
       log("___________THESE ARE THE ACTIVE PERSONS IN THE LIST:");
-      for (var person in _patientsList) {
+      for (var person in _activePersonsProvider.activePersons) {
         log(
           "Name: ${person.name}, userID: ${person.userID}, deviceID: ${person.deviceID}",
         );
@@ -486,10 +522,10 @@ class ListenToPatients {
       String deviceID = personInfo.deviceID;
       bool isAPatient = (personInfo.userType == "Patient");
 
-      // Decode their profile picture once
-      final Uint8List personIcon = MyImageProcessor.decodeStringToUint8List(
-        personInfo.picture,
-      );
+      // // Decode their profile picture once
+      // final Uint8List personIcon = MyImageProcessor.decodeStringToUint8List(
+      //   personInfo.picture,
+      // );
 
       // Cancel existing subscription if it somehow exists to avoid memory leaks
       await _locationSubscriptions[deviceID]?.cancel();
@@ -505,6 +541,20 @@ class ListenToPatients {
                   double.tryParse(realtimeLocModel.currentLocationLng) ?? 0.0;
               double lat =
                   double.tryParse(realtimeLocModel.currentLocationLat) ?? 0.0;
+
+              // State management purposes
+              _activePersonsProvider.updatePersonCurrentPosition(
+                personInfo.userID,
+                mp.Position(lng, lat),
+              );
+              // if (!(activePersonsProvider.decodedImagesBuffer.containsKey(
+              //   personInfo.userID,
+              // ))) {
+              //   activePersonsProvider.decodeAndAddImageInBuffer(
+              //     personInfo.userID,
+              //     personInfo.picture,
+              //   );
+              // }
 
               // Prepare metadata for the Bottom Sheet/Snackbars
               annotationData[deviceID] = {
@@ -545,7 +595,8 @@ class ListenToPatients {
                 await myPointAnnotationOptions(
                   name: personInfo.name,
                   myPosition: mp.Position(lng, lat),
-                  imageData: personIcon,
+                  imageData: _activePersonsProvider
+                      .decodedImagesBuffer[personInfo.userID],
                   isAPatient: isAPatient,
                   isCurrentlySafe: realtimeLocModel.isCurrentlySafe,
                 ),
@@ -783,6 +834,9 @@ class ListenToPatients {
     required Map<String, Map<String, dynamic>> annotationData,
     required Map<String, mp.PointAnnotation> userAnnotations,
     mp.PointAnnotationManager? pointAnnotationManager,
+    // State management purposes
+    String? userID,
+    BuildContext? context,
   }) async {
     try {
       log("🔴 Removing offline user (Device ID: $deviceID) from the map.");
@@ -791,8 +845,17 @@ class ListenToPatients {
       await _locationSubscriptions[deviceID]?.cancel();
       _locationSubscriptions.remove(deviceID);
 
+      // State management purposes
+      var activePersonsProvider = context?.read<MyHomeActivePersonsProvider>();
+      activePersonsProvider?.removeActivePerson(userID!);
+      if (!(activePersonsProvider!.decodedImagesBuffer.containsKey(userID))) {
+        activePersonsProvider.removeDecodedImageInBuffer(userID!);
+      }
+
       // 2. Remove them from our local list
-      _patientsList.removeWhere((p) => p.deviceID == deviceID);
+      _activePersonsProvider.activePersons.removeWhere(
+        (p) => p.deviceID == deviceID,
+      );
 
       // 3. Delete their Mapbox Icon!
       if (userAnnotations.containsKey(deviceID)) {

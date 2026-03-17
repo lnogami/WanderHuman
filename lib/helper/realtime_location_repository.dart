@@ -130,6 +130,7 @@ class MyRealtimeLocationReposity {
   /// This will return a Position object. To access lng or lat, just call Postion.lng or Position.lat
   static Future<mp.Position> getLocation({required String deviceID}) async {
     try {
+      log("GETTING REALTIME LOCATION OF PATIENTTTTTTTTTTTTTTTTTTTT: $deviceID");
       final snapshot = await _realtimeLocationRef.child(deviceID).get();
       if (snapshot.exists) {
         Map<String, dynamic> data = Map<String, dynamic>.from(

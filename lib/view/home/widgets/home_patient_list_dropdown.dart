@@ -5,18 +5,18 @@ import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
-import 'package:wanderhuman_app/helper/realtime_active_status_repository.dart';
 import 'package:wanderhuman_app/helper/realtime_location_repository.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
-import 'package:wanderhuman_app/model/realtime_active_status_model.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
+import 'package:wanderhuman_app/view-model/home_active_persons_provider.dart';
 import 'package:wanderhuman_app/view-model/home_appbar_provider.dart';
 import 'package:wanderhuman_app/view-model/home_settings_provider.dart';
 import 'package:wanderhuman_app/view-model/my_mapbox_ref_provider.dart';
 import 'package:wanderhuman_app/view/components/image_displayer.dart';
 import 'package:wanderhuman_app/view/components/image_picker.dart';
 import 'package:wanderhuman_app/view/components/lines.dart';
+import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/components/tooltip.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/map_camera_animations.dart';
 
@@ -31,66 +31,75 @@ class HomePatientListDropDown extends StatefulWidget {
 class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
   // will determin if the dropdown is expanded or not
   bool isExpanded = false;
-  // will determin if the resources are loaded or not
-  bool isLoading = false;
+  // // will determin if the resources are loaded or not
+  // bool isLoading = false;
   // this will contain the mapbox controller reference
   late MapboxMap _mapControllerRef;
   // for coloring the selected individual
   String selectedIndividualID = "";
-  // store all the patients and staffs
-  List<PersonalInfo> patientList = [];
-  //      id, position
-  Map<String, Position> patientLocations = {};
+  // // store all the patients and staffs
+  // List<PersonalInfo> patientList = [];
+  // //      id, position
+  // Map<String, Position> patientLocations = {};
   // decoded images buffer
-  Map<String, Uint8List> decodedImagesBuffer = {};
+  // Map<String, Uint8List> decodedImagesBuffer = {};
 
-  // will return all the patients in the PersonalInfo in the database (PersonalInfo)
-  Future<void> getActivePatientList() async {
-    // activeDevice includes both the patient device and the mobile app (caregivers)
-    List<MyRealtimeActiveStatusModel> activeDevices =
-        await MyRealtimeActiveStatusRepository.getAllDeviceIDWithActiveStatus();
-    // log("ALL ACTIVE DEVICESSSSSSSSSSSSSSSSSSSSSS: ${activeDevices.length}");
+  // Provider
+  late MyHomeActivePersonsProvider activePersonsProvider;
 
-    // Storing the data in a temporary local variable is a preventive measure for multiple occurance of data
-    // that triggers when the dropdown is quickly clode while still loading then opening it again.
-    List<PersonalInfo> tempPatientList = [];
-    Map<String, Position> tempPatientLocations = {};
-    Map<String, Uint8List> tempDecodedImagesBuffer = {};
+  // // will return all the patients in the PersonalInfo in the database (PersonalInfo)
+  // Future<void> getActivePatientList() async {
+  //   // activeDevice includes both the patient device and the mobile app (caregivers)
 
-    for (var device in activeDevices) {
-      // log("PERSON's IDDDDDDDDDDDDDDDD: ${device.userID}");
+  //   // List<MyRealtimeActiveStatusModel> activeDevices =
+  //   //     await MyRealtimeActiveStatusRepository.getAllDeviceIDWithActiveStatus();
 
-      var person = await MyPersonalInfoRepository.getSpecificPersonalInfo(
-        userID: device.userID,
-      );
+  //   // log("ALL ACTIVE DEVICESSSSSSSSSSSSSSSSSSSSSS: ${activeDevices.length}");
 
-      log(
-        "Active Person: ${person.name}, userID: ${person.userID}, deviceID: ${person.deviceID}",
-      );
+  //   Map<String, PersonalInfo> activeDevices =
+  //       activePersonsProvider.activePersons;
 
-      // add the patient as an active person to a temporaruy list
-      tempPatientList.add(person);
-      // store the coordinates of the patient in a temporary map
-      tempPatientLocations[person.userID] =
-          await MyRealtimeLocationReposity.getLocation(
-            deviceID: person.deviceID,
-          );
-      // store the decoded image in a temporary buffer
-      tempDecodedImagesBuffer[person.userID] =
-          MyImageProcessor.decodeStringToUint8List(person.picture);
-    }
+  //   // Storing the data in a temporary local variable is a preventive measure for multiple occurance of data
+  //   // that triggers when the dropdown is quickly clode while still loading then opening it again.
+  //   List<PersonalInfo> tempPatientList = [];
+  //   // Map<String, Position> tempPatientLocations = {};
+  //   Map<String, Uint8List> tempDecodedImagesBuffer = {};
 
-    // log("ALL ACTIVE PERSONSSSSSSSSSSSSSSSSSSSSS: ${patientList.length}");
+  //   for (var device in activeDevices.values) {
+  //     // log("PERSON's IDDDDDDDDDDDDDDDD: ${device.userID}");
 
-    tempPatientList.sort((a, b) => a.name.compareTo(b.name));
+  //     var person = await MyPersonalInfoRepository.getSpecificPersonalInfo(
+  //       userID: device.userID,
+  //     );
 
-    setState(() {
-      patientList = tempPatientList;
-      patientLocations = tempPatientLocations;
-      decodedImagesBuffer = tempDecodedImagesBuffer;
-      isLoading = false;
-    });
-  }
+  //     log(
+  //       "Active Person: ${person.name}, userID: ${person.userID}, deviceID: ${person.deviceID}",
+  //     );
+
+  //     // add the patient as an active person to a temporaruy list
+  //     tempPatientList.add(person);
+  //     // // store the coordinates of the patient in a temporary map
+  //     // tempPatientLocations[person.userID] =
+  //     //     activePersonsProvider.personCurrentPosition[person.userID] ??
+  //     //     await MyRealtimeLocationReposity.getLocation(
+  //     //       deviceID: person.deviceID,
+  //     //     );
+  //     // store the decoded image in a temporary buffer
+  //     tempDecodedImagesBuffer[person.userID] =
+  //         MyImageProcessor.decodeStringToUint8List(person.picture);
+  //   }
+
+  //   // log("ALL ACTIVE PERSONSSSSSSSSSSSSSSSSSSSSS: ${patientList.length}");
+
+  //   tempPatientList.sort((a, b) => a.name.compareTo(b.name));
+
+  //   setState(() {
+  //     patientList = tempPatientList;
+  //     // patientLocations = tempPatientLocations;
+  //     decodedImagesBuffer = tempDecodedImagesBuffer;
+  //     isLoading = false;
+  //   });
+  // }
 
   @override
   void initState() {
@@ -101,6 +110,8 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
   Widget build(BuildContext context) {
     // first store the value of the provider in a variable
     final mapboxProvider = context.watch<MyMapboxRefProvider>();
+    activePersonsProvider = context.watch<MyHomeActivePersonsProvider>();
+
     // this condition will prevent a few second error
     if (mapboxProvider.getMapboxMapController != null) {
       // then, call the getter to assign it to the mapbox controller reference
@@ -117,12 +128,12 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
           setState(() {
             isExpanded = !isExpanded;
             if (isExpanded) {
-              isLoading = true;
-              getActivePatientList();
+              // isLoading = true;
+              // getActivePatientList();
             } else {
-              patientList.clear();
-              patientLocations.clear();
-              decodedImagesBuffer.clear();
+              // patientList.clear();
+              // patientLocations.clear();
+              // decodedImagesBuffer.clear();
               selectedIndividualID = "";
             }
           });
@@ -171,17 +182,20 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
                   borderRadius: BorderRadius.all(Radius.circular(7)),
                 ),
                 alignment: AlignmentGeometry.topCenter,
-                child: (isLoading)
-                    ? CircularProgressIndicator.adaptive()
-                    : ListView.builder(
-                        itemCount: patientList.length,
-                        itemBuilder: (context, index) {
-                          return individualPatientIcon(
-                            personalInfo: patientList[index],
-                            context: context,
-                          );
-                        },
-                      ),
+                child:
+                    // (isLoading)
+                    //     ? CircularProgressIndicator.adaptive()
+                    //     :
+                    ListView.builder(
+                      itemCount: activePersonsProvider.activePersons.length,
+                      itemBuilder: (context, index) {
+                        return individualPatientIcon(
+                          personalInfo:
+                              activePersonsProvider.activePersons[index],
+                          context: context,
+                        );
+                      },
+                    ),
               ),
             ],
           ),
@@ -229,17 +243,43 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
         //   // patientID: personalInfo.userID,
         // );
         // }
+        Position? currentPosition =
+            activePersonsProvider.personCurrentPosition[personalInfo.userID];
+
+        // removes the person in the dropdown when they go offline
+        if (!(activePersonsProvider.activePersons.contains(personalInfo))) {
+          showMyAnimatedSnackBar(
+            context: context,
+            dataToDisplay: "Sorry, ${personalInfo.name} has gone offline.",
+          );
+          setState(() {
+            activePersonsProvider.removeActivePerson(personalInfo.userID);
+            activePersonsProvider.removeDecodedImageInBuffer(
+              personalInfo.userID,
+            );
+          });
+        }
+
+        // debugging purposes only
+        if (currentPosition == null) {
+          showMyAnimatedSnackBar(
+            context: context,
+            dataToDisplay: "Something went wrong.",
+          );
+          return;
+        }
 
         MyMapCameraAnimations.myMapFlyTo(
           mapboxController: _mapControllerRef,
           // position: Position(125.7989268, 7.4233187),
-          position: patientLocations[personalInfo.userID]!,
+          // position: patientLocations[personalInfo.userID]!,
+          position: currentPosition,
           zoomLevel: context.read<MyHomeSettingsProvider>().zoomLevel,
           // patientID: personalInfo.userID,
         );
 
         log(
-          "============= ${personalInfo.name}'s location is lng: ${patientLocations[personalInfo.userID]!.lng} lat: ${patientLocations[personalInfo.userID]!.lat}",
+          "============= ${personalInfo.name}'s location is lng: ${currentPosition.lng} lat: ${currentPosition.lat}",
         );
 
         setState(() {
@@ -262,7 +302,8 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
               aspectRatio: 1 / 1,
               child: CircleAvatar(
                 child: MyImageDisplayer(
-                  base64ImageString: decodedImagesBuffer[personalInfo.userID],
+                  base64ImageString: activePersonsProvider
+                      .decodedImagesBuffer[personalInfo.userID],
                 ),
               ),
             ),

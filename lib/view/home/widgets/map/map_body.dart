@@ -18,6 +18,8 @@ import 'package:wanderhuman_app/model/geofence_model.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/model/realtime_location_model.dart';
 import 'package:wanderhuman_app/utilities/properties/date_formatter.dart';
+import 'package:wanderhuman_app/view-model/home_active_persons_provider.dart';
+import 'package:wanderhuman_app/view-model/home_appbar_provider.dart';
 import 'package:wanderhuman_app/view-model/home_geofence_config_provider.dart';
 import 'package:wanderhuman_app/view-model/home_miscellaneous_provider.dart';
 import 'package:wanderhuman_app/view-model/home_settings_provider.dart';
@@ -68,6 +70,8 @@ class _MapBodyState extends State<MapBody> with RouteAware {
 
   // Provider
   late MyHomeSettingsProvider myHomeSettingsProvider;
+  late HomeAppBarProvider myHomeAppBarProvider;
+  late MyHomeActivePersonsProvider myHomeActivePersonsProvider;
 
   // This two Managers are for temporary scenarios like when creating a safe zone (geofence)
   mp.PolygonAnnotationManager? markedPolygonAnnotationManager;
@@ -149,6 +153,13 @@ class _MapBodyState extends State<MapBody> with RouteAware {
 
     // setup all the active geofences (safezones)
     setupGeofences();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Add the current logged in user in the active perons list
+      myHomeActivePersonsProvider.addActivePerson(
+        context.read<HomeAppBarProvider>().loggedInUserData,
+      );
+    });
   }
 
   @override
@@ -168,6 +179,14 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     // this method will stop all the StreamSubscriptions to save resources
     ListenToPatients.stopListening();
     _myAudioPlayer.dispose();
+
+    // Remove the current logged in user in the active perons list
+    Future.microtask(() {
+      myHomeActivePersonsProvider.removeActivePerson(
+        myHomeAppBarProvider.loggedInUserData.userID,
+      );
+    });
+
     super.dispose();
   }
 
@@ -209,6 +228,8 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     // This will listen to changes
     // cameraZoomLevel = context.watch<MyHomeSettingsProvider>().zoomLevel;
     myHomeSettingsProvider = context.watch<MyHomeSettingsProvider>();
+    myHomeAppBarProvider = context.watch<HomeAppBarProvider>();
+    myHomeActivePersonsProvider = context.read<MyHomeActivePersonsProvider>();
 
     return mp.MapWidget(
       onMapCreated: _onMapCreated,
@@ -586,6 +607,14 @@ class _MapBodyState extends State<MapBody> with RouteAware {
             // // print(position);
             // // temporary
             // myPosition = position;
+
+            // State management purposes
+            context
+                .read<MyHomeActivePersonsProvider>()
+                .updatePersonCurrentPosition(
+                  myHomeAppBarProvider.loggedInUserData.userID,
+                  mp.Position(position.longitude, position.latitude),
+                );
 
             // CameraOptios sets where the map is centered and how zoomed in it is.
             if (isIntroAudioPlayingForTheFirstTime ||

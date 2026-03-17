@@ -81,8 +81,6 @@ class MyHomeGeofenceConfigurationProvider extends ChangeNotifier {
   /// For clearing the cached data after saving, to avoid using it.
   void clearAllCachedTemporaryData() {
     clearMarkedPositions();
-    // _centerPoint = Position(0, 0); // temporarily throw it somewhere else
-    // setCenterPoint(Position(0, 0)); // temporarily throw it somewhere else
     _markedCenterPointAnnotationManager?.deleteAll();
     _markedPointAnnotationManager!.deleteAll();
     _markedPolygonAnnotationManager!.deleteAll();
