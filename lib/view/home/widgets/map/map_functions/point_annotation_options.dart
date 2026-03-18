@@ -15,6 +15,7 @@ Future<PointAnnotationOptions> myPointAnnotationOptions({
   bool isAPatient =
       true, // true by default because this function is initialy for patients
   required bool isCurrentlySafe,
+  // double iconRotate = 0.0, // (not yet emplemented) (deletable)
 }) async {
   return PointAnnotationOptions(
     // textHaloColor: Colors.blue.toARGB32(),
@@ -41,6 +42,7 @@ Future<PointAnnotationOptions> myPointAnnotationOptions({
     textAnchor: TextAnchor.BOTTOM,
     textOffset: [0, -1.2],
     geometry: Point(coordinates: myPosition),
+    // iconRotate: iconRotate, // (not yet emplemented) (deletable)
   );
 }
 
@@ -107,6 +109,30 @@ Future<Uint8List> makeCircularImage(
       }
     }
   }
+
+  //// A Feature (not yet implemented) (deletabe)
+  // // --- NEW: DRAW A DIRECTIONAL POINTER (ARROW) ---
+  // // We draw a triangle pointing UP (0 degrees).
+  // // When Mapbox rotates the image, this arrow will point to the heading.
+  // int arrowHeight = borderWidth + 15; // How far down the arrow goes
+  // int arrowHalfWidth = 15; // How wide the base of the arrow is
+
+  // for (int y = 0; y < arrowHeight; y++) {
+  //   for (
+  //     int x = (centerX - arrowHalfWidth).toInt();
+  //     x <= (centerX + arrowHalfWidth).toInt();
+  //     x++
+  //   ) {
+  //     // Simple triangle math: the width of the arrow gets wider as we move down the Y axis
+  //     double currentHalfWidth = (y / arrowHeight) * arrowHalfWidth;
+
+  //     if ((x - centerX).abs() <= currentHalfWidth) {
+  //       // Draw a blue arrow (Matches Colors.blue)
+  //       // You can change the RGB values here if your app theme uses a different color
+  //       circularImage.setPixelRgba(x, y, 33, 149, 243, 255);
+  //     }
+  //   }
+  // }
 
   return Uint8List.fromList(img.encodePng(circularImage));
 }

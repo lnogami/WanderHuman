@@ -26,6 +26,7 @@ import 'package:wanderhuman_app/view-model/home_settings_provider.dart';
 import 'package:wanderhuman_app/view-model/my_mapbox_ref_provider.dart';
 import 'package:wanderhuman_app/view/components/info_dialogue.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/draw_geo/map_geofence_drawer.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/geo_logics/distance_validator.dart';
 // import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/bottom_modal_sheet_for_patient.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/listen_to_patients.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/map_camera_animations.dart';
@@ -54,6 +55,8 @@ class _MapBodyState extends State<MapBody> with RouteAware {
 
   /// To listen to the mobile app user's location changes
   StreamSubscription? currentLoggedInUserPositionStream;
+  // Tracks the filtered blue dot (or avatar) on the map
+  mp.PointAnnotation? myFilteredPuck;
 
   /// Keep track of existing annotations by Firestore document ID
   Map<String, mp.PointAnnotation> userAnnotations = {};
@@ -85,6 +88,10 @@ class _MapBodyState extends State<MapBody> with RouteAware {
   bool isIntroAudioPlayingForTheFirstTime = true;
 
   late DateTime lastLoggedInUserUpdateToDatabase;
+  mp.Position? lastSavedDatabasePosition;
+
+  // Position Validator, this will validate if a coordinates given by GPS is valid or just a noise
+  final MyDistanceValidator myDistanceValidator = MyDistanceValidator();
 
   Future<void> checkLocationServiceStatus() async {
     isLocationServiceEnabled = await gl.Geolocator.isLocationServiceEnabled();
@@ -350,194 +357,6 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     // );
   }
 
-  // /// Add this to your state variables
-  // /// The first Map is for ?, and the second Map is for ?
-  // Map<String, Map<String, dynamic>> annotationData = {};
-
-  /// Listen to Firestore collection in real-time
-  // void listenToPatients() async {
-  //   // History is just a placeholder,    "RealTime" is the collection here.
-  //   FirebaseFirestore.instance.collection("History").snapshots().listen((
-  //     snapshot,
-  //   ) async {
-  //     try {
-  //       // showMyAnimatedSnackBar(
-  //       //   context: context,
-  //       //   dataToDisplay: personsList.length.toString(),
-  //       // );
-  //
-  //       int n = 0; // (deletable) for debugging purposes only
-  //
-  //       // // iterate every document in History collection
-  //       // for (var doc in snapshot.docs) {
-  //       //   var data = doc.data();
-  //       //   n++;
-  //
-  //       //   // Extract coordinates   // naka list man gud ni maong ingani [""][0]   naka List ni sya pag save sa firestore kay Position object man gud ang gisend, naconvert sya into array pag abot sa firestore
-  //       //   double lng = data["currentLocation"][0] ?? "NULL lng";
-  //       //   double lat = data["currentLocation"][1] ?? "NULL lat";
-  //
-  //       //   // to get user name
-  //       //   String name = MyPersonalInfoRepository.getSpecificUserName(
-  //       //     personsList: personsList,
-  //       //     userIDToLookFor: data["patientID"],
-  //       //   );
-  //
-  //       //   // to get personal info based on patient's ID
-  //       //   PersonalInfo personalInfo =
-  //       //       await MyPersonalInfoRepository.getSpecificPersonalInfo(
-  //       //         userID: data["patientID"],
-  //       //       );
-  //
-  //       //   // Store the data associated with this document
-  //       //   annotationData[doc.id] = {
-  //       //     'name': name,
-  //       //     'patientID': data["patientID"],
-  //       //     'number': n, //for debugging purposes only, might delete later on
-  //       //     'lng': lng,
-  //       //     'lat': lat,
-  //       //     'currentlyIn': data["currentlyIn"],
-  //       //     'isInSafeZone': data["isInSafeZone"],
-  //       //     'timeStamp': data["timeStamp"],
-  //       //     'deviceBatteryPercentage': data["deviceBatteryPercentage"],
-  //       //     //
-  //       //     'age': personalInfo.age,
-  //       //     'sex': personalInfo.sex,
-  //       //     'contactInfo': personalInfo.contactNumber,
-  //       //     'address': personalInfo.address,
-  //       //     'notableBehavior': personalInfo.notableBehavior,
-  //       //   };
-  //
-  //       // newer version of the code above this line
-  //       // iterate every document in History collection
-  //       for (var doc in snapshot.docs) {
-  //         var data = doc.data();
-  //         // I just converted the data into an object so that it is readable for me
-  //         HistoryModel historyModel = HistoryModel.fromFirestore(data);
-  //         n++;
-  //
-  //         // // Extract coordinates   // naka list man gud ni maong ingani [""][0]   naka List ni sya pag save sa firestore kay Position object man gud ang gisend, naconvert sya into array pag abot sa firestore
-  //         // double lng = data["currentLocation"][0] ?? "NULL lng";
-  //         // double lat = data["currentLocation"][1] ?? "NULL lat";
-  //         // (to be used when the current data in the database is replaced with updated ones)
-  //         double lng = double.parse(historyModel.currentLocationLng);
-  //         double lat = double.parse(historyModel.currentLocationLat);
-  //
-  //         // to get personal info based on patient's ID
-  //         PersonalInfo personalInfo =
-  //             await MyPersonalInfoRepository.getSpecificPersonalInfo(
-  //               userID: historyModel.patientID,
-  //             );
-  //         String name = personalInfo.name;
-  //
-  //         // Store the data associated with this document
-  //         annotationData[doc.id] = {
-  //           'name': name,
-  //           'patientID': historyModel.patientID,
-  //           'number': n, //for debugging purposes only, might delete later on
-  //           'lng': lng,
-  //           'lat': lat,
-  //           'currentlyIn': historyModel.currentlyIn,
-  //           'isInSafeZone': historyModel.isInSafeZone,
-  //           'timeStamp': historyModel.timeStamp,
-  //           'deviceBatteryPercentage': historyModel.deviceBatteryPercentage
-  //               .toString(),
-  //           //
-  //           'age': personalInfo.age,
-  //           'sex': personalInfo.sex,
-  //           'contactInfo': personalInfo.contactNumber,
-  //           'address': personalInfo.address,
-  //           'notableBehavior': personalInfo.notableBehavior,
-  //         };
-  //
-  //         // // (deletable) pang debug ra ni
-  //         // if (name == "Coach Anzai") {
-  //         //   showMyAnimatedSnackBar(
-  //         //     context: context,
-  //         //     dataToDisplay: "$n). $name: ${doc.data().toString()}",
-  //         //   );
-  //         // }
-  //
-  //         // // load image as the marker (temporary)
-  //         // final Uint8List imageData = await imageToIconLoader(
-  //         //   // "assets/icons/isagi.jpg",
-  //         //   "assets/icons/pin.png",
-  //         // );
-  //         // load image as the marker (temporary)
-  //         final Uint8List patientIcon =
-  //             MyImageProcessor.decodeStringToUint8List(personalInfo.picture);
-  //
-  //         // If the user already has an annotation, update its position
-  //         if (userAnnotations.containsKey(doc.id)) {
-  //           // remove old annotation
-  //           pointAnnotationManager?.delete(userAnnotations[doc.id]!);
-  //           // create new annotation at the updated location
-  //           var newAnnotation = await pointAnnotationManager?.create(
-  //             await myPointAnnotationOptions(
-  //               name: name,
-  //               myPosition: mp.Position(lng, lat),
-  //               imageData: patientIcon,
-  //             ),
-  //           );
-  //           // then add a new annotation to the map
-  //           userAnnotations[doc.id] = newAnnotation!;
-  //         } else {
-  //           // create new annation
-  //           var newAnnotation = await pointAnnotationManager?.create(
-  //             await myPointAnnotationOptions(
-  //               name: name,
-  //               myPosition: mp.Position(lng, lat),
-  //               imageData: patientIcon,
-  //             ),
-  //           );
-  //           // then add the new annotation to the map
-  //           userAnnotations[doc.id] = newAnnotation!;
-  //         }
-  //
-  //         // // setting tap events to the marker
-  //         // pointAnnotationManager?.tapEvents(
-  //         //   onTap: (mp.PointAnnotation tappedAnnotation) {
-  //         //     // bottomModalSheet(context);
-  //         //     print("NAMEEEEEEEEEEEEEEEEEEEEEEEE: $name");
-  //         //     showMyBottomNavigationSheet(context: context, name: "$name: $n");
-  //         //   },
-  //         // );
-  //
-  //         // set up tap events ONCE, outside the loop
-  //         pointAnnotationManager?.tapEvents(
-  //           onTap: (mp.PointAnnotation tappedAnnotation) {
-  //             // find which document this annotation belongs to
-  //             String? docId = userAnnotations.entries
-  //                 .firstWhere(
-  //                   (entry) => entry.value == tappedAnnotation,
-  //                   orElse: () => MapEntry('', tappedAnnotation),
-  //                 )
-  //                 .key;
-  //
-  //             if (docId.isNotEmpty && annotationData.containsKey(docId)) {
-  //               var data = annotationData[docId]!;
-  //               showMyBottomNavigationSheet(
-  //                 context: context,
-  //                 name: "${data['name']} : ${data['number']}",
-  //                 sex: data['sex'] ?? "NO DATA ACQUIRED",
-  //                 age: data['age'] ?? "NO DATA ACQUIRED",
-  //                 contactInfo: data['contactInfo'] ?? "NO DATA ACQUIRED",
-  //                 address: data['address'] ?? "NO DATA ACQUIRED",
-  //                 notableBehavior:
-  //                     data['notableBehavior'] ?? "NO DATA ACQUIRED",
-  //               );
-  //             }
-  //           },
-  //         );
-  //       }
-  //     } catch (e, stackTrace) {
-  //       // showMyAnimatedSnackBar(context: context, dataToDisplay: e.toString());
-  //       print("ERROR ON LISTENTOPATIENTS METHOD: ${e.toString()}");
-  //       print("ERROR ONNNNNNNNNNNNNNNNNNNNNNNN: $stackTrace");
-  //     }
-  //   });
-  // }
-
   //------------------------------------------------------------------------------
 
   /// This will ask for persmission to the user to allow the app to access location services.
@@ -584,14 +403,6 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     );
 
     positionStreamOfTheCurrentLoggedInUser(locationSettings);
-
-    // (deletable)
-    /*
-      this is stream, meaning it is listening to the user's location changes
-
-      .cacel() stops the process then rerun again with an updated 
-      gl.Geolocator.getPositionStream(...)
-    */
   }
 
   // the stream where the position of the user is updated
@@ -604,24 +415,55 @@ class _MapBodyState extends State<MapBody> with RouteAware {
           locationSettings: locationSettings,
         ).listen((gl.Position? position) async {
           if (position != null && mapboxMapController != null) {
-            // // print(position);
-            // // temporary
-            // myPosition = position;
+            //// (old code, the update function is the one below this)
+            // // State management purposes
+            // myHomeActivePersonsProvider.updatePersonCurrentPosition(
+            //   myHomeAppBarProvider.loggedInUserData.userID,
+            //   mp.Position(position.longitude, position.latitude),
+            // );
+            //
+            // // CameraOptios sets where the map is centered and how zoomed in it is.
+            // if (isIntroAudioPlayingForTheFirstTime ||
+            //     myHomeSettingsProvider.alwaysFollowYourAvatar) {
+            //   await MyMapCameraAnimations.myMapFlyTo(
+            //     mapboxController: mapboxMapController!,
+            //     position: mp.Position(position.longitude, position.latitude),
+            //     animationDurationInMilliseconds:
+            //         (isIntroAudioPlayingForTheFirstTime)
+            //         ? ((myHomeSettingsProvider.zoomLevel.toInt()) + 6250)
+            //         : 700,
+            //     zoomLevel: myHomeSettingsProvider.zoomLevel,
+            //   );
+            //   Future.delayed(Duration(milliseconds: 6260), () {
+            //     setState(() => isIntroAudioPlayingForTheFirstTime = false);
+            //     context
+            //         .read<MyHomeMiscellaneousProvider>()
+            //         .setIsIntroAnimationDone(true);
+            //   });
+            // }
+
+            mp.Position? validatedPosition = myDistanceValidator
+                .processNewLocation(position.longitude, position.latitude);
+            log(
+              "VVVVVVVVVVVVVVVVVVVVVVALIDATED POSITION: lng:${validatedPosition?.lng}, lat:${validatedPosition?.lat}",
+            );
+            if (validatedPosition == null) return;
 
             // State management purposes
-            context
-                .read<MyHomeActivePersonsProvider>()
-                .updatePersonCurrentPosition(
-                  myHomeAppBarProvider.loggedInUserData.userID,
-                  mp.Position(position.longitude, position.latitude),
-                );
+            myHomeActivePersonsProvider.updatePersonCurrentPosition(
+              myHomeAppBarProvider.loggedInUserData.userID,
+              mp.Position(validatedPosition.lng, validatedPosition.lat),
+            );
 
             // CameraOptios sets where the map is centered and how zoomed in it is.
             if (isIntroAudioPlayingForTheFirstTime ||
                 myHomeSettingsProvider.alwaysFollowYourAvatar) {
               await MyMapCameraAnimations.myMapFlyTo(
                 mapboxController: mapboxMapController!,
-                position: mp.Position(position.longitude, position.latitude),
+                position: mp.Position(
+                  validatedPosition.lng,
+                  validatedPosition.lat,
+                ),
                 animationDurationInMilliseconds:
                     (isIntroAudioPlayingForTheFirstTime)
                     ? ((myHomeSettingsProvider.zoomLevel.toInt()) + 6250)
@@ -630,91 +472,162 @@ class _MapBodyState extends State<MapBody> with RouteAware {
               );
               Future.delayed(Duration(milliseconds: 6260), () {
                 setState(() => isIntroAudioPlayingForTheFirstTime = false);
+                // ignore: use_build_context_synchronously
                 context
                     .read<MyHomeMiscellaneousProvider>()
                     .setIsIntroAnimationDone(true);
               });
             }
 
-            // // CameraOptios sets where the map is centered and how zoomed in it is.
-            // mapboxMapController?.setCamera(
-            //   mp.CameraOptions(
-            //     // zoom: 15.0,
-            //     zoom: cameraZoomLevel,
-            //     center: mp.Point(
-            //       coordinates: mp.Position(
-            //         position.longitude,
-            //         position.latitude,
-            //       ),
-            //     ),
+            // updateLoggedInUserLocationToTheDatabase(position);
+            updateLoggedInUserLocationToTheDatabase(
+              validatedPosition.lng.toDouble(),
+              validatedPosition.lat.toDouble(),
+            );
+            // updateLoggedInUserLocationToTheDatabase(
+            //   gl.Position(
+            //     longitude: validatedPosition.lng.toDouble(),
+            //     latitude: validatedPosition.lat.toDouble(),
+            //     timestamp: position.timestamp, // not really needed
+            //     speed: position.speed, //
+            //     speedAccuracy: position.speedAccuracy, //
+            //     accuracy: position.accuracy, //
+            //     altitude: position.altitude, //
+            //     altitudeAccuracy: position.altitudeAccuracy, //
+            //     // heading: position.heading, //
+            //     heading: myDistanceValidator.currentHeading, //
+            //     headingAccuracy: position.headingAccuracy, //
             //   ),
-            //   // (deletable) this is just for testing purposes only
-            //   // mp.CameraOptions(
-            //   //   center: mp.Point(
-            //   //     coordinates: mp.Position(-74.0445, 40.6892),
-            //   //   ), // Statue of Liberty
-            //   //   zoom: 16.0,
-            //   //   pitch:
-            //   //       45.0, // Tilting the camera makes 3D landmarks much easier to see
-            //   // ),
             // );
 
-            updateLoggedInUserLocationToTheDatabase(position);
-
-            //// This is no longer needed because the app user can see himself as the uniqure blue dot on the map
-            // mp.PointAnnotationOptions pointAnnotationOptions =
-            //     await myPointAnnotationOptions(
-            //       imageData: MyImageProcessor.decodeStringToUint8List(
-            //         widget.loggedInUserData.picture,
-            //       ),
-            //       name: widget.loggedInUserData.name,
-            //       textSize: 12.5,
-            //       myPosition: mp.Position(
-            //         // THIS IS THE PATIENTS CURRENT COORDINATES
-            //         // temporary coordinates
-            //         myPosition!.longitude,
-            //         myPosition!.latitude,
-            //       ),
-            //     );
-            // // add the marker to the map
-            // pointAnnotationManager?.create(pointAnnotationOptions);
-
-            // pointAnnotationManager?.createMulti(List<mp.PointAnnotation>);
-            // // this was move to listenToPatients method
-            // // setting tap events to the marker
-            // pointAnnotationManager?.tapEvents(
-            //   onTap: (mp.PointAnnotation tappedAnnotation) {
-            //     // bottomModalSheet(context);
-
-            //     showMyBottomNavigationSheet(
-            //       context: context,
-            //       name: "Hori Zontal",
-            //     );
-            //   },
-            // );
+            //// This is just a Feature (not yet implemented) (deletable)
+            //   if (pointAnnotationManager != null) {
+            //     // 1. If the puck doesn't exist yet, create it
+            //     if (myFilteredPuck == null) {
+            //       mp.PointAnnotationOptions puckOptions =
+            //           await myPointAnnotationOptions(
+            //             imageData: MyImageProcessor.decodeStringToUint8List(
+            //               widget.loggedInUserData.picture,
+            //             ),
+            //             name: widget.loggedInUserData.name,
+            //             textSize: 12.5,
+            //             myPosition: mp.Position(
+            //               validatedPosition.lng,
+            //               validatedPosition.lat,
+            //             ),
+            //             isCurrentlySafe: true,
+            //             iconRotate: myDistanceValidator.currentHeading,
+            //           );
+            //
+            //       myFilteredPuck = await pointAnnotationManager!.create(
+            //         puckOptions,
+            //       );
+            //     }
+            //     // 2. If it already exists, just smoothly move it to the new clean coordinate
+            //     else {
+            //       myFilteredPuck!.geometry = mp.Point(
+            //         coordinates: mp.Position(
+            //           validatedPosition.lng,
+            //           validatedPosition.lat,
+            //         ),
+            //       );
+            //       // myFilteredPuck!.iconRotate = myDistanceValidator.currentHeading;
+            //       myFilteredPuck!.iconRotate = 57.0;
+            //
+            //       pointAnnotationManager!.update(myFilteredPuck!);
+            //     }
+            //   }
           }
         });
   }
 
-  // this will update the location data of only the current logged in user of this mobile app, the patients' location data will be hanlded by the device
+  // (old function) the new version of this one is the function below
+  // // this will update the location data of only the current logged in user of this mobile app, the patients' location data will be hanlded by the device
+  // Future<void> updateLoggedInUserLocationToTheDatabase(
+  //   gl.Position position,
+  // ) async {
+  //   try {
+  //     // Check if 30 seconds have passed, to save to the database
+  //     if (DateTime.now()
+  //             .difference(lastLoggedInUserUpdateToDatabase)
+  //             .inSeconds <
+  //         30) {
+  //       log(
+  //         "SAVING LOCATION DATA TO FIREBASE WAS SKIPPED! TOO EARLY TO SAVE LOCATION DATA of THE CURRENT LOGGED IN USER!",
+  //       );
+  //       return;
+  //     } else {
+  //       log("SAVING LOGGED IN USER's LOCATION DATA TO FIREBASE!");
+  //     }
+  //
+  //     lastLoggedInUserUpdateToDatabase = DateTime.now();
+  //     MyRealtimeLocationReposity.updateLocation(
+  //       deviceID: widget.loggedInUserData.userID,
+  //       realtimeData: MyRealtimeLocationModel(
+  //         deviceID: widget.loggedInUserData.userID,
+  //         patientID: widget.loggedInUserData.userID,
+  //         isInSafeZone: true,
+  //         isCurrentlySafe: true,
+  //         currentlyIn: "NOT APPLICABLE",
+  //         currentLocationLng: position.longitude.toString(),
+  //         currentLocationLat: position.latitude.toString(),
+  //         timeStamp: MyDateFormatter.formatDate(
+  //           dateTimeInString: DateTime.now(),
+  //           formatOptions: 8,
+  //         ),
+  //         deviceBatteryPercentage: await Battery().batteryLevel,
+  //         bPM: "NOT APPLICABLE",
+  //         requestBPM: false,
+  //       ),
+  //     );
+  //   } catch (e, stackTrace) {
+  //     log("ERROR WHILE UPDATING USER LOCATION in MapBody: $e. AT $stackTrace");
+  //   }
+  // }
+
+  // Now accepts the clean doubles directly
   Future<void> updateLoggedInUserLocationToTheDatabase(
-    gl.Position position,
+    double filteredLng,
+    double filteredLat,
   ) async {
     try {
-      // Check if 30 seconds have passed
-      if (DateTime.now()
-              .difference(lastLoggedInUserUpdateToDatabase)
-              .inSeconds <
-          30) {
+      DateTime now = DateTime.now();
+
+      // GATE 1: THE TIME GATE
+      if (now.difference(lastLoggedInUserUpdateToDatabase).inSeconds < 30) {
         log(
-          "SAVING LOCATION DATA TO FIREBASE WAS SKIPPED! TOO EARLY TO SAVE LOCATION DATA of THE CURRENT LOGGED IN USER!",
+          "LOGGED IN USER's LOCATION DATA WAS SKIPPED: TOO EARLY TO SAVE LOCATION DATA!",
         );
         return;
-      } else {
-        log("SAVING LOGGED IN USER's LOCATION DATA TO FIREBASE!");
       }
 
-      lastLoggedInUserUpdateToDatabase = DateTime.now();
+      // GATE 2: THE DISTANCE GATE
+      if (lastSavedDatabasePosition != null) {
+        double distanceMoved = MyDistanceValidator.calculateDistance(
+          lastSavedDatabasePosition!.lng.toDouble(),
+          lastSavedDatabasePosition!.lat.toDouble(),
+          filteredLng,
+          filteredLat,
+        );
+
+        // If they moved less than 5 meters in 30 seconds, they are basically stationary.
+        if (distanceMoved < 5.0) {
+          // Reset the timer so we check again in 30 seconds, but DO NOT write to Firebase.
+          lastLoggedInUserUpdateToDatabase = now;
+          log(
+            "DB WRITE SKIPPED: User is stationary. (Moved only ${distanceMoved.toStringAsFixed(2)}m)",
+          );
+          return;
+        }
+      }
+
+      // --- PASSED BOTH GATES: SAVE TO FIREBASE ---
+      log("SAVING LOGGED IN USER's LOCATION DATA TO FIREBASE!");
+
+      // Update our trackers
+      lastLoggedInUserUpdateToDatabase = now;
+      lastSavedDatabasePosition = mp.Position(filteredLng, filteredLat);
+
       MyRealtimeLocationReposity.updateLocation(
         deviceID: widget.loggedInUserData.userID,
         realtimeData: MyRealtimeLocationModel(
@@ -723,10 +636,10 @@ class _MapBodyState extends State<MapBody> with RouteAware {
           isInSafeZone: true,
           isCurrentlySafe: true,
           currentlyIn: "NOT APPLICABLE",
-          currentLocationLng: position.longitude.toString(),
-          currentLocationLat: position.latitude.toString(),
+          currentLocationLng: filteredLng.toString(),
+          currentLocationLat: filteredLat.toString(),
           timeStamp: MyDateFormatter.formatDate(
-            dateTimeInString: DateTime.now(),
+            dateTimeInString: now,
             formatOptions: 8,
           ),
           deviceBatteryPercentage: await Battery().batteryLevel,
@@ -774,15 +687,6 @@ class _MapBodyState extends State<MapBody> with RouteAware {
   //   }
   // }
 
-  // (deletable)
-  //// // this is a helper function to convert the image to Uint8List
-  //// Future< Uint8List> converter() {
-  ////  var cs = CustomMapMarker(
-  ////     imagePath: "assets/icons/pin.png",
-  ////   ).loadHQMarkerImage();
-  ////   return cs;
-  //// }
-
   // This will convert the image to Uint8List so that it can be used as an icon for the marker
   Future<Uint8List> imageToIconLoader(String imagePath) async {
     var byteData = await rootBundle.load(imagePath);
@@ -793,7 +697,18 @@ class _MapBodyState extends State<MapBody> with RouteAware {
   void initOtherMapRequirements(mp.MapboxMap mapController) {
     // logic for displaying user position/location on the map
     mapboxMapController?.location.updateSettings(
-      mp.LocationComponentSettings(enabled: true, pulsingEnabled: true),
+      mp.LocationComponentSettings(
+        enabled: true,
+        pulsingEnabled: true,
+        // TODO: to be added in the settings
+        showAccuracyRing: true,
+        // accuracyRingColor: const Color.fromARGB(45, 33, 149, 243).toARGB32(),
+        // accuracyRingBorderColor: Colors.white12.toARGB32(),
+        // Shows the directional cone/arrow
+        puckBearingEnabled: true,
+        // Defines the direction of the arrow/cone
+        puckBearing: mp.PuckBearing.HEADING,
+      ),
     );
 
     // scaleBar indicator, indicator of how much the map is zoomed in/out

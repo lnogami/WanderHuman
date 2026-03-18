@@ -98,7 +98,8 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     initUserData();
     setupUserSettings();
-    ActiveStatus.setupOnDisconnectStatus();
+    ActiveStatus.setupOnDisconnectStatus(); // old
+    // ActiveStatus.setupConnectionStatusObserver(); // new (not yet implemented)
   }
 
   @override

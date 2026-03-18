@@ -142,8 +142,34 @@ class MyRealtimeActiveStatusRepository {
     await _rootRef.child("Active_Status").child(userID).onDisconnect().update({
       "isActive": false,
     });
-
     // 2. Now set yourself to true so the server knows you are currently here
     await updateActiveStatus(userID: userID, isActive: true);
   }
+
+  // /// This will reconnect again the mobile device if it when offline
+  // static void observeConnection(String userID) {
+  //   FirebaseDatabase.instance.ref(".info/connected").onValue.listen((event) {
+  //     final connected = event.snapshot.value as bool;
+  //
+  //     if (connected) {
+  //       log("✅ CONNECTION ESTABLISHED");
+  //
+  //       // 1. CLEAR any previous onDisconnect tasks to be safe
+  //       _activeStatusRef.child(userID).onDisconnect().cancel();
+  //
+  //       // 2. SET the onDisconnect task FIRST
+  //       // This tells the server: "In the FUTURE, if I leave, do this."
+  //       _activeStatusRef.child(userID).onDisconnect().update({
+  //         "isActive": false,
+  //         "lastSeen": ServerValue.timestamp, // Optional: useful for debugging
+  //       });
+  //
+  //       // 3. SET THE ACTIVE STATUS SECOND
+  //       // This tells the server: "Right NOW, I am here."
+  //       _activeStatusRef.child(userID).update({"isActive": true});
+  //     } else {
+  //       log("❌ CONNECTION LOST LOCALLY");
+  //     }
+  //   });
+  // }
 }

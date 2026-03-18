@@ -4,6 +4,8 @@ import 'package:wanderhuman_app/model/settings_model.dart';
 class MyHomeSettingsProvider extends ChangeNotifier {
   double? _zoomLevel;
   bool? _alwaysFollowYourAvatar;
+  // bool? _useDefaultAvatar;
+  // bool? _enableAvatarDistanceAccuracy;
 
   double get zoomLevel => _zoomLevel ?? 15.0;
   bool get alwaysFollowYourAvatar => _alwaysFollowYourAvatar ?? true;

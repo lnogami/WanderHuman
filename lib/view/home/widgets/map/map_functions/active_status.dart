@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:wanderhuman_app/helper/realtime_active_status_repository.dart';
 
@@ -23,4 +25,13 @@ class ActiveStatus {
       FirebaseAuth.instance.currentUser!.uid,
     );
   }
+
+  // static void setupConnectionStatusObserver() {
+  //   final user = FirebaseAuth.instance.currentUser;
+  //   if (user != null) {
+  //     MyRealtimeActiveStatusRepository.observeConnection(user.uid);
+  //   } else {
+  //     log("⚠️ Cannot setup observer: No user logged in.");
+  //   }
+  // }
 }

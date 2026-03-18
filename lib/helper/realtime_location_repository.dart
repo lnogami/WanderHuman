@@ -40,6 +40,7 @@ class MyRealtimeLocationReposity {
     }
   }
 
+  // (deletable) old code
   // // Getters
   // /// Will listen to the realtime location of the patient based on its device (deviceID)
   // static Stream<MyRealtimeLocationModel> getRealtimePatientLocationStream({
@@ -93,10 +94,10 @@ class MyRealtimeLocationReposity {
             event.snapshot.value as Map,
           );
           String patientID = data["patientID"];
-          log("PATIENT IDDDDDDDDDDDDDDDDDDDDDDDDD: $patientID");
+          log("PERSONID IDDDDDDDDDDDDDDDDDDDDDDDDD: $patientID");
 
-          print("LONG: ${data["currentLocationLng"]}");
-          print("LAT: ${data["currentLocationLat"]}");
+          log("LONG: ${data["currentLocationLng"]}");
+          log("LAT: ${data["currentLocationLat"]}");
 
           return MyRealtimeLocationModel.fromMap(
             deviceID: deviceID,
@@ -152,41 +153,57 @@ class MyRealtimeLocationReposity {
     }
   }
 
-  // Update
-  /// [userID] is either a staff's ID or a patient's ID
-  /// for staff, the deviceID is their userID
+  // Update (old code of the fucntion below this one)
+  // /// [userID] is either a staff's ID or a patient's ID
+  // /// for staff, the deviceID is their userID
+  // static Future<void> updateLocation({
+  //   required String deviceID,
+  //   required MyRealtimeLocationModel realtimeData,
+  // }) async {
+  //   try {
+  //     _realtimeLocationRef
+  //         .child(deviceID)
+  //         .update(
+  //           Map<String, dynamic>.from(
+  //             MyRealtimeLocationModel.toMap(
+  //                   MyRealtimeLocationModel(
+  //                     deviceID: deviceID,
+  //                     patientID: realtimeData.patientID,
+  //                     isInSafeZone: realtimeData.isInSafeZone,
+  //                     isCurrentlySafe: realtimeData.isCurrentlySafe,
+  //                     currentlyIn: realtimeData.currentlyIn,
+  //                     currentLocationLng: realtimeData.currentLocationLng,
+  //                     currentLocationLat: realtimeData.currentLocationLat,
+  //                     timeStamp: realtimeData.timeStamp,
+  //                     deviceBatteryPercentage:
+  //                         realtimeData.deviceBatteryPercentage,
+  //                     bPM: realtimeData.bPM,
+  //                     requestBPM: realtimeData.requestBPM,
+  //                   ),
+  //                 )
+  //                 as Map,
+  //           ),
+  //         );
+  //   } catch (e, stackTrace) {
+  //     log(
+  //       "ERROR WHILE UPDATING REALTIME LOCATION OF PATIENT: $e. AT $stackTrace",
+  //     );
+  //     rethrow;
+  //   }
+  // }
+
+  // Update // (not yet fully testest as of March 19, 2026)
   static Future<void> updateLocation({
     required String deviceID,
     required MyRealtimeLocationModel realtimeData,
   }) async {
     try {
-      _realtimeLocationRef
+      // Clean, direct, and memory-efficient
+      await _realtimeLocationRef
           .child(deviceID)
-          .update(
-            Map<String, dynamic>.from(
-              MyRealtimeLocationModel.toMap(
-                    MyRealtimeLocationModel(
-                      deviceID: deviceID,
-                      patientID: realtimeData.patientID,
-                      isInSafeZone: realtimeData.isInSafeZone,
-                      isCurrentlySafe: realtimeData.isCurrentlySafe,
-                      currentlyIn: realtimeData.currentlyIn,
-                      currentLocationLng: realtimeData.currentLocationLng,
-                      currentLocationLat: realtimeData.currentLocationLat,
-                      timeStamp: realtimeData.timeStamp,
-                      deviceBatteryPercentage:
-                          realtimeData.deviceBatteryPercentage,
-                      bPM: realtimeData.bPM,
-                      requestBPM: realtimeData.requestBPM,
-                    ),
-                  )
-                  as Map,
-            ),
-          );
+          .update(MyRealtimeLocationModel.toMap(realtimeData));
     } catch (e, stackTrace) {
-      log(
-        "ERROR WHILE UPDATING REALTIME LOCATION OF PATIENT: $e. AT $stackTrace",
-      );
+      log("ERROR WHILE UPDATING REALTIME LOCATION: $e. AT $stackTrace");
       rethrow;
     }
   }
@@ -199,7 +216,7 @@ class MyRealtimeLocationReposity {
   }) async {
     try {
       if (isABooleanValue) {
-        bool valueToBoolConvertedValue = bool.parse(value);
+        bool valueToBoolConvertedValue = value.toLowerCase() == "true";
         _realtimeLocationRef.child(deviceID).update({
           fieldToUpdate: valueToBoolConvertedValue,
         });

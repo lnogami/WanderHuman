@@ -130,6 +130,12 @@ class _MySettingsInterfaceState extends State<MySettingsInterface> {
               SizedBox(height: 7),
 
               followMyMapAvatarSwitch(width),
+              SizedBox(height: 7),
+
+              defaultAvatarSwitch(width),
+              SizedBox(height: 7),
+
+              enableAvatarDistanceAccuracySwitch(width),
 
               Spacer(),
               cancelAndSaveButtons(context),
@@ -154,6 +160,71 @@ class _MySettingsInterfaceState extends State<MySettingsInterface> {
             duration: 2500,
             message:
                 "Your avatar is the blue dot that has no name above it. Off by default.",
+            child: Icon(
+              Icons.info_outline_rounded,
+              size: 20,
+              color: Colors.grey.shade500,
+            ),
+          ),
+          Spacer(),
+          CupertinoSwitch(
+            activeTrackColor: Colors.blue.shade400,
+            value: alwaysFollowYourAvatar!,
+            onChanged: (value) {
+              // setState(() => alwaysFollowYourAvatar = value);
+              settingsProvider.setAlwaysFollowYourAvatar(value);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Container defaultAvatarSwitch(double width) {
+    return _myLayoutContainer(
+      width: width,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        spacing: 5,
+        children: [
+          MyTextFormatter.p(text: "Use default avatar?"),
+          MyCustTooltip(
+            triggerMode: TooltipTriggerMode.tap,
+            duration: 2500,
+            message:
+                "By default, your avatar is a blue circle. Has more visual features but less accurate.",
+            child: Icon(
+              Icons.info_outline_rounded,
+              size: 20,
+              color: Colors.grey.shade500,
+            ),
+          ),
+          Spacer(),
+          CupertinoSwitch(
+            activeTrackColor: Colors.blue.shade400,
+            value: alwaysFollowYourAvatar!,
+            onChanged: (value) {
+              // setState(() => alwaysFollowYourAvatar = value);
+              settingsProvider.setAlwaysFollowYourAvatar(value);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Container enableAvatarDistanceAccuracySwitch(double width) {
+    return _myLayoutContainer(
+      width: width,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        spacing: 5,
+        children: [
+          MyTextFormatter.p(text: "Enable avatar accuracy?"),
+          MyCustTooltip(
+            triggerMode: TooltipTriggerMode.tap,
+            duration: 2500,
+            message: "This determines how accurate the location is.",
             child: Icon(
               Icons.info_outline_rounded,
               size: 20,
