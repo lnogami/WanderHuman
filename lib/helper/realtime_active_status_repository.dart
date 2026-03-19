@@ -146,6 +146,7 @@ class MyRealtimeActiveStatusRepository {
     await updateActiveStatus(userID: userID, isActive: true);
   }
 
+  //// (not yet implemented) (deletable)
   // /// This will reconnect again the mobile device if it when offline
   // static void observeConnection(String userID) {
   //   FirebaseDatabase.instance.ref(".info/connected").onValue.listen((event) {

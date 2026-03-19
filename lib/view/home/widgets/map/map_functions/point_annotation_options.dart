@@ -15,7 +15,8 @@ Future<PointAnnotationOptions> myPointAnnotationOptions({
   bool isAPatient =
       true, // true by default because this function is initialy for patients
   required bool isCurrentlySafe,
-  // double iconRotate = 0.0, // (not yet emplemented) (deletable)
+  double iconRotate = 0.0,
+  bool isIconRotateEnabled = false,
 }) async {
   return PointAnnotationOptions(
     // textHaloColor: Colors.blue.toARGB32(),
@@ -26,14 +27,17 @@ Future<PointAnnotationOptions> myPointAnnotationOptions({
         : Colors.grey.shade800.toARGB32(),
     textHaloWidth: (isAPatient) ? 1.0 : 1.5,
     textLetterSpacing: 0.08,
-    image: await makeCircularImage(imageData!),
-    ///// temporary (deletable)
-    ///// iconImage: "marker",
+    image: await makeCircularImage(
+      imageData!,
+      isIconRotateEnabled: isIconRotateEnabled,
+    ),
     iconSize: 0.35,
     // icon color is still static because I used a png image as marker
     iconColor: Colors.blue.toARGB32(), // if image is not applicable
     textField: (isAPatient)
         ? name // THIS IS A PATIENT NAME
+        : (name == "Me") // FOR STAFF NAME
+        ? name // FOR LOGGED IN USER NAME
         : "${name.split(" ").first} (staff)", // FOR STAFF NAME
     textSize: MySizes.mapTextFieldSize,
     textColor: Colors.white.toARGB32(),
@@ -42,7 +46,7 @@ Future<PointAnnotationOptions> myPointAnnotationOptions({
     textAnchor: TextAnchor.BOTTOM,
     textOffset: [0, -1.2],
     geometry: Point(coordinates: myPosition),
-    // iconRotate: iconRotate, // (not yet emplemented) (deletable)
+    iconRotate: (isIconRotateEnabled) ? iconRotate : 0.0,
   );
 }
 
@@ -50,6 +54,7 @@ Future<Uint8List> makeCircularImage(
   Uint8List imageBytes, {
   int size = 200,
   int borderWidth = 20,
+  bool isIconRotateEnabled = false,
 }) async {
   // Decode the image
   var image = img.decodeImage(imageBytes);
@@ -110,29 +115,30 @@ Future<Uint8List> makeCircularImage(
     }
   }
 
-  //// A Feature (not yet implemented) (deletabe)
-  // // --- NEW: DRAW A DIRECTIONAL POINTER (ARROW) ---
-  // // We draw a triangle pointing UP (0 degrees).
-  // // When Mapbox rotates the image, this arrow will point to the heading.
-  // int arrowHeight = borderWidth + 15; // How far down the arrow goes
-  // int arrowHalfWidth = 15; // How wide the base of the arrow is
+  // --- NEW: DRAW A DIRECTIONAL POINTER (ARROW) ---
+  // We draw a triangle pointing UP (0 degrees).
+  // When Mapbox rotates the image, this arrow will point to the heading.
+  if (isIconRotateEnabled) {
+    int arrowHeight = borderWidth + 15; // How far down the arrow goes
+    int arrowHalfWidth = 15; // How wide the base of the arrow is
 
-  // for (int y = 0; y < arrowHeight; y++) {
-  //   for (
-  //     int x = (centerX - arrowHalfWidth).toInt();
-  //     x <= (centerX + arrowHalfWidth).toInt();
-  //     x++
-  //   ) {
-  //     // Simple triangle math: the width of the arrow gets wider as we move down the Y axis
-  //     double currentHalfWidth = (y / arrowHeight) * arrowHalfWidth;
+    for (int y = 0; y < arrowHeight; y++) {
+      for (
+        int x = (centerX - arrowHalfWidth).toInt();
+        x <= (centerX + arrowHalfWidth).toInt();
+        x++
+      ) {
+        // Simple triangle math: the width of the arrow gets wider as we move down the Y axis
+        double currentHalfWidth = (y / arrowHeight) * arrowHalfWidth;
 
-  //     if ((x - centerX).abs() <= currentHalfWidth) {
-  //       // Draw a blue arrow (Matches Colors.blue)
-  //       // You can change the RGB values here if your app theme uses a different color
-  //       circularImage.setPixelRgba(x, y, 33, 149, 243, 255);
-  //     }
-  //   }
-  // }
+        if ((x - centerX).abs() <= currentHalfWidth) {
+          // Draw a blue arrow (Matches Colors.blue)
+          // You can change the RGB values here if your app theme uses a different color
+          circularImage.setPixelRgba(x, y, 33, 149, 243, 255);
+        }
+      }
+    }
+  }
 
   return Uint8List.fromList(img.encodePng(circularImage));
 }

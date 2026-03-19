@@ -21,6 +21,8 @@ class MySettigsRepository {
         'userID': settings.userID,
         'zoomLevel': settings.zoomLevel,
         'alwaysFollowYourAvatar': settings.alwaysFollowYourAvatar,
+        'useDefaultAvatar': settings.useDefaultAvatar,
+        'enableAvatarDistanceAccuracy': settings.enableAvatarDistanceAccuracy,
       }, SetOptions(merge: true));
     } catch (e, stackTrace) {
       log("Error adding settings: $e, at $stackTrace");
@@ -43,6 +45,8 @@ class MySettigsRepository {
           userID: userID,
           zoomLevel: 15,
           alwaysFollowYourAvatar: true,
+          useDefaultAvatar: true,
+          enableAvatarDistanceAccuracy: true,
         );
       }
     } catch (e) {
@@ -56,11 +60,9 @@ class MySettigsRepository {
   }) async {
     try {
       var docs = await _settingsCollection.doc(userID).get();
-
       if (docs.exists) {
         return true;
       }
-
       return false;
     } catch (e, stackTrace) {
       log(
@@ -79,6 +81,8 @@ class MySettigsRepository {
         'userID': settings.userID,
         'zoomLevel': settings.zoomLevel,
         'alwaysFollowYourAvatar': settings.alwaysFollowYourAvatar,
+        'useDefaultAvatar': settings.useDefaultAvatar,
+        'enableAvatarDistanceAccuracy': settings.enableAvatarDistanceAccuracy,
       }, SetOptions(merge: true));
       log("Settings successfully updated for user: ${settings.userID}");
     } catch (e) {

@@ -26,6 +26,7 @@ class ActiveStatus {
     );
   }
 
+  //// (not yet implemented) (deletable)
   // static void setupConnectionStatusObserver() {
   //   final user = FirebaseAuth.instance.currentUser;
   //   if (user != null) {

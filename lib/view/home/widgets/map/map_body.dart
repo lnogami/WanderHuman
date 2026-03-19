@@ -24,6 +24,7 @@ import 'package:wanderhuman_app/view-model/home_geofence_config_provider.dart';
 import 'package:wanderhuman_app/view-model/home_miscellaneous_provider.dart';
 import 'package:wanderhuman_app/view-model/home_settings_provider.dart';
 import 'package:wanderhuman_app/view-model/my_mapbox_ref_provider.dart';
+import 'package:wanderhuman_app/view/components/image_picker.dart';
 import 'package:wanderhuman_app/view/components/info_dialogue.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/draw_geo/map_geofence_drawer.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/geo_logics/distance_validator.dart';
@@ -32,6 +33,7 @@ import 'package:wanderhuman_app/view/home/widgets/map/map_functions/listen_to_pa
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/map_camera_animations.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/map_interactions.dart';
 import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/map_functions/point_annotation_options.dart';
 
 class MapBody extends StatefulWidget {
   /// This will contain the data of the logged in user for efficient usage in every other components.
@@ -500,43 +502,47 @@ class _MapBodyState extends State<MapBody> with RouteAware {
             //   ),
             // );
 
-            //// This is just a Feature (not yet implemented) (deletable)
-            //   if (pointAnnotationManager != null) {
-            //     // 1. If the puck doesn't exist yet, create it
-            //     if (myFilteredPuck == null) {
-            //       mp.PointAnnotationOptions puckOptions =
-            //           await myPointAnnotationOptions(
-            //             imageData: MyImageProcessor.decodeStringToUint8List(
-            //               widget.loggedInUserData.picture,
-            //             ),
-            //             name: widget.loggedInUserData.name,
-            //             textSize: 12.5,
-            //             myPosition: mp.Position(
-            //               validatedPosition.lng,
-            //               validatedPosition.lat,
-            //             ),
-            //             isCurrentlySafe: true,
-            //             iconRotate: myDistanceValidator.currentHeading,
-            //           );
-            //
-            //       myFilteredPuck = await pointAnnotationManager!.create(
-            //         puckOptions,
-            //       );
-            //     }
-            //     // 2. If it already exists, just smoothly move it to the new clean coordinate
-            //     else {
-            //       myFilteredPuck!.geometry = mp.Point(
-            //         coordinates: mp.Position(
-            //           validatedPosition.lng,
-            //           validatedPosition.lat,
-            //         ),
-            //       );
-            //       // myFilteredPuck!.iconRotate = myDistanceValidator.currentHeading;
-            //       myFilteredPuck!.iconRotate = 57.0;
-            //
-            //       pointAnnotationManager!.update(myFilteredPuck!);
-            //     }
-            //   }
+            // This is just a Feature (not yet implemented) (deletable)
+            if (!myHomeSettingsProvider.useDefaultAvatar &&
+                pointAnnotationManager != null) {
+              // 1. If the puck doesn't exist yet, create it
+              if (myFilteredPuck == null) {
+                mp.PointAnnotationOptions puckOptions =
+                    await myPointAnnotationOptions(
+                      imageData: MyImageProcessor.decodeStringToUint8List(
+                        widget.loggedInUserData.picture,
+                      ),
+                      // name: widget.loggedInUserData.name,
+                      name: "Me",
+                      textSize: 12.5,
+                      myPosition: mp.Position(
+                        validatedPosition.lng,
+                        validatedPosition.lat,
+                      ),
+                      isCurrentlySafe: true,
+                      iconRotate: myDistanceValidator.currentHeading,
+                      isIconRotateEnabled: true,
+                      isAPatient: false,
+                    );
+
+                myFilteredPuck = await pointAnnotationManager!.create(
+                  puckOptions,
+                );
+              }
+              // 2. If it already exists, just smoothly move it to the new clean coordinate
+              else {
+                myFilteredPuck!.geometry = mp.Point(
+                  coordinates: mp.Position(
+                    validatedPosition.lng,
+                    validatedPosition.lat,
+                  ),
+                );
+                // myFilteredPuck!.iconRotate = myDistanceValidator.currentHeading;
+                myFilteredPuck!.iconRotate = 57.0;
+
+                pointAnnotationManager!.update(myFilteredPuck!);
+              }
+            }
           }
         });
   }
@@ -687,29 +693,24 @@ class _MapBodyState extends State<MapBody> with RouteAware {
   //   }
   // }
 
-  // This will convert the image to Uint8List so that it can be used as an icon for the marker
-  Future<Uint8List> imageToIconLoader(String imagePath) async {
-    var byteData = await rootBundle.load(imagePath);
-    return byteData.buffer.asUint8List();
-  }
-
   // these were just the things that I can' remove in the map interface because of the MapBox's Terms and Policy, but I can change their position and appearance
   void initOtherMapRequirements(mp.MapboxMap mapController) {
     // logic for displaying user position/location on the map
-    mapboxMapController?.location.updateSettings(
-      mp.LocationComponentSettings(
-        enabled: true,
-        pulsingEnabled: true,
-        // TODO: to be added in the settings
-        showAccuracyRing: true,
-        // accuracyRingColor: const Color.fromARGB(45, 33, 149, 243).toARGB32(),
-        // accuracyRingBorderColor: Colors.white12.toARGB32(),
-        // Shows the directional cone/arrow
-        puckBearingEnabled: true,
-        // Defines the direction of the arrow/cone
-        puckBearing: mp.PuckBearing.HEADING,
-      ),
-    );
+    if (myHomeSettingsProvider.useDefaultAvatar) {
+      mapboxMapController?.location.updateSettings(
+        mp.LocationComponentSettings(
+          enabled: true,
+          pulsingEnabled: true,
+          showAccuracyRing: myHomeSettingsProvider.enableAvatarDistanceAccuracy,
+          // accuracyRingColor: const Color.fromARGB(45, 33, 149, 243).toARGB32(),
+          // accuracyRingBorderColor: Colors.white12.toARGB32(),
+          // Shows the directional cone/arrow
+          puckBearingEnabled: true,
+          // Defines the direction of the arrow/cone
+          puckBearing: mp.PuckBearing.HEADING,
+        ),
+      );
+    }
 
     // scaleBar indicator, indicator of how much the map is zoomed in/out
     mapboxMapController!.scaleBar.updateSettings(

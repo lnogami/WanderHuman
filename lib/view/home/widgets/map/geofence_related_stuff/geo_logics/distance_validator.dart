@@ -129,7 +129,7 @@ class MyDistanceValidator {
     return Position(avgLng, avgLat);
   }
 
-  // The Haversine code you provided goes here...
+  /// Calculates the distance between two points in meters using the Haversine formula.
   static double calculateDistance(
     double lng1,
     double lat1,

@@ -124,12 +124,6 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
           setState(() {
             isExpanded = !isExpanded;
             if (isExpanded) {
-              // isLoading = true;
-              // getActivePatientList();
-            } else {
-              // patientList.clear();
-              // patientLocations.clear();
-              // decodedImagesBuffer.clear();
               selectedIndividualID = "";
             }
           });
@@ -260,27 +254,42 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
         if (currentPosition == null) {
           showMyAnimatedSnackBar(
             context: context,
-            dataToDisplay: "Something went wrong.",
+            dataToDisplay:
+                "Something went wrong. Cannot determine the location.",
           );
           return;
         }
 
-        MyMapCameraAnimations.myMapFlyTo(
-          mapboxController: _mapControllerRef,
-          // position: Position(125.7989268, 7.4233187),
-          // position: patientLocations[personalInfo.userID]!,
-          position: currentPosition,
-          zoomLevel: context.read<MyHomeSettingsProvider>().zoomLevel,
-          // patientID: personalInfo.userID,
-        );
+        // Zoom out if the same individual is selected again
+        setState(() {
+          if (selectedIndividualID == personalInfo.userID) {
+            // revert back to default if individual is selected again
+            selectedIndividualID = "";
+            MyMapCameraAnimations.myMapZoom(
+              mapboxController: _mapControllerRef,
+              zoomLevel: 15,
+            );
+          } else {
+            selectedIndividualID = personalInfo.userID;
+            MyMapCameraAnimations.myMapFlyTo(
+              mapboxController: _mapControllerRef,
+              // position: Position(125.7989268, 7.4233187),
+              // position: patientLocations[personalInfo.userID]!,
+              position: currentPosition,
+              zoomLevel: context.read<MyHomeSettingsProvider>().zoomLevel,
+              // patientID: personalInfo.userID,
+            );
+          }
+        });
 
+        // debugging purposes only
         log(
           "============= ${personalInfo.name}'s location is lng: ${currentPosition.lng} lat: ${currentPosition.lat}",
         );
-
-        setState(() {
-          selectedIndividualID = personalInfo.userID;
-        });
+        showMyAnimatedSnackBar(
+          context: context,
+          dataToDisplay: "${personalInfo.name} userID: ${personalInfo.userID}",
+        );
       },
       child: Container(
         decoration: BoxDecoration(

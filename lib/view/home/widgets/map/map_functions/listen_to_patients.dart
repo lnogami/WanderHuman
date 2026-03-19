@@ -290,6 +290,7 @@ import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mp;
 import 'package:provider/provider.dart';
 import 'package:wanderhuman_app/helper/geofence_repository.dart';
+import 'package:wanderhuman_app/helper/history_reposity.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/helper/realtime_active_status_repository.dart';
 import 'package:wanderhuman_app/helper/realtime_location_repository.dart';
@@ -710,10 +711,10 @@ class ListenToPatients {
                     );
 
                 // TODO: uncomment this to save realtime location data to history
-                // // Saves patient realtime location into the history
-                // await MyHistoryReposity.savePatientLocation(
-                //   locationData: realtimeLocModel,
-                // );
+                // Saves patient realtime location into the history
+                await MyHistoryReposity.savePatientLocation(
+                  locationData: realtimeLocModel,
+                );
 
                 mp.MapboxMap? mapboxRef =
                     mapboxRefProvider.getMapboxMapController;
@@ -783,9 +784,6 @@ class ListenToPatients {
                 log(
                   "WARNINGGGGG!!! Patient ${personInfo.name}, patientID: ${personInfo.userID} is IN DANGER!",
                 );
-
-                // (deletale) experimental
-                // if(!realtimeLocModel.isCurrentlySafe){}
               }
             } catch (e, stackTrace) {
               log("ERROR UPDATING MARKER FOR $deviceID: $e. AT $stackTrace");

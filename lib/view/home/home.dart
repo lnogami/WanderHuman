@@ -79,6 +79,8 @@ class _HomePageState extends State<HomePage> {
         userID: currentLoggedInUser,
         zoomLevel: 15.0,
         alwaysFollowYourAvatar: false,
+        useDefaultAvatar: true,
+        enableAvatarDistanceAccuracy: true,
       );
 
       await MySettigsRepository.addSettings(settings: userSettings);

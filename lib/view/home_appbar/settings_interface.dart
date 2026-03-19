@@ -1,5 +1,10 @@
+// ignore_for_file: use_build_context_synchronously
+
+import 'dart:developer';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:provider/provider.dart';
 import 'package:wanderhuman_app/helper/settings_repository.dart';
 import 'package:wanderhuman_app/model/settings_model.dart';
@@ -9,6 +14,7 @@ import 'package:wanderhuman_app/view-model/home_settings_provider.dart';
 import 'package:wanderhuman_app/view-model/my_mapbox_ref_provider.dart';
 import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
 import 'package:wanderhuman_app/view/components/button.dart';
+import 'package:wanderhuman_app/view/components/info_dialogue.dart';
 import 'package:wanderhuman_app/view/components/lines.dart';
 import 'package:wanderhuman_app/view/components/tooltip.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/map_camera_animations.dart';
@@ -31,38 +37,9 @@ class _MySettingsInterfaceState extends State<MySettingsInterface> {
   double? zoomLevel;
   //
   bool? alwaysFollowYourAvatar;
-
-  // Future<void> loadData(BuildContext context) async {
-  //   // bool isSettingsForThisUserIsAvailable =
-  //   //     await MySettigsRepository.doesSettingsForThisUserExist(
-  //   //       userID: widget.loggedInUserID,
-  //   //     );
-
-  //   // // if there is no settings yet for this user, create one
-  //   // if (!isSettingsForThisUserIsAvailable) {
-  //   //   var tempSettings = MySettingsModel(
-  //   //     userID: widget.loggedInUserID,
-  //   //     zoomLevel: 16.0,
-  //   //     alwaysFollowYourAvatar: true,
-  //   //   );
-
-  //   //   await MySettigsRepository.addSettings(settings: tempSettings);
-
-  //   //   setState(() => settings = tempSettings);
-  //   // }
-
-  //   // // else, fetch the settings for this user
-  //   // else {
-  //   //   settings = await MySettigsRepository.getSettingsOfTheUser(
-  //   //     userID: widget.loggedInUserID,
-  //   //   );
-  //   // }
-
-  //   // zoomLevel = settings.zoomLevel;
-  //   // previousZoomLevel = zoomLevel;
-
-  //   setState(() => isLoadingData = false);
-  // }
+  bool? useDefaultAvatar;
+  bool? previousAvatarPreference; // original value of useDefaultAvatar
+  bool? enableAvatarDistanceAccuracy;
 
   @override
   void initState() {
@@ -74,11 +51,15 @@ class _MySettingsInterfaceState extends State<MySettingsInterface> {
   Widget build(BuildContext context) {
     double width = MyDimensionAdapter.getWidth(context);
     double height = MyDimensionAdapter.getHeight(context);
-    // MyHomeSettingsProvider object reference
+    // Provider
     settingsProvider = context.watch<MyHomeSettingsProvider>();
     zoomLevel = settingsProvider.zoomLevel;
     previousZoomLevel ??= zoomLevel;
     alwaysFollowYourAvatar = settingsProvider.alwaysFollowYourAvatar;
+    useDefaultAvatar = settingsProvider.useDefaultAvatar;
+    previousAvatarPreference ??= useDefaultAvatar!;
+    enableAvatarDistanceAccuracy =
+        settingsProvider.enableAvatarDistanceAccuracy;
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -147,6 +128,85 @@ class _MySettingsInterfaceState extends State<MySettingsInterface> {
     );
   }
 
+  Container myMapZoomSlider(double width, BuildContext context, double height) {
+    return _myLayoutContainer(
+      width: width,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              MyTextFormatter.p(
+                text: "Map Zoom Level:  ",
+                fontsize: kDefaultFontSize - 2,
+              ),
+              MyTextFormatter.p(
+                text: "${context.read<MyHomeSettingsProvider>().zoomLevel}",
+                fontsize: kDefaultFontSize,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade700,
+              ),
+              Spacer(),
+              // Revert icon
+              GestureDetector(
+                onTap: () {
+                  // Revert to default zoom level
+                  settingsProvider.setZoomLevel(previousZoomLevel!);
+                  setState(() => zoomLevel = previousZoomLevel!);
+                  MyMapCameraAnimations.myMapZoom(
+                    mapboxController: context
+                        .read<MyMapboxRefProvider>()
+                        .getMapboxMapController!,
+                    zoomLevel: zoomLevel!,
+                  );
+                },
+                child: Icon(
+                  Icons.rotate_left_rounded,
+                  size: 24,
+                  color: Colors.grey.shade700,
+                ),
+              ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            spacing: 5,
+            children: [
+              Icon(Icons.zoom_out, size: 22, color: Colors.grey.shade700),
+              Expanded(
+                child: SizedBox(
+                  // width: width * 0.6,
+                  height: height * 0.05,
+                  child: CupertinoSlider(
+                    min: 0.0,
+                    max: 20.0,
+                    divisions: 20,
+                    value: zoomLevel!,
+                    onChanged: (value) {
+                      // setState(() => zoomLevel = value);
+                      // setState(() {
+                      // zoomLevel = value;
+                      settingsProvider.setZoomLevel(value);
+                      // });
+
+                      MyMapCameraAnimations.myMapZoom(
+                        mapboxController: context
+                            .read<MyMapboxRefProvider>()
+                            .getMapboxMapController!,
+                        zoomLevel: value,
+                      );
+                    },
+                  ),
+                ),
+              ),
+              Icon(Icons.zoom_in, size: 28, color: Colors.grey.shade700),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Container followMyMapAvatarSwitch(double width) {
     return _myLayoutContainer(
       width: width,
@@ -158,8 +218,9 @@ class _MySettingsInterfaceState extends State<MySettingsInterface> {
           MyCustTooltip(
             triggerMode: TooltipTriggerMode.tap,
             duration: 2500,
-            message:
-                "Your avatar is the blue dot that has no name above it. Off by default.",
+            message: (useDefaultAvatar!)
+                ? "Your avatar is the blue dot that has no name above it. Off by default."
+                : "Your avatar has your picture on it.",
             child: Icon(
               Icons.info_outline_rounded,
               size: 20,
@@ -171,7 +232,6 @@ class _MySettingsInterfaceState extends State<MySettingsInterface> {
             activeTrackColor: Colors.blue.shade400,
             value: alwaysFollowYourAvatar!,
             onChanged: (value) {
-              // setState(() => alwaysFollowYourAvatar = value);
               settingsProvider.setAlwaysFollowYourAvatar(value);
             },
           ),
@@ -190,7 +250,8 @@ class _MySettingsInterfaceState extends State<MySettingsInterface> {
           MyTextFormatter.p(text: "Use default avatar?"),
           MyCustTooltip(
             triggerMode: TooltipTriggerMode.tap,
-            duration: 2500,
+            duration: 3000,
+            heightConstraints: 75,
             message:
                 "By default, your avatar is a blue circle. Has more visual features but less accurate.",
             child: Icon(
@@ -202,10 +263,15 @@ class _MySettingsInterfaceState extends State<MySettingsInterface> {
           Spacer(),
           CupertinoSwitch(
             activeTrackColor: Colors.blue.shade400,
-            value: alwaysFollowYourAvatar!,
+            value: useDefaultAvatar!,
             onChanged: (value) {
-              // setState(() => alwaysFollowYourAvatar = value);
-              settingsProvider.setAlwaysFollowYourAvatar(value);
+              settingsProvider.setToUseDefaultAvatar(value);
+
+              if (!(useDefaultAvatar!)) {
+                settingsProvider.setEnableAvatarDistanceAccuracy(false);
+              } else {
+                settingsProvider.setEnableAvatarDistanceAccuracy(value);
+              }
             },
           ),
         ],
@@ -223,8 +289,10 @@ class _MySettingsInterfaceState extends State<MySettingsInterface> {
           MyTextFormatter.p(text: "Enable avatar accuracy?"),
           MyCustTooltip(
             triggerMode: TooltipTriggerMode.tap,
-            duration: 2500,
-            message: "This determines how accurate the location is.",
+            duration: 3000,
+            heightConstraints: 75,
+            message:
+                "This determines how accurate your location is. Automatically turned off when not using the default avatar.",
             child: Icon(
               Icons.info_outline_rounded,
               size: 20,
@@ -234,10 +302,9 @@ class _MySettingsInterfaceState extends State<MySettingsInterface> {
           Spacer(),
           CupertinoSwitch(
             activeTrackColor: Colors.blue.shade400,
-            value: alwaysFollowYourAvatar!,
+            value: enableAvatarDistanceAccuracy!,
             onChanged: (value) {
-              // setState(() => alwaysFollowYourAvatar = value);
-              settingsProvider.setAlwaysFollowYourAvatar(value);
+              settingsProvider.setEnableAvatarDistanceAccuracy(value);
             },
           ),
         ],
@@ -279,97 +346,35 @@ class _MySettingsInterfaceState extends State<MySettingsInterface> {
                     userID: widget.loggedInUserID,
                     zoomLevel: zoomLevel!,
                     alwaysFollowYourAvatar: alwaysFollowYourAvatar!,
+                    useDefaultAvatar: settingsProvider.useDefaultAvatar,
+                    enableAvatarDistanceAccuracy:
+                        settingsProvider.enableAvatarDistanceAccuracy,
                   ),
                 );
-                Navigator.pop(context);
+
+                log(
+                  "useDefaultAvatar: $useDefaultAvatar, previousAvatarPreference: $previousAvatarPreference",
+                );
+
+                if (useDefaultAvatar! == previousAvatarPreference) {
+                  Navigator.pop(context);
+                } else {
+                  Navigator.pop(context);
+                  myInfoDialogue(
+                    context: context,
+                    alertTitle: "Restart App",
+                    alertContent: "To apply the recent changes.",
+                    onPressText: "Restart",
+                    onPress: () {
+                      Phoenix.rebirth(context);
+                    },
+                  );
+                }
               },
             );
           },
         ),
       ],
-    );
-  }
-
-  Container myMapZoomSlider(double width, BuildContext context, double height) {
-    return _myLayoutContainer(
-      width: width,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              MyTextFormatter.p(
-                text: "Map Zoom Level:  ",
-                fontsize: kDefaultFontSize - 2,
-              ),
-              MyTextFormatter.p(
-                text: "${context.read<MyHomeSettingsProvider>().zoomLevel}",
-                fontsize: kDefaultFontSize,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey.shade700,
-              ),
-              Spacer(),
-              // Revert icon
-              GestureDetector(
-                onTap: () {
-                  // Revert to default zoom level
-                  context.read<MyHomeSettingsProvider>().setZoomLevel(
-                    previousZoomLevel!,
-                  );
-                  setState(() => zoomLevel = previousZoomLevel!);
-                  MyMapCameraAnimations.myMapZoom(
-                    mapboxController: context
-                        .read<MyMapboxRefProvider>()
-                        .getMapboxMapController!,
-                    zoomLevel: zoomLevel!,
-                  );
-                },
-                child: Icon(
-                  Icons.rotate_left_rounded,
-                  size: 24,
-                  color: Colors.grey.shade700,
-                ),
-              ),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            spacing: 5,
-            children: [
-              Icon(Icons.zoom_out, size: 22, color: Colors.grey.shade700),
-              Expanded(
-                child: SizedBox(
-                  // width: width * 0.6,
-                  height: height * 0.05,
-                  child: CupertinoSlider(
-                    min: 0.0,
-                    max: 20.0,
-                    divisions: 20,
-                    value: zoomLevel!,
-                    onChanged: (value) {
-                      // setState(() => zoomLevel = value);
-                      // setState(() {
-                      // zoomLevel = value;
-                      context.read<MyHomeSettingsProvider>().setZoomLevel(
-                        value,
-                      );
-                      // });
-
-                      MyMapCameraAnimations.myMapZoom(
-                        mapboxController: context
-                            .read<MyMapboxRefProvider>()
-                            .getMapboxMapController!,
-                        zoomLevel: value,
-                      );
-                    },
-                  ),
-                ),
-              ),
-              Icon(Icons.zoom_in, size: 28, color: Colors.grey.shade700),
-            ],
-          ),
-        ],
-      ),
     );
   }
 
