@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
+import 'package:wanderhuman_app/helper/realtime_active_status_repository.dart';
 // import 'package:wanderhuman_app/helper/realtime_temporary_test.dart';
 import 'package:wanderhuman_app/helper/settings_repository.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
@@ -100,12 +101,13 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     initUserData();
     setupUserSettings();
-    ActiveStatus.setupOnDisconnectStatus(); // old
-    // ActiveStatus.setupConnectionStatusObserver(); // new (not yet implemented)
+    // ActiveStatus.setupOnDisconnectStatus(); // old
+    ActiveStatus.setupConnectionStatusObserver(); // new (not yet implemented)
   }
 
   @override
   void dispose() {
+    MyRealtimeActiveStatusRepository.connectionObserverSubscription?.cancel();
     ActiveStatus.setActiveStatusToOffline();
     super.dispose();
   }

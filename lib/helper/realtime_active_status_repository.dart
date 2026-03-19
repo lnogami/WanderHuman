@@ -1,11 +1,15 @@
+import 'dart:async';
 import 'dart:developer';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:wanderhuman_app/helper/realtime_location_repository.dart';
 import 'package:wanderhuman_app/model/realtime_active_status_model.dart';
 
 class MyRealtimeActiveStatusRepository {
   static final DatabaseReference _rootRef = MyRealtimeLocationReposity.rootRef;
+  static StreamSubscription? connectionObserverSubscription;
 
   static DatabaseReference get _activeStatusRef =>
       _rootRef.child("Active_Status");
@@ -146,31 +150,36 @@ class MyRealtimeActiveStatusRepository {
     await updateActiveStatus(userID: userID, isActive: true);
   }
 
-  //// (not yet implemented) (deletable)
-  // /// This will reconnect again the mobile device if it when offline
-  // static void observeConnection(String userID) {
-  //   FirebaseDatabase.instance.ref(".info/connected").onValue.listen((event) {
-  //     final connected = event.snapshot.value as bool;
-  //
-  //     if (connected) {
-  //       log("✅ CONNECTION ESTABLISHED");
-  //
-  //       // 1. CLEAR any previous onDisconnect tasks to be safe
-  //       _activeStatusRef.child(userID).onDisconnect().cancel();
-  //
-  //       // 2. SET the onDisconnect task FIRST
-  //       // This tells the server: "In the FUTURE, if I leave, do this."
-  //       _activeStatusRef.child(userID).onDisconnect().update({
-  //         "isActive": false,
-  //         "lastSeen": ServerValue.timestamp, // Optional: useful for debugging
-  //       });
-  //
-  //       // 3. SET THE ACTIVE STATUS SECOND
-  //       // This tells the server: "Right NOW, I am here."
-  //       _activeStatusRef.child(userID).update({"isActive": true});
-  //     } else {
-  //       log("❌ CONNECTION LOST LOCALLY");
-  //     }
-  //   });
-  // }
+  static void observeConnection(String userID) {
+    // NOTE: This is the right instance to use for Firebase Realtime Database (RTDB) that is set on Singapore (asia-southeast1)
+    //       The FirebaseDatabase.instance().ref() by default is directed to the US (us-central1).
+    //       So it wont work because the RTDB in US does not know this app exist, as it only existed in the Singapore RTDB.
+    connectionObserverSubscription =
+        FirebaseDatabase.instanceFor(
+          // instead of FirebaseDatabase.instance()
+          app: Firebase.app(),
+          databaseURL: dotenv.env["MY_REALTIME_DATABASE_LINK"],
+        ).ref(".info/connected").onValue.listen((event) {
+          bool connected = event.snapshot.value as bool;
+
+          if (connected) {
+            log("CONNECTION OBSERVER: ✅ CONNECTION ESTABLISHING...");
+
+            // 1. CLEAR any previous onDisconnect tasks to be safe
+            _activeStatusRef.child(userID).onDisconnect().cancel();
+
+            // 2. SET the onDisconnect task FIRST
+            _activeStatusRef.child(userID).onDisconnect().update({
+              "isActive": false,
+            });
+
+            // 3. SET THE ACTIVE STATUS SECOND
+            _activeStatusRef.child(userID).update({"isActive": true});
+
+            log("CONNECTION OBSERVER: ✅ CONNECTION ESTABLISHED");
+          } else {
+            log("❌ CONNECTION LOST LOCALLY - Will reconnect automatically");
+          }
+        });
+  }
 }

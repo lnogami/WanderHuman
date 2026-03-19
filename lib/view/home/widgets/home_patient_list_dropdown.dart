@@ -10,8 +10,8 @@ import 'package:wanderhuman_app/view-model/home_active_persons_provider.dart';
 import 'package:wanderhuman_app/view-model/home_appbar_provider.dart';
 import 'package:wanderhuman_app/view-model/home_settings_provider.dart';
 import 'package:wanderhuman_app/view-model/my_mapbox_ref_provider.dart';
+import 'package:wanderhuman_app/view/components/animations.dart';
 import 'package:wanderhuman_app/view/components/image_displayer.dart';
-import 'package:wanderhuman_app/view/components/lines.dart';
 import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/components/tooltip.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/map_camera_animations.dart';
@@ -25,6 +25,8 @@ class HomePatientListDropDown extends StatefulWidget {
 }
 
 class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
+  late double width;
+  late double height;
   // will determin if the dropdown is expanded or not
   bool isExpanded = false;
   // // will determin if the resources are loaded or not
@@ -104,6 +106,8 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
 
   @override
   Widget build(BuildContext context) {
+    width = MyDimensionAdapter.getWidth(context) * 0.12;
+    height = MyDimensionAdapter.getHeight(context) * 0.035;
     // first store the value of the provider in a variable
     final mapboxProvider = context.watch<MyMapboxRefProvider>();
     activePersonsProvider = context.watch<MyHomeActivePersonsProvider>();
@@ -130,7 +134,7 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
         },
         // Main Container
         child: Container(
-          width: MyDimensionAdapter.getWidth(context) * 0.12,
+          width: width,
           decoration: BoxDecoration(
             color: (isExpanded) ? Colors.white60 : Colors.white54,
             borderRadius: BorderRadius.all(Radius.circular(7)),
@@ -138,27 +142,17 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
           child: Column(
             children: [
               // Dropdown Icon
-              (isExpanded)
-                  // ? Icon(Icons.keyboard_arrow_up_rounded, size: 24)
-                  // : Icon(Icons.keyboard_arrow_down_rounded, size: 24),
-                  ? Icon(
-                      Icons.search_rounded,
-                      size: 24,
-                      color: Colors.blue.shade600,
-                      // shadows: [Shadow(color: Colors.black12, blurRadius: 4)],
-                    )
-                  : Icon(
-                      Icons.search_rounded,
-                      size: 24,
-                      color: Colors.grey.shade700,
-                    ),
-              // Horizontal Line
-              if (isExpanded)
-                MyLine(
-                  length: MyDimensionAdapter.getWidth(context) * 0.1,
-                  isVertical: false,
-                  margin: 0,
+              SizedBox(
+                width: width,
+                height: height,
+                child: MyAnimations.homeDropDownIconButton(
+                  context,
+                  width: width,
+                  height: height,
+                  isExpanded: isExpanded,
                 ),
+              ),
+
               // Expanding/Collapsing Panel
               AnimatedContainer(
                 duration: Duration(milliseconds: 400),
@@ -284,12 +278,12 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
 
         // debugging purposes only
         log(
-          "============= ${personalInfo.name}'s location is lng: ${currentPosition.lng} lat: ${currentPosition.lat}",
+          "============= [ID:${personalInfo.userID}] ${personalInfo.name}'s location is lng: ${currentPosition.lng} lat: ${currentPosition.lat}",
         );
-        showMyAnimatedSnackBar(
-          context: context,
-          dataToDisplay: "${personalInfo.name} userID: ${personalInfo.userID}",
-        );
+        // showMyAnimatedSnackBar(
+        //   context: context,
+        //   dataToDisplay: "${personalInfo.name} userID: ${personalInfo.userID}",
+        // );
       },
       child: Container(
         decoration: BoxDecoration(

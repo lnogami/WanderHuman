@@ -220,7 +220,7 @@ class _MySettingsInterfaceState extends State<MySettingsInterface> {
             duration: 2500,
             message: (useDefaultAvatar!)
                 ? "Your avatar is the blue dot that has no name above it. Off by default."
-                : "Your avatar has your picture on it.",
+                : "Your avatar has your picture on it. Minimum of 20 meters distance to move.",
             child: Icon(
               Icons.info_outline_rounded,
               size: 20,
@@ -339,7 +339,9 @@ class _MySettingsInterfaceState extends State<MySettingsInterface> {
             myAlertDialogue(
               context: context,
               alertTitle: "Save Changes",
-              alertContent: "Are you sure you want to save changes?",
+              alertContent: (settingsProvider.useDefaultAvatar)
+                  ? "Are you sure you want to save changes? \nNote: using the default avatar may have more visual features but less location accuracy (visually)."
+                  : "Are you sure you want to save changes?",
               onApprovalPressed: () async {
                 await MySettigsRepository.updateSettings(
                   settings: MySettingsModel(

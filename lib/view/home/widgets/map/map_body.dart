@@ -125,7 +125,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
       // return if there are no active geofences
       if (activeGeofences.isEmpty) return;
 
-      polygonAnnotationManager = await mapboxMapController!.annotations
+      polygonAnnotationManager = await mapboxMapController?.annotations
           .createPolygonAnnotationManager();
 
       numberOfActiveGeofences = activeGeofences.length;
@@ -401,7 +401,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
       // accuracy: gl.LocationAccuracy.best,
       accuracy: gl.LocationAccuracy.high,
       // distanceFilter: 100,
-      distanceFilter: (myHomeSettingsProvider.alwaysFollowYourAvatar) ? 0 : 100,
+      distanceFilter: (myHomeSettingsProvider.alwaysFollowYourAvatar) ? 0 : 20,
     );
 
     positionStreamOfTheCurrentLoggedInUser(locationSettings);
@@ -462,10 +462,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
                 myHomeSettingsProvider.alwaysFollowYourAvatar) {
               await MyMapCameraAnimations.myMapFlyTo(
                 mapboxController: mapboxMapController!,
-                position: mp.Position(
-                  validatedPosition.lng,
-                  validatedPosition.lat,
-                ),
+                position: validatedPosition,
                 animationDurationInMilliseconds:
                     (isIntroAudioPlayingForTheFirstTime)
                     ? ((myHomeSettingsProvider.zoomLevel.toInt()) + 6250)
@@ -481,11 +478,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
               });
             }
 
-            // updateLoggedInUserLocationToTheDatabase(position);
-            updateLoggedInUserLocationToTheDatabase(
-              validatedPosition.lng.toDouble(),
-              validatedPosition.lat.toDouble(),
-            );
+            // (deletable) old code, updated version is below this one
             // updateLoggedInUserLocationToTheDatabase(
             //   gl.Position(
             //     longitude: validatedPosition.lng.toDouble(),
@@ -502,7 +495,13 @@ class _MapBodyState extends State<MapBody> with RouteAware {
             //   ),
             // );
 
-            // This is just a Feature (not yet implemented) (deletable)
+            // updateLoggedInUserLocationToTheDatabase(position);
+            updateLoggedInUserLocationToTheDatabase(
+              validatedPosition.lng.toDouble(),
+              validatedPosition.lat.toDouble(),
+            );
+
+            // Feature to change users avatar in real time
             if (!myHomeSettingsProvider.useDefaultAvatar &&
                 pointAnnotationManager != null) {
               // 1. If the puck doesn't exist yet, create it

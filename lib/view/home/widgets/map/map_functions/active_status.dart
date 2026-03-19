@@ -26,13 +26,13 @@ class ActiveStatus {
     );
   }
 
-  //// (not yet implemented) (deletable)
-  // static void setupConnectionStatusObserver() {
-  //   final user = FirebaseAuth.instance.currentUser;
-  //   if (user != null) {
-  //     MyRealtimeActiveStatusRepository.observeConnection(user.uid);
-  //   } else {
-  //     log("⚠️ Cannot setup observer: No user logged in.");
-  //   }
-  // }
+  // (not yet implemented) (deletable)
+  static void setupConnectionStatusObserver() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      MyRealtimeActiveStatusRepository.observeConnection(user.uid);
+    } else {
+      log("⚠️ Cannot setup observer: No user logged in.");
+    }
+  }
 }

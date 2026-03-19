@@ -909,10 +909,15 @@ class ListenToPatients {
               birthDate: data['birthDate'] ?? "NO DATA ACQUIRED",
             );
           } else {
+            String userType = data["userType"].toString().toUpperCase();
+            String indefiniteArticle = (userType == "ADMIN") ? "an" : "a";
+            int? batteryPercentage = int.tryParse(
+              data["deviceBatteryPercentage"],
+            );
             showMyAnimatedSnackBar(
               context: context,
               dataToDisplay:
-                  "${data["name"]} is a ${data["userType"].toString().toUpperCase()}",
+                  "${data["name"]} is $indefiniteArticle $userType, has $batteryPercentage% battery left",
             );
           }
         }
