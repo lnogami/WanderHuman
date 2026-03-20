@@ -261,8 +261,9 @@ class _FrequentlyGoToAreaState extends State<FrequentlyGoToArea> {
           //   isVertical: false,
           //   isRounded: true,
           // ),
-          SizedBox(height: 20),
+          SizedBox(height: 10),
           MyCustTooltip(
+            triggerMode: TooltipTriggerMode.tap,
             message: "You can use these info for something significant.",
             child: MyTextFormatter.h1(
               text: "Frequently Go-To",
@@ -270,7 +271,7 @@ class _FrequentlyGoToAreaState extends State<FrequentlyGoToArea> {
               fontsize: kDefaultFontSize + 9,
             ),
           ),
-          SizedBox(height: 20),
+          SizedBox(height: 10),
           Container(
             width: width,
             height: height * 0.56,

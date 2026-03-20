@@ -17,7 +17,7 @@ import 'package:wanderhuman_app/view/components/image_picker.dart';
 import 'package:wanderhuman_app/view/components/lines.dart';
 import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/components/textfield.dart';
-import 'package:wanderhuman_app/view/userRolesUI/social_services/mini_widgets/frequently_go_to.dart';
+import 'package:wanderhuman_app/view/userRolesUI/patient/frequently_go_to.dart';
 
 class ViewPatientForm extends StatefulWidget {
   final PersonalInfo patientPersonalInfo;

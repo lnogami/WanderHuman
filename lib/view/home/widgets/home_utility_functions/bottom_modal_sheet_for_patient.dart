@@ -13,7 +13,7 @@ import 'package:wanderhuman_app/view/components/image_displayer.dart';
 import 'package:wanderhuman_app/view/components/image_picker.dart';
 import 'package:wanderhuman_app/view/components/lines.dart';
 import 'package:wanderhuman_app/view/components/tooltip.dart';
-import 'package:wanderhuman_app/view/view_patient_details/patient_details_page.dart';
+import 'package:wanderhuman_app/view/userRolesUI/patient/patient_details_page.dart';
 
 void showMyBottomNavigationSheet({
   required BuildContext context,

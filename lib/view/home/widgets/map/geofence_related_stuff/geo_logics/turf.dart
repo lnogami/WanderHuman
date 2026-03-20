@@ -97,19 +97,31 @@ class MyGeofenceLogic {
           // }
         }
 
-        // --- ONLY REACHED IF NOT INSIDE ANY GEOFENCE ---
-        if (!isPatientRegisteredAtLeastOneSafeZone) {
-          log("⚠️ No geofences were even registered for Patient: $userID");
-        } else {
-          // Use an await here instead of .then() to keep logs in order
-          final personalInfo =
-              await MyPersonalInfoRepository.getSpecificPersonalInfo(
-                userID: userID,
-              );
-          log(
-            "🚨 ALERT: Patient ${personalInfo.name} is OUTSIDE of all assigned safezones!",
-          );
-        }
+        // // --- ONLY REACHED IF NOT INSIDE ANY GEOFENCE ---
+        // if (!isPatientRegisteredAtLeastOneSafeZone) {
+        //   log("⚠️ No geofences were even registered for Patient: $userID");
+        // } else {
+        //   final personalInfo =
+        //       await MyPersonalInfoRepository.getSpecificPersonalInfo(
+        //         userID: userID,
+        //       );
+        //   log(
+        //     "🚨 ALERT: Patient ${personalInfo.name} is OUTSIDE of all assigned safezones!",
+        //   );
+        // }
+      }
+
+      // --- ONLY REACHED IF NOT INSIDE ANY GEOFENCE ---
+      if (!isPatientRegisteredAtLeastOneSafeZone) {
+        log("⚠️ No geofences were even registered for Patient: $userID");
+      } else {
+        final personalInfo =
+            await MyPersonalInfoRepository.getSpecificPersonalInfo(
+              userID: userID,
+            );
+        log(
+          "🚨 ALERT: Patient ${personalInfo.name} is OUTSIDE of all assigned safezones!",
+        );
       }
       return false;
     } catch (e, stackTrace) {

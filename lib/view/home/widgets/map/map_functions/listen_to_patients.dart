@@ -710,12 +710,6 @@ class ListenToPatients {
                       userID: personInfo.userID,
                     );
 
-                // TODO: uncomment this to save realtime location data to history
-                // Saves patient realtime location into the history
-                await MyHistoryReposity.savePatientLocation(
-                  locationData: realtimeLocModel,
-                );
-
                 mp.MapboxMap? mapboxRef =
                     mapboxRefProvider.getMapboxMapController;
                 bool isIntroAnimationDone =
@@ -723,7 +717,16 @@ class ListenToPatients {
 
                 // Notifies if the patient is not inside the safe zone or is the patient safe
                 if (!isInsideSafeZone || !realtimeLocModel.isCurrentlySafe) {
-                  // TODO: uncomment this to to enable the phone vibration
+                  // Update isInSafeZone field in the database, if the patient is still in the data indicates that the patient is still in the safe zone but in reality not.
+                  if (!isInsideSafeZone && realtimeLocModel.isInSafeZone) {
+                    MyRealtimeLocationReposity.updateASingleField(
+                      deviceID: deviceID,
+                      fieldToUpdate: "isInSafeZone",
+                      value: "false",
+                      isABooleanValue: true,
+                    );
+                  }
+
                   // Vibration
                   MyAlertNotification.triggerSafeZoneAlert(
                     patientName: personInfo.name,
@@ -755,6 +758,16 @@ class ListenToPatients {
                     },
                   );
                 } else {
+                  // Update isInSafeZone field in the database to TRUE if the isInSafeZone is false
+                  if (realtimeLocModel.isInSafeZone) {
+                    MyRealtimeLocationReposity.updateASingleField(
+                      deviceID: deviceID,
+                      fieldToUpdate: "isInSafeZone",
+                      value: "true",
+                      isABooleanValue: true,
+                    );
+                  }
+
                   if (geofenceProvider.patientsInDanger.contains(
                     personInfo.userID,
                   )) {
@@ -783,6 +796,11 @@ class ListenToPatients {
                 }
                 log(
                   "WARNINGGGGG!!! Patient ${personInfo.name}, patientID: ${personInfo.userID} is IN DANGER!",
+                );
+
+                // Saves patient Realtime Location into the History
+                await MyHistoryReposity.savePatientLocation(
+                  locationData: realtimeLocModel,
                 );
               }
             } catch (e, stackTrace) {
