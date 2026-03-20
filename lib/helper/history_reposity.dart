@@ -68,25 +68,101 @@ class MyHistoryReposity {
     }
   }
 
+  // /// Retrieve all history logs for a specific patient
+  // static Future<List<MyHistoryModel>> getPatientHistory(
+  //   String patientID, {
+  //   String orderBy = "timeStamp",
+  //   String? fieldToLookFor,
+  //   String? fieldValue,
+  //   bool isDescending = true,
+  // }) async {
+  //   try {
+  //     late QuerySnapshot snapshot;
+  //     bool? isFieldValueBoolean = bool.tryParse(fieldValue ?? "");
+  //
+  //     if (fieldToLookFor != null && fieldValue != null) {
+  //       snapshot = await _rootCollection
+  //           .doc(patientID)
+  //           .collection(_subCollection)
+  //           .where(fieldToLookFor, isNotEqualTo: isFieldValueBoolean ?? fieldValue)
+  //           .orderBy(orderBy, descending: isDescending) // Get newest first
+  //           .get();
+  //     } else if (orderBy == "timeStamp") {
+  //       snapshot = await _rootCollection
+  //           .doc(patientID)
+  //           .collection(_subCollection)
+  //           .orderBy(orderBy, descending: isDescending) // Get newest first
+  //           .get();
+  //     } else {
+  //       snapshot = await _rootCollection
+  //           .doc(patientID)
+  //           .collection(_subCollection)
+  //           .get();
+  //     }
+  //
+  //     return snapshot.docs.map((doc) {
+  //       return MyHistoryModel.fromFirestore(doc.data() as Map<String, dynamic>);
+  //     }).toList();
+  //   } catch (e) {
+  //     log("ERROR FETCHING HISTORY: $e");
+  //     return [];
+  //   }
+  // }
+
   /// Retrieve all history logs for a specific patient
   static Future<List<MyHistoryModel>> getPatientHistory(
     String patientID, {
     String orderBy = "timeStamp",
+    String? field1,
+    dynamic value1, // Changed to dynamic so you can pass bools directly
+    String? field2,
+    dynamic value2,
     bool isDescending = true,
   }) async {
     try {
       late QuerySnapshot snapshot;
 
-      if (orderBy == "timeStamp") {
+      // ==========================================
+      // THE "OR" QUERY LOGIC
+      // ==========================================
+      if (field1 != null &&
+          field2 != null &&
+          value1 != null &&
+          value2 != null) {
         snapshot = await _rootCollection
             .doc(patientID)
             .collection(_subCollection)
-            .orderBy('timeStamp', descending: isDescending) // Get newest first
+            .where(
+              Filter.or(
+                Filter(field1, isEqualTo: value1),
+                Filter(field2, isEqualTo: value2),
+              ),
+            )
+            .orderBy(orderBy, descending: isDescending)
             .get();
+
+        log(
+          "**************** DONE FETCHING DATA IN getPatientHistory, ${snapshot.docs.length}",
+        );
+        // ==========================================
+        // STANDARD SINGLE-FIELD QUERY
+        // ==========================================
+      } else if (field1 != null && value1 != null) {
+        snapshot = await _rootCollection
+            .doc(patientID)
+            .collection(_subCollection)
+            .where(field1, isEqualTo: value1)
+            .orderBy(orderBy, descending: isDescending)
+            .get();
+
+        // ==========================================
+        // JUST ORDERED (NO FILTERS)
+        // ==========================================
       } else {
         snapshot = await _rootCollection
             .doc(patientID)
             .collection(_subCollection)
+            .orderBy(orderBy, descending: isDescending)
             .get();
       }
 

@@ -156,7 +156,7 @@ class MyRealtimeActiveStatusRepository {
     //       So it wont work because the RTDB in US does not know this app exist, as it only existed in the Singapore RTDB.
     connectionObserverSubscription =
         FirebaseDatabase.instanceFor(
-          // instead of FirebaseDatabase.instance()
+          // use instanceFor instead of FirebaseDatabase.instance()
           app: Firebase.app(),
           databaseURL: dotenv.env["MY_REALTIME_DATABASE_LINK"],
         ).ref(".info/connected").onValue.listen((event) {

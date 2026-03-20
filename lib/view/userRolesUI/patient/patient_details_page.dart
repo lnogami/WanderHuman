@@ -47,7 +47,7 @@ class _PatientDetailsPageState extends State<PatientDetailsPage> {
           controller: rootScrollController,
           thumbColor: Colors.blue.shade300,
           trackColor: Colors.grey.shade300,
-          interactive: false,
+          interactive: true,
           trackRadius: Radius.circular(50),
           radius: Radius.circular(50),
           thumbVisibility: true,

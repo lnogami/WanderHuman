@@ -1,17 +1,21 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:wanderhuman_app/helper/history_reposity.dart';
 import 'package:wanderhuman_app/helper/medical_services_repository.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
+import 'package:wanderhuman_app/model/history_model.dart';
 import 'package:wanderhuman_app/model/medication_model.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
 import 'package:wanderhuman_app/view/components/cards2.dart';
 import 'package:wanderhuman_app/view/components/lines.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
+import 'package:wanderhuman_app/view/components/tooltip.dart';
 import 'package:wanderhuman_app/view/userRolesUI/medical_services/medication.dart';
 import 'package:wanderhuman_app/view/userRolesUI/medical_services/medication_history.dart';
 import 'package:wanderhuman_app/view/userRolesUI/patient/frequently_go_to.dart';
+import 'package:wanderhuman_app/view/userRolesUI/patient/static_mini_map_card.dart';
 
 class MyTabBar extends StatefulWidget {
   final PersonalInfo patient;
@@ -29,6 +33,8 @@ class MyTabBar extends StatefulWidget {
 }
 
 class _MyTabBarState extends State<MyTabBar> {
+  final ScrollController forAllScrollController = ScrollController();
+
   // Medical History Related
   final List<CombinedMedicalRecord> isNotYetOkayList = [];
   final List<CombinedMedicalRecord> isNowOkayList = [];
@@ -104,11 +110,36 @@ class _MyTabBarState extends State<MyTabBar> {
     }
   }
 
+  // In Danger History
+  final List<MyHistoryModel> inDangerHistoryList = [];
+  bool isInDangerHistoryListLoading = true;
+  Future<void> getInDangerHistory() async {
+    try {
+      var logs = await MyHistoryReposity.getPatientHistory(
+        widget.patient.userID,
+        field1: "isInSafeZone",
+        value1: false,
+        field2: "isCurrentlySafe",
+        value2: false,
+      );
+      inDangerHistoryList.addAll(logs);
+
+      setState(() => isInDangerHistoryListLoading = false);
+      log(
+        "**********************${widget.patient.name} IS IN DANGER HISTORY logs: ${inDangerHistoryList.length}",
+      );
+    } catch (e, stackTrace) {
+      log("ERROR IN getInDangerHistory: $e \nin $stackTrace");
+      rethrow;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     getMedicalStaffs();
     getCombinedRecords();
+    getInDangerHistory();
   }
 
   @override
@@ -162,16 +193,8 @@ class _MyTabBarState extends State<MyTabBar> {
               child: TabBarView(
                 children: [
                   FrequentlyGoToArea(patientID: widget.patient.userID),
-                  SingleChildScrollView(child: patientMedicalInfo()),
-                  Container(
-                    width: widget.width,
-                    height: widget.height,
-                    color: Colors.amber,
-                    child: Column(children: [
-
-                      ],
-                    ),
-                  ),
+                  SingleChildScrollView(child: patientMedicalInfoTab()),
+                  inDangerHistoryTab(),
                 ],
               ),
             ),
@@ -181,7 +204,71 @@ class _MyTabBarState extends State<MyTabBar> {
     );
   }
 
-  SafeArea patientMedicalInfo() {
+  Container inDangerHistoryTab() {
+    return Container(
+      width: widget.width * 0.80,
+      height: widget.height,
+      // color: Colors.amber,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(height: 40),
+          MyCustTooltip(
+            triggerMode: TooltipTriggerMode.tap,
+            message:
+                "Outside Safe Zone automatically means in danger, while In Danger means something happened inside the safe zone.",
+            heightConstraints: 90,
+            duration: 3000,
+            child: MyTextFormatter.h3(
+              text: "In Danger History",
+              fontsize: kDefaultFontSize + 9,
+              lineHeight: 1,
+            ),
+          ),
+          SizedBox(height: 20),
+
+          (isInDangerHistoryListLoading)
+              ? Center(child: CircularProgressIndicator.adaptive())
+              : Expanded(
+                  child: (inDangerHistoryList.isEmpty)
+                      ? Center(
+                          child: MyTextFormatter.p(
+                            text: "Oops. No History Found.",
+                          ),
+                        )
+                      : RawScrollbar(
+                          controller: forAllScrollController,
+                          thumbColor: Colors.blue.shade300,
+                          padding: EdgeInsets.only(
+                            top: 15,
+                            right: 20,
+                            bottom: 10,
+                          ),
+                          thumbVisibility: true,
+                          trackVisibility: false,
+                          thickness: 5,
+                          interactive: false,
+                          radius: Radius.circular(7),
+                          child: ListView.builder(
+                            controller: forAllScrollController,
+                            itemCount: inDangerHistoryList.length,
+                            padding: EdgeInsets.only(top: 10, bottom: 20),
+                            itemBuilder: (context, index) {
+                              return MyStaticMiniMapCard(
+                                width: widget.width,
+                                height: widget.height,
+                                history: inDangerHistoryList[index],
+                              );
+                            },
+                          ),
+                        ),
+                ),
+        ],
+      ),
+    );
+  }
+
+  SafeArea patientMedicalInfoTab() {
     return SafeArea(
       // child:
       child: Center(
@@ -194,10 +281,17 @@ class _MyTabBarState extends State<MyTabBar> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    MyTextFormatter.h3(
-                      text: "Medical History",
-                      fontsize: kDefaultFontSize + 9,
-                      lineHeight: 1,
+                    MyCustTooltip(
+                      message:
+                          "Medical History is intended for tracking light medical procedures only. Not designed for managing prescription-based medications.",
+                      triggerMode: TooltipTriggerMode.tap,
+                      heightConstraints: 90,
+                      duration: 3000,
+                      child: MyTextFormatter.h3(
+                        text: "Medical History",
+                        fontsize: kDefaultFontSize + 9,
+                        lineHeight: 1,
+                      ),
                     ),
                     SizedBox(height: 20),
 

@@ -857,6 +857,15 @@ class ListenToPatients {
     try {
       log("🔴 Removing offline user (Device ID: $deviceID) from the map.");
 
+      // // Experimental implementation (deletable)
+      // // Restart the app if the logged in user sudden goes offline
+      // if(context != null){
+      //   if (deviceID ==
+      //     context.read<HomeAppBarProvider>().loggedInUserData.userID) {
+      //     Phoenix.rebirth(context);
+      //   }
+      // }
+
       // 1. Kill their location stream
       await _locationSubscriptions[deviceID]?.cancel();
       _locationSubscriptions.remove(deviceID);
