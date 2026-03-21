@@ -71,7 +71,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
   // Geofence related stuff
   mp.PolygonAnnotationManager? polygonAnnotationManager;
   // List<List<mp.Position>> listOfPositions = [];
-  int numberOfActiveGeofences = 0;
+  int numberOfActiveGeofences = 0; // for debugging purposes only (deletable)
 
   // Provider
   late MyHomeSettingsProvider myHomeSettingsProvider;
@@ -160,10 +160,9 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     checkLocationServiceStatus();
     lastLoggedInUserUpdateToDatabase = DateTime.now();
 
-    // setup all the active geofences (safezones)
-    setupGeofences();
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // setup all the active geofences (safezones)
+      setupGeofences();
       // Add the current logged in user in the active perons list
       myHomeActivePersonsProvider.addActivePerson(
         context.read<HomeAppBarProvider>().loggedInUserData,
@@ -598,10 +597,18 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     try {
       DateTime now = DateTime.now();
 
-      // GATE 1: THE TIME GATE
-      if (now.difference(lastLoggedInUserUpdateToDatabase).inSeconds < 30) {
+      // GATE 1: THE TIME GATE                           // originally 30 seconds
+      if (now.difference(lastLoggedInUserUpdateToDatabase).inSeconds < 15) {
         log(
           "LOGGED IN USER's LOCATION DATA WAS SKIPPED: TOO EARLY TO SAVE LOCATION DATA!",
+        );
+
+        // (deletable) for debugging purposes only
+        showMyAnimatedSnackBar(
+          context: context,
+          // isAutoDismiss: false,
+          dataToDisplay:
+              "Saving your location to RTDB was skipped: (Too early to save location data: time passed since ${now.difference(lastLoggedInUserUpdateToDatabase).inSeconds} second(s))",
         );
         return;
       }
@@ -622,6 +629,14 @@ class _MapBodyState extends State<MapBody> with RouteAware {
           log(
             "DB WRITE SKIPPED: User is stationary. (Moved only ${distanceMoved.toStringAsFixed(2)}m)",
           );
+
+          // (deletable) for debugging purposes only
+          showMyAnimatedSnackBar(
+            context: context,
+            // isAutoDismiss: false,
+            dataToDisplay:
+                "Saving your location to RTDB was also skipped: (Too near to save data: moved only ${distanceMoved.toStringAsFixed(2)})",
+          );
           return;
         }
       }
@@ -633,7 +648,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
       lastLoggedInUserUpdateToDatabase = now;
       lastSavedDatabasePosition = mp.Position(filteredLng, filteredLat);
 
-      MyRealtimeLocationReposity.updateLocation(
+      await MyRealtimeLocationReposity.updateLocation(
         deviceID: widget.loggedInUserData.userID,
         realtimeData: MyRealtimeLocationModel(
           deviceID: widget.loggedInUserData.userID,
@@ -651,6 +666,17 @@ class _MapBodyState extends State<MapBody> with RouteAware {
           bPM: "NOT APPLICABLE",
           requestBPM: false,
         ),
+      );
+
+      // (deletable) for debugging purposes only
+      showMyAnimatedSnackBar(
+        context: context,
+        // isAutoDismiss: false,
+        dataToDisplay:
+            "Successfully save to database at exactly ${MyDateFormatter.formatDate(dateTimeInString: now, formatOptions: 6)}",
+      );
+      log(
+        "########## CURRENTLY LOGGED IN USERS DATA WAS SUCCESSFULLY SAVE IN THE DATABASE",
       );
     } catch (e, stackTrace) {
       log("ERROR WHILE UPDATING USER LOCATION in MapBody: $e. AT $stackTrace");
@@ -696,7 +722,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
   void initOtherMapRequirements(mp.MapboxMap mapController) {
     // logic for displaying user position/location on the map
     if (myHomeSettingsProvider.useDefaultAvatar) {
-      mapboxMapController?.location.updateSettings(
+      mapboxMapController!.location.updateSettings(
         mp.LocationComponentSettings(
           enabled: true,
           pulsingEnabled: true,

@@ -166,6 +166,10 @@ class MyHistoryReposity {
             .get();
       }
 
+      log(
+        "=======================\nNumber of Data fetched for ($patientID): ${snapshot.docs.length}",
+      );
+
       return snapshot.docs.map((doc) {
         return MyHistoryModel.fromFirestore(doc.data() as Map<String, dynamic>);
       }).toList();
@@ -173,6 +177,50 @@ class MyHistoryReposity {
       log("ERROR FETCHING HISTORY: $e");
       return [];
     }
+  }
+
+  // (not yet tested as of March 22, 2026)
+  /// Fetches history and groups "Unsafe" episodes into separate sessions.
+  static Future<List<List<MyHistoryModel>>> getGroupedUnsafeSessions(
+    String patientID,
+  ) async {
+    // 1. Fetch all logs for this patient.
+    // IMPORTANT: We fetch in ASCENDING order (isDescending: false)
+    // so we can "trace" the path chronologically from start to finish.
+    List<MyHistoryModel> allLogs = await getPatientHistory(
+      patientID,
+      isDescending: false,
+    );
+
+    List<List<MyHistoryModel>> groupedSessions = [];
+    List<MyHistoryModel> currentSession = [];
+
+    for (int i = 0; i < allLogs.length; i++) {
+      MyHistoryModel logEntry = allLogs[i];
+
+      // Check if the patient is OUTSIDE the safe zone
+      if (logEntry.isInSafeZone == false) {
+        currentSession.add(logEntry);
+      }
+      // If the patient is INSIDE (Safe), it means the "Unsafe Session" has ended
+      else {
+        if (currentSession.isNotEmpty) {
+          // Add the completed unsafe session to our master list
+          groupedSessions.add(List.from(currentSession));
+          // Reset for the next time they might go out
+          currentSession.clear();
+        }
+      }
+    }
+
+    // Catch the case where the patient is STILL outside when the logs end
+    if (currentSession.isNotEmpty) {
+      groupedSessions.add(currentSession);
+    }
+
+    // Return the sessions. We reverse the outer list so the
+    // LATEST alert appears at the top of your Card List.
+    return groupedSessions.reversed.toList();
   }
 
   /// Retrieve all history logs for a specific patient
@@ -257,4 +305,29 @@ class MyHistoryReposity {
       return null;
     }
   }
+
+  // // for debugging purposes only
+  // static Future<void> removePatientHistory(
+  //   String patientID, {
+  //   required dynamic timeStampToDelete,
+  // }) async {
+  //   try {
+  //     await _rootCollection
+  //         .doc(patientID)
+  //         .collection(_subCollection)
+  //         .where("currentLocationLng", isEqualTo: timeStampToDelete)
+  //         .get()
+  //         .then((snapshot) {
+  //           for (var doc in snapshot.docs) {
+  //             if (snapshot.docs.first.exists) continue;
+  //             doc.reference.delete();
+  //           }
+  //         });
+  //     log(
+  //       "-------------------------\n✅ SUCCESSFULLY REMOVED HISTORY for $patientID",
+  //     );
+  //   } catch (e, stackTrace) {
+  //     log("ERROR REMOVING HISTORY: $e \nAT: $stackTrace");
+  //   }
+  // }
 }

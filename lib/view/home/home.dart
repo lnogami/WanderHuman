@@ -100,7 +100,15 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     initUserData();
-    setupUserSettings();
+
+    log("------------------------\nTHE APP IS STARTING!"); // (deletable)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      log(
+        "------------------------\nTHE APP CALLS SETUPUSERSETTINGS METHOD!",
+      ); // (deletable)
+      setupUserSettings();
+    });
+
     // ActiveStatus.setupOnDisconnectStatus(); // old
     ActiveStatus.setupConnectionStatusObserver(); // new (not yet implemented)
   }
@@ -114,6 +122,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    log("------------------------\nTHE APP CALLS build METHOD!"); // (deletable)
     final geofenceProvider = context
         .watch<MyHomeGeofenceConfigurationProvider>();
     bool isCreatingGeofence = geofenceProvider.isCreatingGeofence;

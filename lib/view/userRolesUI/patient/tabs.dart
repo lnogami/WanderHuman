@@ -1,6 +1,8 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:wanderhuman_app/helper/geofence_repository.dart';
 import 'package:wanderhuman_app/helper/history_reposity.dart';
 import 'package:wanderhuman_app/helper/medical_services_repository.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
@@ -15,6 +17,7 @@ import 'package:wanderhuman_app/view/components/tooltip.dart';
 import 'package:wanderhuman_app/view/userRolesUI/medical_services/medication.dart';
 import 'package:wanderhuman_app/view/userRolesUI/medical_services/medication_history.dart';
 import 'package:wanderhuman_app/view/userRolesUI/patient/frequently_go_to.dart';
+import 'package:wanderhuman_app/view/userRolesUI/patient/in_danger_card.dart';
 import 'package:wanderhuman_app/view/userRolesUI/patient/static_mini_map_card.dart';
 
 class MyTabBar extends StatefulWidget {
@@ -111,22 +114,110 @@ class _MyTabBarState extends State<MyTabBar> {
   }
 
   // In Danger History
-  final List<MyHistoryModel> inDangerHistoryList = [];
-  bool isInDangerHistoryListLoading = true;
+  // final List<MyHistoryModel> outsideSafeZoneHistory = [];
+  final List<List<MyHistoryModel>> outsideSafeZoneHistory = [];
+  final List<MyHistoryModel> inDangerHistory = [];
+  final List<MyHistoryModel> combinedHistory = [];
+  bool isoutsideSafeZoneHistoryLoading = true;
+  late Position? centerPoint;
+
   Future<void> getInDangerHistory() async {
     try {
-      var logs = await MyHistoryReposity.getPatientHistory(
-        widget.patient.userID,
-        field1: "isInSafeZone",
-        value1: false,
-        field2: "isCurrentlySafe",
-        value2: false,
-      );
-      inDangerHistoryList.addAll(logs);
+      // var logs = await MyHistoryReposity.getPatientHistory(
+      //   widget.patient.userID,
+      //   field1: "isInSafeZone",
+      //   value1: false,
+      //   field2: "isCurrentlySafe",
+      //   value2: false,
+      // );
+      // outsideSafeZoneHistory.addAll(logs);
 
-      setState(() => isInDangerHistoryListLoading = false);
+      if (outsideSafeZoneHistory.isNotEmpty) outsideSafeZoneHistory.clear();
+      var outsideSafeZoneLogs =
+          await MyHistoryReposity.getGroupedUnsafeSessions(
+            widget.patient.userID,
+          );
+      outsideSafeZoneHistory.addAll(outsideSafeZoneLogs);
+
+      if (inDangerHistory.isNotEmpty) inDangerHistory.clear();
+      var inDangerLogs = await MyHistoryReposity.getPatientHistory(
+        widget.patient.userID,
+        field1: "isCurrentlySafe",
+        value1: false,
+      );
+      inDangerHistory.addAll(inDangerLogs);
+
+      if (combinedHistory.isNotEmpty) combinedHistory.clear();
+      for (var historyGroup in outsideSafeZoneHistory) {
+        if (historyGroup.isNotEmpty) {
+          // Check if a log with this exact same timestamp is already in our combined list
+          bool isDuplicate = combinedHistory.any((existingLog) {
+            return existingLog.timeStamp == historyGroup.last.timeStamp;
+          });
+
+          // Only add it if it is truly unique!
+          if (!isDuplicate) {
+            combinedHistory.add(historyGroup.last);
+          }
+        }
+      }
+      // // combinedHistory.addAll(inDangerLogs);
+      // // To prevent duplication of data, where instances that both isCurrentlySafe and isInSafeZone are both false
+      // for (var log in inDangerLogs) {
+      //   // Check if a log with this exact same timestamp is already in our combined list
+      //   bool isDuplicate = combinedHistory.any((existingLog) {
+      //     return existingLog.timeStamp == log.timeStamp;
+      //   });
+
+      //   // Only add it if it is truly unique!
+      //   if (!isDuplicate) {
+      //     combinedHistory.add(log);
+      //   }
+      // }
+      // To prevent duplication of data, where instances that both isCurrentlySafe and isInSafeZone are both false
+      for (var log in inDangerLogs) {
+        // ✅ THE FIX: Check if this log belongs to ANY of the groups we already fetched
+        bool isAlreadyInAGroup = false;
+        for (var historyGroup in outsideSafeZoneHistory) {
+          // Search the inner list to see if this ping is inside it
+          bool existsInThisGroup = historyGroup.any(
+            (groupLog) => groupLog.timeStamp == log.timeStamp,
+          );
+          if (existsInThisGroup) {
+            isAlreadyInAGroup = true;
+            break; // Stop searching, we found it!
+          }
+        }
+
+        // Only add it if it is a completely independent "In Danger" event!
+        if (!isAlreadyInAGroup) {
+          // Final safety check against combinedHistory just in case
+          bool isDuplicate = combinedHistory.any((existingLog) {
+            return existingLog.timeStamp == log.timeStamp;
+          });
+
+          if (!isDuplicate) {
+            combinedHistory.add(log);
+          }
+        }
+      }
+      combinedHistory.sort((a, b) {
+        // Assuming your timeStamp is an ISO8601 String.
+        // If it's a Firebase Timestamp, you would do a.timeStamp.toDate() instead.
+        DateTime timeA = DateTime.parse(a.timeStamp);
+        DateTime timeB = DateTime.parse(b.timeStamp);
+
+        return timeB.compareTo(timeA); // Descending (Newest first)
+      });
+
+      centerPoint =
+          await MyGeofenceRepository.getCenterPointOfGeofenceBaseOnPatientParticipant(
+            patientID: widget.patient.userID,
+          );
+
+      setState(() => isoutsideSafeZoneHistoryLoading = false);
       log(
-        "**********************${widget.patient.name} IS IN DANGER HISTORY logs: ${inDangerHistoryList.length}",
+        "**********************${widget.patient.name} IS IN DANGER HISTORY logs: ${outsideSafeZoneHistory.length}",
       );
     } catch (e, stackTrace) {
       log("ERROR IN getInDangerHistory: $e \nin $stackTrace");
@@ -227,10 +318,10 @@ class _MyTabBarState extends State<MyTabBar> {
           ),
           SizedBox(height: 20),
 
-          (isInDangerHistoryListLoading)
+          (isoutsideSafeZoneHistoryLoading)
               ? Center(child: CircularProgressIndicator.adaptive())
               : Expanded(
-                  child: (inDangerHistoryList.isEmpty)
+                  child: (outsideSafeZoneHistory.isEmpty)
                       ? Center(
                           child: MyTextFormatter.p(
                             text: "Oops. No History Found.",
@@ -251,14 +342,28 @@ class _MyTabBarState extends State<MyTabBar> {
                           radius: Radius.circular(7),
                           child: ListView.builder(
                             controller: forAllScrollController,
-                            itemCount: inDangerHistoryList.length,
+                            itemCount: combinedHistory.length,
                             padding: EdgeInsets.only(top: 10, bottom: 20),
                             itemBuilder: (context, index) {
-                              return MyStaticMiniMapCard(
-                                width: widget.width,
-                                height: widget.height,
-                                history: inDangerHistoryList[index],
-                              );
+                              // Use outside safe zone history
+                              if (!combinedHistory[index].isInSafeZone) {
+                                return MyStaticMiniMapCard(
+                                  width: widget.width,
+                                  height: widget.height,
+                                  centerPoint: centerPoint!,
+                                  history: getAllRelativeHistory(
+                                    combinedHistory[index],
+                                  ),
+                                );
+                              }
+                              // Use in danger history
+                              else {
+                                return MyInDangerCard(
+                                  width: widget.width,
+                                  height: widget.height,
+                                  history: combinedHistory[index],
+                                );
+                              }
                             },
                           ),
                         ),
@@ -266,6 +371,19 @@ class _MyTabBarState extends State<MyTabBar> {
         ],
       ),
     );
+  }
+
+  List<MyHistoryModel> getAllRelativeHistory(
+    MyHistoryModel lastHistoryAsIndex,
+  ) {
+    for (var historyLogs in outsideSafeZoneHistory) {
+      for (var historyLog in historyLogs) {
+        if (historyLog.timeStamp == lastHistoryAsIndex.timeStamp) {
+          return historyLogs;
+        }
+      }
+    }
+    return [];
   }
 
   SafeArea patientMedicalInfoTab() {

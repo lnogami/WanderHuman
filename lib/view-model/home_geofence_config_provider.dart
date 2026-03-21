@@ -25,6 +25,7 @@ class MyHomeGeofenceConfigurationProvider extends ChangeNotifier {
   PointAnnotationManager? _markedCenterPointAnnotationManager;
   // will contain all the patients in danger (who wandered outside the safe zone)
   final List<String> _patientsInDanger = [];
+  // final List<MyGeofenceModel> _activeGeofences = [];
 
   // Getters
   bool get isCreatingGeofence => _isCreatingGeofence;
@@ -42,6 +43,7 @@ class MyHomeGeofenceConfigurationProvider extends ChangeNotifier {
   PointAnnotationManager? get centerPointAnnotationManager =>
       _markedCenterPointAnnotationManager;
   List<String> get patientsInDanger => _patientsInDanger;
+  // List<MyGeofenceModel> get activeGeofences => _activeGeofences;
 
   // Setters
   // For when creating a new geofence.

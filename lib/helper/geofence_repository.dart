@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:wanderhuman_app/model/geofence_model.dart';
 
 class MyGeofenceRepository {
@@ -98,6 +99,24 @@ class MyGeofenceRepository {
       });
     } catch (e, stackTrace) {
       log("ERROR WHILE GETTING ALL GEOFENCES: $e. AT $stackTrace");
+      rethrow;
+    }
+  }
+
+  static Future<Position?> getCenterPointOfGeofenceBaseOnPatientParticipant({
+    required String patientID,
+  }) async {
+    try {
+      final activeGeofences = await getActiveGeofences();
+      for (var activeGeofence in activeGeofences) {
+        if (activeGeofence.registeredPatients.contains(patientID)) {
+          return activeGeofence.geofenceCoordinates[0];
+        }
+      }
+
+      return null;
+    } catch (e, stackTrace) {
+      log("ERROR WHILE GETTING CENTER POINT OF GEOFENCE: $e. AT $stackTrace");
       rethrow;
     }
   }
