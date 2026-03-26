@@ -51,6 +51,8 @@ class _MapBodyState extends State<MapBody> with RouteAware {
 
   /// The generic point annotation manager for patients and caregivers that are visible in the map
   mp.PointAnnotationManager? pointAnnotationManager;
+  // This is not really needed but I use this for identification which is for moving a layer above or below other manager id.
+  final String pointAnnotationManagerID = "persons_annotations";
 
   /// This will hold all the active geofences (safezones)
   List<MyGeofenceModel> activeGeofences = [];
@@ -70,6 +72,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
 
   // Geofence related stuff
   mp.PolygonAnnotationManager? polygonAnnotationManager;
+  final String polygonAnnotationManagerID = "active_geofences_annotations";
   // List<List<mp.Position>> listOfPositions = [];
   int numberOfActiveGeofences = 0; // for debugging purposes only (deletable)
 
@@ -126,7 +129,13 @@ class _MapBodyState extends State<MapBody> with RouteAware {
       if (activeGeofences.isEmpty) return;
 
       polygonAnnotationManager = await mapboxMapController?.annotations
-          .createPolygonAnnotationManager();
+          .createPolygonAnnotationManager(id: polygonAnnotationManagerID);
+
+      // This will make the point annotation for persons appear above the polygon annotation for geofences
+      mapboxMapController!.style.moveStyleLayer(
+        pointAnnotationManagerID,
+        mp.LayerPosition(above: polygonAnnotationManagerID),
+      );
 
       numberOfActiveGeofences = activeGeofences.length;
 
@@ -138,6 +147,10 @@ class _MapBodyState extends State<MapBody> with RouteAware {
                 .map((pos) => mp.Position(pos.lng, pos.lat))
                 .toList(),
           ],
+          // The forth (3rd index) mapView is a dark theme
+          polygonColor: (myHomeSettingsProvider.mapView == 3)
+              ? Colors.orange.toARGB32()
+              : null,
         );
       }
 
@@ -242,18 +255,12 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     return mp.MapWidget(
       onMapCreated: _onMapCreated,
       // This will set the initial place of what the map displays while still processing the location data it needs.
-      cameraOptions: mp.CameraOptions(
-        // center: mp.Point(
-        //   coordinates: mp.Position(
-        //     125.79742622088162,
-        //     7.4283929355574685,
-        //   ), // Coordinates for Tagum City
-        // ),
-        zoom: 0,
-      ),
+      cameraOptions: mp.CameraOptions(zoom: 0),
       // this is the styles of the map
       // static realistic view
-      styleUri: mp.MapboxStyles.SATELLITE_STREETS,
+      styleUri: getMapViewStyle(myHomeSettingsProvider.mapView),
+      onStyleDataLoadedListener: (styleDataLoadedEventData) {},
+      //// styleUri: mp.MapboxStyles.STANDARD_SATELLITE,
       //// dynamic 3D view
       // styleUri: mp.MapboxStyles.STANDARD,
       onStyleLoadedListener: (styleLoadedEventData) {
@@ -297,7 +304,6 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     // it will wait until the current fram finishes rendering
     // though its not really neccessary here (just like the setState above)
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // store the controller globally (State Management) to make it accessible anywhere
       context.read<MyMapboxRefProvider>().setMapboxMapController(controller);
       // this is for setting up the geofence configuration, this will initialize the PolygonAnnotationManager and PointAnnotationManager that will be used for creating geofences and marking the tapped points in the map when creating geofences
       context
@@ -306,14 +312,14 @@ class _MapBodyState extends State<MapBody> with RouteAware {
             polygonManager: markedPolygonAnnotationManager!,
             pointManager: markedPointAnnotationManager!,
           );
+
+      // other mapbox's requirements for its rules and policies
+      initOtherMapRequirements(mapboxMapController!);
     });
 
     // manages point annotations
     pointAnnotationManager = await mapboxMapController?.annotations
-        .createPointAnnotationManager();
-
-    // other mapbox's requirements for its rules and policies
-    initOtherMapRequirements(mapboxMapController!);
+        .createPointAnnotationManager(id: pointAnnotationManagerID);
 
     // This part of the code is for listening to realtime database data
     ListenToPatients.listenToPatients(
@@ -335,15 +341,9 @@ class _MapBodyState extends State<MapBody> with RouteAware {
         context: context,
       );
 
-      // // TODO: this is where the active geofence is going to be setup
-      // MyMapGeofenceDrawer.drawPolygon(
-      //   polygonManager: markedPolygonAnnotationManager!,
-      //   positions: context
-      //       .read<MyHomeGeofenceConfigurationProvider>()
-      //       .listOfMarkedPositions,
-      // );
-      // //
-      // setupGeofences();
+      mapboxMapController!.style.setStyleURI(
+        getMapViewStyle(myHomeSettingsProvider.mapView),
+      );
     }
 
     if (isLocationServiceEnabled) {
@@ -717,6 +717,24 @@ class _MapBodyState extends State<MapBody> with RouteAware {
   //     log("ERROR WHILE UPDATING USER LOCATION in MapBody: $e. AT $stackTrace");
   //   }
   // }
+
+  String getMapViewStyle(int style) {
+    // styleUri: mp.MapboxStyles.SATELLITE_STREETS, // default
+    // styleUri: mp.MapboxStyles.STANDARD,
+    // styleUri: mp.MapboxStyles.MAPBOX_STREETS,
+    // styleUri: mp.MapboxStyles.OUTDOORS,
+
+    switch (style) {
+      case 1:
+        return mp.MapboxStyles.MAPBOX_STREETS;
+      case 2:
+        return mp.MapboxStyles.OUTDOORS;
+      case 3:
+        return mp.MapboxStyles.STANDARD;
+      default:
+        return mp.MapboxStyles.SATELLITE_STREETS;
+    }
+  }
 
   // these were just the things that I can' remove in the map interface because of the MapBox's Terms and Policy, but I can change their position and appearance
   void initOtherMapRequirements(mp.MapboxMap mapController) {

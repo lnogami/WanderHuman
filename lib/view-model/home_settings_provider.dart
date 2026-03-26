@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/model/settings_model.dart';
 
@@ -6,6 +8,7 @@ class MyHomeSettingsProvider extends ChangeNotifier {
   bool? _alwaysFollowYourAvatar;
   bool? _useDefaultAvatar;
   bool? _enableAvatarDistanceAccuracy;
+  int? _mapView;
 
   // bool? _useDefaultAvatar;
   // bool? _enableAvatarDistanceAccuracy;
@@ -15,6 +18,7 @@ class MyHomeSettingsProvider extends ChangeNotifier {
   bool get useDefaultAvatar => _useDefaultAvatar ?? true;
   bool get enableAvatarDistanceAccuracy =>
       _enableAvatarDistanceAccuracy ?? true;
+  int get mapView => _mapView ?? 0;
 
   /// Initializes all the user settings data
   Future<void> initUserSettings(MySettingsModel settings) async {
@@ -22,6 +26,7 @@ class MyHomeSettingsProvider extends ChangeNotifier {
     setAlwaysFollowYourAvatar(settings.alwaysFollowYourAvatar);
     setToUseDefaultAvatar(settings.useDefaultAvatar);
     setEnableAvatarDistanceAccuracy(settings.enableAvatarDistanceAccuracy);
+    setMapView(settings.mapView);
   }
 
   MySettingsModel getUserSettings() {
@@ -31,6 +36,7 @@ class MyHomeSettingsProvider extends ChangeNotifier {
       alwaysFollowYourAvatar: alwaysFollowYourAvatar,
       useDefaultAvatar: useDefaultAvatar,
       enableAvatarDistanceAccuracy: enableAvatarDistanceAccuracy,
+      mapView: mapView,
     );
   }
 
@@ -52,5 +58,11 @@ class MyHomeSettingsProvider extends ChangeNotifier {
   void setEnableAvatarDistanceAccuracy(bool value) {
     _enableAvatarDistanceAccuracy = value;
     notifyListeners();
+  }
+
+  void setMapView(int value) {
+    _mapView = value;
+    notifyListeners();
+    log("MMMMMMMMMapView was successfully set to $value");
   }
 }

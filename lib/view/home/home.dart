@@ -82,6 +82,7 @@ class _HomePageState extends State<HomePage> {
         alwaysFollowYourAvatar: false,
         useDefaultAvatar: true,
         enableAvatarDistanceAccuracy: true,
+        mapView: 0,
       );
 
       await MySettigsRepository.addSettings(settings: userSettings);

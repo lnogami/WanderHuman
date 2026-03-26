@@ -23,6 +23,7 @@ class MySettigsRepository {
         'alwaysFollowYourAvatar': settings.alwaysFollowYourAvatar,
         'useDefaultAvatar': settings.useDefaultAvatar,
         'enableAvatarDistanceAccuracy': settings.enableAvatarDistanceAccuracy,
+        'mapView': settings.mapView,
       }, SetOptions(merge: true));
     } catch (e, stackTrace) {
       log("Error adding settings: $e, at $stackTrace");
@@ -47,6 +48,7 @@ class MySettigsRepository {
           alwaysFollowYourAvatar: true,
           useDefaultAvatar: true,
           enableAvatarDistanceAccuracy: true,
+          mapView: 0,
         );
       }
     } catch (e) {
@@ -83,6 +85,7 @@ class MySettigsRepository {
         'alwaysFollowYourAvatar': settings.alwaysFollowYourAvatar,
         'useDefaultAvatar': settings.useDefaultAvatar,
         'enableAvatarDistanceAccuracy': settings.enableAvatarDistanceAccuracy,
+        'mapView': settings.mapView,
       }, SetOptions(merge: true));
       log("Settings successfully updated for user: ${settings.userID}");
     } catch (e) {

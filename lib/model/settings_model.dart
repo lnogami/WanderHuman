@@ -4,6 +4,7 @@ class MySettingsModel {
   bool alwaysFollowYourAvatar;
   bool useDefaultAvatar;
   bool enableAvatarDistanceAccuracy;
+  int mapView;
 
   MySettingsModel({
     required this.userID,
@@ -11,6 +12,7 @@ class MySettingsModel {
     required this.alwaysFollowYourAvatar,
     required this.useDefaultAvatar,
     required this.enableAvatarDistanceAccuracy,
+    required this.mapView,
   });
 
   factory MySettingsModel.fromMap(Map<String, dynamic> map) {
@@ -20,6 +22,7 @@ class MySettingsModel {
       alwaysFollowYourAvatar: map['alwaysFollowYourAvatar'],
       useDefaultAvatar: map['useDefaultAvatar'] ?? true,
       enableAvatarDistanceAccuracy: map['enableAvatarDistanceAccuracy'] ?? true,
+      mapView: map['mapView'] ?? 0,
     );
   }
 }

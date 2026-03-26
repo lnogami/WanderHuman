@@ -29,9 +29,10 @@ class MySettingsInterface extends StatefulWidget {
 }
 
 class _MySettingsInterfaceState extends State<MySettingsInterface> {
+  bool isCurrentlySavingToDatabase = false;
   late MyHomeSettingsProvider settingsProvider;
   // bool isLoadingData = true;
-  late MySettingsModel settings;
+  // late MySettingsModel settings;
   // This will hold the loaded data from the database
   double? previousZoomLevel;
   // While this one will hold the changes made by the user before saving to database
@@ -41,6 +42,8 @@ class _MySettingsInterfaceState extends State<MySettingsInterface> {
   bool? useDefaultAvatar;
   bool? previousAvatarPreference; // original value of useDefaultAvatar
   bool? enableAvatarDistanceAccuracy;
+  int? selectedMapViewOption;
+  int? previousMapViewOption;
 
   @override
   void initState() {
@@ -61,20 +64,22 @@ class _MySettingsInterfaceState extends State<MySettingsInterface> {
     previousAvatarPreference ??= useDefaultAvatar!;
     enableAvatarDistanceAccuracy =
         settingsProvider.enableAvatarDistanceAccuracy;
+    selectedMapViewOption ??= settingsProvider.mapView;
+    previousMapViewOption ??= selectedMapViewOption!;
 
     return SafeArea(
-      child: SingleChildScrollView(
-        child: Container(
-          width: width,
-          height: height * 0.56,
-          padding: EdgeInsets.symmetric(horizontal: 20),
-          decoration: BoxDecoration(
-            color: Colors.white70,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
+      child: Container(
+        width: width,
+        height: height * 0.7,
+        padding: EdgeInsets.symmetric(horizontal: 20),
+        decoration: BoxDecoration(
+          color: Colors.white70,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
           ),
+        ),
+        child: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -118,8 +123,11 @@ class _MySettingsInterfaceState extends State<MySettingsInterface> {
               SizedBox(height: 7),
 
               enableAvatarDistanceAccuracySwitch(width),
+              SizedBox(height: 7),
 
-              Spacer(),
+              mapViewOptions(height),
+              SizedBox(height: 7),
+
               cancelAndSaveButtons(context),
               SizedBox(height: 15),
             ],
@@ -321,6 +329,91 @@ class _MySettingsInterfaceState extends State<MySettingsInterface> {
     );
   }
 
+  Container mapViewOptions(double height) {
+    List mapViewOptions = const [
+      "assets/map_views/default.jpg",
+      "assets/map_views/mapbox_streets.jpg",
+      "assets/map_views/outdoor.jpg",
+      "assets/map_views/standard.jpg",
+    ];
+    return Container(
+      height: height * 0.23,
+      decoration: BoxDecoration(
+        color: Colors.white24,
+        borderRadius: BorderRadius.circular(7),
+        border: Border.all(color: Colors.white70, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade400,
+            offset: Offset(0, 2),
+            blurRadius: 4,
+            blurStyle: BlurStyle.outer,
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 7, bottom: 7),
+            child: MyTextFormatter.p(
+              text: "Map View",
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade700,
+              fontsize: kDefaultFontSize - 2,
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: 4,
+              itemBuilder: (cotext, index) {
+                return GestureDetector(
+                  onTap: () {
+                    // settingsProvider.setMapView(index);
+                    setState(() {
+                      selectedMapViewOption = index;
+                    });
+                  },
+                  child: Container(
+                    width: height * 0.17,
+                    height: height * 0.15,
+                    margin: EdgeInsets.fromLTRB(5, 3, 5, 7),
+                    clipBehavior: Clip.hardEdge,
+                    decoration: BoxDecoration(
+                      color: Colors.white24,
+                      borderRadius: BorderRadius.circular(7),
+                      border: Border.all(
+                        color: selectedMapViewOption == index
+                            ? Colors.blue
+                            : Colors.white70,
+                        width: selectedMapViewOption == index ? 2 : 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.shade400,
+                          offset: Offset(0, 2),
+                          blurRadius: 4,
+                          blurStyle: BlurStyle.outer,
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadiusGeometry.circular(4),
+                      child: Image.asset(
+                        mapViewOptions[index],
+                        fit: BoxFit.fill,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Row cancelAndSaveButtons(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -337,54 +430,61 @@ class _MySettingsInterfaceState extends State<MySettingsInterface> {
             Navigator.pop(context);
           },
         ),
-        MyCustButton(
-          buttonText: "Save Changes",
-          widthPercentage: 0.40,
-          buttonTextColor: Colors.white,
-          buttonTextSpacing: 1.2,
-          buttonTextFontWeight: FontWeight.w600,
-          height: 40,
-          onTap: () {
-            myAlertDialogue(
-              context: context,
-              alertTitle: "Save Changes",
-              alertContent: (settingsProvider.useDefaultAvatar)
-                  ? "Are you sure you want to save changes? \nNote: using the default avatar may have more visual features but less location accuracy (visually)."
-                  : "Are you sure you want to save changes?",
-              onApprovalPressed: () async {
-                await MySettigsRepository.updateSettings(
-                  settings: MySettingsModel(
-                    userID: widget.loggedInUserID,
-                    zoomLevel: zoomLevel!,
-                    alwaysFollowYourAvatar: alwaysFollowYourAvatar!,
-                    useDefaultAvatar: settingsProvider.useDefaultAvatar,
-                    enableAvatarDistanceAccuracy:
-                        settingsProvider.enableAvatarDistanceAccuracy,
-                  ),
-                );
-
-                log(
-                  "useDefaultAvatar: $useDefaultAvatar, previousAvatarPreference: $previousAvatarPreference",
-                );
-
-                if (useDefaultAvatar! == previousAvatarPreference) {
-                  Navigator.pop(context);
-                } else {
-                  Navigator.pop(context);
-                  myInfoDialogue(
+        (isCurrentlySavingToDatabase)
+            ? Center(child: CircularProgressIndicator.adaptive())
+            : MyCustButton(
+                buttonText: "Save Changes",
+                widthPercentage: 0.40,
+                buttonTextColor: Colors.white,
+                buttonTextSpacing: 1.2,
+                buttonTextFontWeight: FontWeight.w600,
+                height: 40,
+                onTap: () {
+                  myAlertDialogue(
                     context: context,
-                    alertTitle: "Restart App",
-                    alertContent: "To apply the recent changes.",
-                    onPressText: "Restart",
-                    onPress: () {
-                      Phoenix.rebirth(context);
+                    alertTitle: "Save Changes",
+                    alertContent: (settingsProvider.useDefaultAvatar)
+                        ? "Are you sure you want to save changes? \nNote: using the default avatar may have more visual features but less location accuracy (visually)."
+                        : "Are you sure you want to save changes?",
+                    onApprovalPressed: () async {
+                      setState(() => isCurrentlySavingToDatabase = true);
+                      await MySettigsRepository.updateSettings(
+                        settings: MySettingsModel(
+                          userID: widget.loggedInUserID,
+                          zoomLevel: zoomLevel!,
+                          alwaysFollowYourAvatar: alwaysFollowYourAvatar!,
+                          useDefaultAvatar: settingsProvider.useDefaultAvatar,
+                          enableAvatarDistanceAccuracy:
+                              settingsProvider.enableAvatarDistanceAccuracy,
+                          mapView: selectedMapViewOption!,
+                        ),
+                      );
+
+                      log(
+                        "useDefaultAvatar: $useDefaultAvatar, previousAvatarPreference: $previousAvatarPreference",
+                      );
+
+                      setState(() => isCurrentlySavingToDatabase = false);
+
+                      if (useDefaultAvatar! == previousAvatarPreference &&
+                          selectedMapViewOption == previousMapViewOption) {
+                        Navigator.pop(context);
+                      } else {
+                        Navigator.pop(context);
+                        myInfoDialogue(
+                          context: context,
+                          alertTitle: "Restart App",
+                          alertContent: "To apply the recent changes.",
+                          onPressText: "Restart",
+                          onPress: () {
+                            Phoenix.rebirth(context);
+                          },
+                        );
+                      }
                     },
                   );
-                }
-              },
-            );
-          },
-        ),
+                },
+              ),
       ],
     );
   }

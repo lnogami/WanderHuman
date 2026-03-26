@@ -34,6 +34,7 @@ class MyMapGeofenceDrawer {
   static void drawPolygon({
     required PolygonAnnotationManager polygonManager,
     required List<List<Position>> positions,
+    int? polygonColor,
   }) async {
     await polygonManager.deleteAll();
 
@@ -58,8 +59,8 @@ class MyMapGeofenceDrawer {
       PolygonAnnotationOptions(
         // geometry: Polygon(coordinates: customShapePoints),
         geometry: Polygon(coordinates: drawablePositions),
-        fillColor: Colors.blue.toARGB32(),
-        fillOpacity: 0.2,
+        fillColor: polygonColor ?? Colors.blue.toARGB32(),
+        fillOpacity: (polygonColor == null) ? 0.2 : 0.4,
         fillOutlineColor: Colors.black.toARGB32(),
         fillConstructBridgeGuardRail: true,
         fillZOffset: 10,

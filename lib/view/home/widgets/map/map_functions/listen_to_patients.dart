@@ -697,9 +697,9 @@ class ListenToPatients {
           //   );
           // }
 
+          // TODO: uncommnet this when it is time to save data to database
           // 4. Patient Exclusive Logic (Safe Zones & History)
           if (isAPatient) {
-            // TODO: uncommnet this when it is time to save data to database
             var isInsideSafeZone =
                 await MyGeofenceLogic.isPatientInsideTheAssignedSafeZone(
                   userPosition: mp.Position(lng, lat),
@@ -710,11 +710,6 @@ class ListenToPatients {
             mp.MapboxMap? mapboxRef = mapboxRefProvider.getMapboxMapController;
             bool isIntroAnimationDone =
                 miscellaneousProvider.isIntroAnimationDone;
-
-            // (deletable) (old code) the updated logic is the on below this one
-            // Notifies if the patient is not inside the safe zone or is the patient safe
-            // if ((!isInsideSafeZone || !realtimeLocModel.isCurrentlySafe)
-            // ) {
 
             // Notifies if the patient is not inside the safe zone or is the patient safe
             if (!realtimeLocModel.isCurrentlySafe ||
