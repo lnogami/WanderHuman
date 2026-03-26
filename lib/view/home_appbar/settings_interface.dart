@@ -16,6 +16,7 @@ import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
 import 'package:wanderhuman_app/view/components/button.dart';
 import 'package:wanderhuman_app/view/components/info_dialogue.dart';
 import 'package:wanderhuman_app/view/components/lines.dart';
+import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/components/tooltip.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/map_functions/map_camera_animations.dart';
 
@@ -304,7 +305,15 @@ class _MySettingsInterfaceState extends State<MySettingsInterface> {
             activeTrackColor: Colors.blue.shade400,
             value: enableAvatarDistanceAccuracy!,
             onChanged: (value) {
-              settingsProvider.setEnableAvatarDistanceAccuracy(value);
+              if (useDefaultAvatar!) {
+                settingsProvider.setEnableAvatarDistanceAccuracy(value);
+              } else {
+                showMyAnimatedSnackBar(
+                  context: context,
+                  dataToDisplay: "Use default avatar to enable this feature.",
+                  bgColor: Colors.white,
+                );
+              }
             },
           ),
         ],

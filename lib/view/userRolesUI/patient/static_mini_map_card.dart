@@ -136,11 +136,14 @@ class _MyStaticMiniMapStateCard extends State<MyStaticMiniMapCard> {
       // color: Colors.amber,
       margin: EdgeInsets.only(top: 5, left: 10, right: 10),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          MyTextFormatter.p(
-            text: (widget.history.last.isInSafeZone)
-                ? "In Danger"
-                : "Outside Safe Zone",
+          FittedBox(
+            child: MyTextFormatter.p(
+              text: (widget.history.last.isInSafeZone)
+                  ? "In Danger"
+                  : "Outside Safe Zone",
+            ),
           ),
           Spacer(),
           MyLine(
@@ -177,13 +180,13 @@ class _MyStaticMiniMapStateCard extends State<MyStaticMiniMapCard> {
                         MyTextFormatter.p(
                           text:
                               " (${MyDateFormatter.formatDate(dateTimeInString: widget.history.first.timeStamp, formatOptions: 7, customedFormat: "EEE")}-",
-                          fontsize: kDefaultFontSize - 4,
+                          fontsize: kDefaultFontSize - 5,
                         ),
                         // DAY (EEE)
                         MyTextFormatter.p(
                           text:
                               "${MyDateFormatter.formatDate(dateTimeInString: widget.history.last.timeStamp, formatOptions: 7, customedFormat: "EEE")})",
-                          fontsize: kDefaultFontSize - 4,
+                          fontsize: kDefaultFontSize - 5,
                         ),
                       ],
                     )

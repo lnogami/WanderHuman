@@ -604,12 +604,12 @@ class _MapBodyState extends State<MapBody> with RouteAware {
         );
 
         // (deletable) for debugging purposes only
-        showMyAnimatedSnackBar(
-          context: context,
-          // isAutoDismiss: false,
-          dataToDisplay:
-              "Saving your location to RTDB was skipped: (Too early to save location data: time passed since ${now.difference(lastLoggedInUserUpdateToDatabase).inSeconds} second(s))",
-        );
+        // showMyAnimatedSnackBar(
+        //   context: context,
+        //   // isAutoDismiss: false,
+        //   dataToDisplay:
+        //       "Saving your location to RTDB was skipped: (Too early to save location data: time passed since ${now.difference(lastLoggedInUserUpdateToDatabase).inSeconds} second(s))",
+        // );
         return;
       }
 
@@ -631,12 +631,12 @@ class _MapBodyState extends State<MapBody> with RouteAware {
           );
 
           // (deletable) for debugging purposes only
-          showMyAnimatedSnackBar(
-            context: context,
-            // isAutoDismiss: false,
-            dataToDisplay:
-                "Saving your location to RTDB was also skipped: (Too near to save data: moved only ${distanceMoved.toStringAsFixed(2)})",
-          );
+          // showMyAnimatedSnackBar(
+          //   context: context,
+          //   // isAutoDismiss: false,
+          //   dataToDisplay:
+          //       "Saving your location to RTDB was also skipped: (Too near to save data: moved only ${distanceMoved.toStringAsFixed(2)})",
+          // );
           return;
         }
       }
@@ -668,13 +668,13 @@ class _MapBodyState extends State<MapBody> with RouteAware {
         ),
       );
 
-      // (deletable) for debugging purposes only
-      showMyAnimatedSnackBar(
-        context: context,
-        // isAutoDismiss: false,
-        dataToDisplay:
-            "Successfully save to database at exactly ${MyDateFormatter.formatDate(dateTimeInString: now, formatOptions: 6)}",
-      );
+      // // (deletable) for debugging purposes only
+      // showMyAnimatedSnackBar(
+      //   context: context,
+      //   // isAutoDismiss: false,
+      //   dataToDisplay:
+      //       "Successfully save to database at exactly ${MyDateFormatter.formatDate(dateTimeInString: now, formatOptions: 6)}",
+      // );
       log(
         "########## CURRENTLY LOGGED IN USERS DATA WAS SUCCESSFULLY SAVE IN THE DATABASE",
       );
@@ -724,7 +724,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     if (myHomeSettingsProvider.useDefaultAvatar) {
       mapboxMapController!.location.updateSettings(
         mp.LocationComponentSettings(
-          enabled: true,
+          enabled: (myHomeSettingsProvider.useDefaultAvatar) ? true : false,
           pulsingEnabled: true,
           showAccuracyRing: myHomeSettingsProvider.enableAvatarDistanceAccuracy,
           // accuracyRingColor: const Color.fromARGB(45, 33, 149, 243).toARGB32(),

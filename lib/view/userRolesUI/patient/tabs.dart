@@ -161,19 +161,7 @@ class _MyTabBarState extends State<MyTabBar> {
           }
         }
       }
-      // // combinedHistory.addAll(inDangerLogs);
-      // // To prevent duplication of data, where instances that both isCurrentlySafe and isInSafeZone are both false
-      // for (var log in inDangerLogs) {
-      //   // Check if a log with this exact same timestamp is already in our combined list
-      //   bool isDuplicate = combinedHistory.any((existingLog) {
-      //     return existingLog.timeStamp == log.timeStamp;
-      //   });
 
-      //   // Only add it if it is truly unique!
-      //   if (!isDuplicate) {
-      //     combinedHistory.add(log);
-      //   }
-      // }
       // To prevent duplication of data, where instances that both isCurrentlySafe and isInSafeZone are both false
       for (var log in inDangerLogs) {
         // ✅ THE FIX: Check if this log belongs to ANY of the groups we already fetched
@@ -201,13 +189,14 @@ class _MyTabBarState extends State<MyTabBar> {
           }
         }
       }
+
       combinedHistory.sort((a, b) {
         // Assuming your timeStamp is an ISO8601 String.
         // If it's a Firebase Timestamp, you would do a.timeStamp.toDate() instead.
         DateTime timeA = DateTime.parse(a.timeStamp);
         DateTime timeB = DateTime.parse(b.timeStamp);
-
-        return timeB.compareTo(timeA); // Descending (Newest first)
+        // Descending (Newest first)
+        return timeB.compareTo(timeA);
       });
 
       centerPoint =
