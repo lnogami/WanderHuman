@@ -46,9 +46,10 @@ class _MyTabBarState extends State<MyTabBar> {
 
   Future<void> getMedicalStaffs() async {
     try {
+      // Lets just retrieve all records, because there will be times that the staff's role will be moved
       var medics = await MyPersonalInfoRepository.getAllPersonalInfoRecords(
-        fieldName: "userType",
-        valueToLookFor: "Medical Service",
+        // fieldName: "userType",
+        // valueToLookFor: "Medical Service",
       );
 
       for (var medic in medics) {
@@ -217,7 +218,7 @@ class _MyTabBarState extends State<MyTabBar> {
   @override
   void initState() {
     super.initState();
-    getMedicalStaffs();
+    Future.wait([getMedicalStaffs()]);
     getCombinedRecords();
     getInDangerHistory();
   }
@@ -454,48 +455,63 @@ class _MyTabBarState extends State<MyTabBar> {
                       ),
                     ],
 
-                    MyTextFormatter.p(
-                      text: "Already Okay",
-                      fontsize: kDefaultFontSize - 4,
-                    ),
-                    ListView.builder(
-                      padding: EdgeInsets.all(0),
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: isNowOkayList.length,
-                      itemBuilder: (context, index) {
-                        final combinedItem = isNowOkayList[index];
-                        final record = combinedItem.medicalRecord;
-                        final patient = combinedItem.personalInfo;
+                    if (isNowOkayList.isNotEmpty) ...[
+                      MyTextFormatter.p(
+                        text: "Already Okay",
+                        fontsize: kDefaultFontSize - 4,
+                      ),
+                      ListView.builder(
+                        padding: EdgeInsets.all(0),
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: isNowOkayList.length,
+                        itemBuilder: (context, index) {
+                          final combinedItem = isNowOkayList[index];
+                          final record = combinedItem.medicalRecord;
+                          final patient = combinedItem.personalInfo;
 
-                        // Display the data
-                        return MyCardInfoDisplayer2(
-                          // Handle cases where patient info might be missing
-                          // profilePicture: patient?.picture ?? "",
-                          name: patient?.name ?? "Unknown Patient",
-                          // name: "jkajd dkajdkjw dkjawd",
-                          diagnosis: record.diagnosis,
-                          treatment: record.treatment,
-                          medic: medicalStaffs[record.medic]!,
-                          fromDate: record.fromDate,
-                          untilDate: record.untilDate,
-                          onTap: () {
-                            // You can pass the combined data or just the patient info
-                            if (patient != null) {
-                              MyNavigator.goTo(
-                                context,
-                                Medication(
-                                  bufferedPatientInfo: patient,
-                                  recordID: record.recordID,
-                                  medicationModel: record,
-                                  isAccessedByMedicalStaff: false,
-                                ),
-                              );
-                            }
-                          },
-                        );
-                      },
-                    ),
+                          // Display the data
+                          return MyCardInfoDisplayer2(
+                            // Handle cases where patient info might be missing
+                            // profilePicture: patient?.picture ?? "",
+                            name: patient?.name ?? "Unknown Patient",
+                            // name: "jkajd dkajdkjw dkjawd",
+                            diagnosis: record.diagnosis,
+                            treatment: record.treatment,
+                            medic: medicalStaffs[record.medic]!,
+                            fromDate: record.fromDate,
+                            untilDate: record.untilDate,
+                            onTap: () {
+                              // You can pass the combined data or just the patient info
+                              if (patient != null) {
+                                MyNavigator.goTo(
+                                  context,
+                                  Medication(
+                                    bufferedPatientInfo: patient,
+                                    recordID: record.recordID,
+                                    medicationModel: record,
+                                    isAccessedByMedicalStaff: false,
+                                  ),
+                                );
+                              }
+                            },
+                          );
+                        },
+                      ),
+                    ],
+
+                    if (isNotYetOkayList.isEmpty && isNowOkayList.isEmpty) ...[
+                      SizedBox(height: 60),
+                      Icon(
+                        Icons.menu_book_rounded,
+                        size: 128,
+                        color: Colors.grey.shade400,
+                      ),
+                      MyTextFormatter.p(
+                        text: "No Records Yet.",
+                        color: Colors.grey.shade800,
+                      ),
+                    ],
                     SizedBox(height: 20),
                   ],
                 ),

@@ -251,7 +251,7 @@ class _FrequentlyGoToAreaState extends State<FrequentlyGoToArea> {
       height: height * 0.7,
       // color: Colors.yellow,
       margin: EdgeInsets.only(top: 20, bottom: 30),
-      padding: EdgeInsets.symmetric(horizontal: 40),
+      padding: EdgeInsets.symmetric(horizontal: 30),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
@@ -316,6 +316,11 @@ class _FrequentlyGoToAreaState extends State<FrequentlyGoToArea> {
                         final List<MapEntry<String, Duration>> areaList =
                             snapshot.data!.entries.toList();
 
+                        Duration totalTimeSpent = Duration.zero;
+                        for (var area in areaList) {
+                          totalTimeSpent += area.value;
+                        }
+
                         // sort the list based on value in descending order
                         areaList.sort((a, b) {
                           return b.value.compareTo(a.value);
@@ -344,61 +349,82 @@ class _FrequentlyGoToAreaState extends State<FrequentlyGoToArea> {
                               Duration timeSpent = areaList[index].value;
 
                               return Container(
-                                width: MyDimensionAdapter.getWidth(context),
-                                height:
-                                    MyDimensionAdapter.getHeight(context) *
-                                    0.065,
-                                margin: EdgeInsets.fromLTRB(2, 1.5, 7, 1.5),
+                                width: width,
+                                height: height * 0.065,
+                                margin: EdgeInsets.fromLTRB(5, 4, 12, 4),
+                                clipBehavior: Clip.hardEdge,
                                 decoration: BoxDecoration(
-                                  color: (index % 2 == 0)
-                                      ? const Color.fromARGB(180, 203, 230, 253)
-                                      : Colors.blue.shade50,
+                                  // color: (index % 2 == 0)
+                                  //     ? const Color.fromARGB(180, 203, 230, 253)
+                                  //     : Colors.blue.shade50,
+                                  color: Colors.white10,
                                   borderRadius: BorderRadius.circular(7),
                                   border: Border.all(
                                     width: 1.5,
-                                    color: (index % 2 == 0)
-                                        ? const Color.fromARGB(
-                                            180,
-                                            180,
-                                            220,
-                                            255,
-                                          )
-                                        : const Color.fromARGB(
-                                            255,
-                                            207,
-                                            232,
-                                            249,
-                                          ),
-                                    // color: Colors.white70,
+                                    // color: (index % 2 == 0)
+                                    //     ? const Color.fromARGB(
+                                    //         180,
+                                    //         180,
+                                    //         220,
+                                    //         255,
+                                    //       )
+                                    //     : const Color.fromARGB(
+                                    //         255,
+                                    //         207,
+                                    //         232,
+                                    //         249,
+                                    //       ),
+                                    color: Colors.white,
                                   ),
-                                  // boxShadow: [
-                                  //   BoxShadow(
-                                  //     color: Colors.black12,
-                                  //     offset: Offset(0, 2),
-                                  //     blurStyle: BlurStyle.outer,
-                                  //     blurRadius: 4,
-                                  //   ),
-                                  // ],
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.blue.shade700.withAlpha(70),
+                                      offset: Offset(0, 0),
+                                      blurStyle: BlurStyle.outer,
+                                      blurRadius: 4,
+                                    ),
+                                  ],
                                 ),
-                                child: Row(
-                                  // spacing: 20,
-                                  mainAxisAlignment: MainAxisAlignment.start,
+                                child: Stack(
+                                  alignment: Alignment.centerLeft,
                                   children: [
-                                    SizedBox(width: 20),
-                                    SizedBox(
-                                      width:
-                                          MyDimensionAdapter.getWidth(context) *
-                                          0.43,
-                                      child: MyTextFormatter.p(
-                                        text: areaName,
-                                        maxLines: 2,
+                                    ClipRRect(
+                                      borderRadius:
+                                          BorderRadiusGeometry.circular(7),
+                                      child: Container(
+                                        // width: width - 77,
+                                        width: fillColorDeterminer(
+                                          timeSpent: timeSpent,
+                                          totalTimeSpent: totalTimeSpent,
+                                          width: width,
+                                        ),
+                                        color: Colors.blue.withAlpha(50),
                                       ),
                                     ),
-                                    Spacer(),
-                                    durationUnitDeterminer(
-                                      timeSpent: timeSpent,
+                                    Row(
+                                      // spacing: 20,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        SizedBox(width: 20),
+                                        SizedBox(
+                                          width:
+                                              MyDimensionAdapter.getWidth(
+                                                context,
+                                              ) *
+                                              0.43,
+                                          child: MyTextFormatter.p(
+                                            text: areaName,
+                                            maxLines: 2,
+                                          ),
+                                        ),
+                                        Spacer(),
+                                        durationUnitDeterminer(
+                                          timeSpent: timeSpent,
+                                        ),
+                                        SizedBox(width: 20),
+                                      ],
                                     ),
-                                    SizedBox(width: 20),
                                   ],
                                 ),
                               );
@@ -441,6 +467,58 @@ class _FrequentlyGoToAreaState extends State<FrequentlyGoToArea> {
         setState(() => selectedFilter = filterChoices[index]);
       },
     );
+  }
+
+  //// (not yet implemented as of March 28, 26) (deletable)
+  // MyCustButton customedFilterButton({
+  //   required int index,
+  //   required double withPercentage,
+  // }) {
+  //   // return MyCustButton(
+  //   //   buttonText: filterChoices[index],
+  //   //   buttonTextFontSize: kDefaultFontSize - 2,
+  //   //   color: (selectedFilter == filterChoices[index])
+  //   //       ? Colors.blue.shade400
+  //   //       : Colors.transparent,
+  //   //   buttonTextColor: (selectedFilter == filterChoices[index])
+  //   //       ? Colors.white
+  //   //       : Colors.grey.shade900,
+  //   //   buttonTextFontWeight: (selectedFilter == filterChoices[index])
+  //   //       ? FontWeight.w600
+  //   //       : FontWeight.w400,
+  //   //   enableShadow: (selectedFilter == filterChoices[index]) ? true : false,
+  //   //   buttonTextSpacing: 1.2,
+  //   //   widthPercentage: withPercentage,
+  //   //   height: 30,
+  //   //   onTap: () {
+  //   //     setState(() => selectedFilter = filterChoices[index]);
+  //   //   },
+  //   // );
+  //
+  //   return MyDropdownMenuButton(items: items, initialValue: initialValue, onChanged: onChanged)
+  // }
+
+  // double fillColorDeterminer({required Duration timeSpent, required double width}) {
+  //   return time
+  // }
+  double fillColorDeterminer({
+    required Duration timeSpent,
+    required Duration totalTimeSpent, // ✅ Added this parameter
+    required double width,
+  }) {
+    // Prevent division by zero just in case
+    if (totalTimeSpent.inSeconds == 0) return 0.0;
+
+    // 1. Get the percentage (e.g., 0.45 for 45%)
+    double percentage = timeSpent.inSeconds / totalTimeSpent.inSeconds;
+
+    // 2. Define the max width the bar can stretch to.
+    // I noticed your commented code used `width - 77` to account for your
+    // container margins and padding, so we will use that!
+    double maxBarWidth = width - 77;
+
+    // 3. Return the proportional width
+    return maxBarWidth * percentage;
   }
 
   /// This will return a corresponding value based on duration equivalent, may it days, hours, mins, secs
