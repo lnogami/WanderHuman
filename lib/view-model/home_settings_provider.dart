@@ -9,6 +9,7 @@ class MyHomeSettingsProvider extends ChangeNotifier {
   bool? _useDefaultAvatar;
   bool? _enableAvatarDistanceAccuracy;
   int? _mapView;
+  bool? _minimizeHomePageButtons;
 
   // bool? _useDefaultAvatar;
   // bool? _enableAvatarDistanceAccuracy;
@@ -19,6 +20,7 @@ class MyHomeSettingsProvider extends ChangeNotifier {
   bool get enableAvatarDistanceAccuracy =>
       _enableAvatarDistanceAccuracy ?? true;
   int get mapView => _mapView ?? 0;
+  bool get minimizeHomePageButtons => _minimizeHomePageButtons ?? false;
 
   /// Initializes all the user settings data
   Future<void> initUserSettings(MySettingsModel settings) async {
@@ -27,6 +29,7 @@ class MyHomeSettingsProvider extends ChangeNotifier {
     setToUseDefaultAvatar(settings.useDefaultAvatar);
     setEnableAvatarDistanceAccuracy(settings.enableAvatarDistanceAccuracy);
     setMapView(settings.mapView);
+    setMinimizeHomePageButtons(settings.minimizeHomePageButtons);
   }
 
   MySettingsModel getUserSettings() {
@@ -37,6 +40,7 @@ class MyHomeSettingsProvider extends ChangeNotifier {
       useDefaultAvatar: useDefaultAvatar,
       enableAvatarDistanceAccuracy: enableAvatarDistanceAccuracy,
       mapView: mapView,
+      minimizeHomePageButtons: minimizeHomePageButtons,
     );
   }
 
@@ -64,5 +68,10 @@ class MyHomeSettingsProvider extends ChangeNotifier {
     _mapView = value;
     notifyListeners();
     log("MMMMMMMMMapView was successfully set to $value");
+  }
+
+  void setMinimizeHomePageButtons(bool value) {
+    _minimizeHomePageButtons = value;
+    notifyListeners();
   }
 }

@@ -83,6 +83,7 @@ class _HomePageState extends State<HomePage> {
         useDefaultAvatar: true,
         enableAvatarDistanceAccuracy: true,
         mapView: 0,
+        minimizeHomePageButtons: false,
       );
 
       await MySettigsRepository.addSettings(settings: userSettings);
@@ -132,6 +133,9 @@ class _HomePageState extends State<HomePage> {
     bool isAboutToAddCenterPoint = context
         .watch<MyHomeGeofenceConfigurationProvider>()
         .isAboutToAddCenterPoint;
+
+    MyHomeSettingsProvider settingsProvider = context
+        .watch<MyHomeSettingsProvider>();
 
     return PopScope(
       // 1. Set this to false to completely block the default back button behavior
@@ -222,9 +226,10 @@ class _HomePageState extends State<HomePage> {
 
                     // -----------------------
                     // Emergency Contacts
-                    Positioned(
+                    AnimatedPositioned(
+                      duration: Duration(milliseconds: 200),
                       top: MyDimensionAdapter.getHeight(context) * 0.12,
-                      left: 18,
+                      left: settingsProvider.minimizeHomePageButtons ? 0 : 18,
                       child: animatedOpacity(
                         child: MyHomeEmergencyContactsButton(),
                         isVisible: (!isCreatingGeofence && !isViewingGeofences),
@@ -232,9 +237,10 @@ class _HomePageState extends State<HomePage> {
                     ),
 
                     // Set Geofence
-                    Positioned(
+                    AnimatedPositioned(
+                      duration: Duration(milliseconds: 400),
                       top: MyDimensionAdapter.getHeight(context) * 0.2,
-                      left: 18,
+                      left: settingsProvider.minimizeHomePageButtons ? 2 : 18,
                       child: animatedOpacity(
                         child: SetGeofence(),
                         isVisible: (!isCreatingGeofence && !isViewingGeofences),
@@ -261,10 +267,13 @@ class _HomePageState extends State<HomePage> {
                     // ),
 
                     // Dropdown
-                    Positioned(
+                    AnimatedPositioned(
+                      duration: Duration(milliseconds: 400),
                       // top: MyDimensionAdapter.getHeight(context) * 0.18,
                       top: MyDimensionAdapter.getHeight(context) * 0.12,
-                      right: 18,
+                      right: (settingsProvider.minimizeHomePageButtons)
+                          ? 0
+                          : 18,
                       child: animatedOpacity(
                         child: HomePatientListDropDown(),
                         isVisible: (!isCreatingGeofence && !isViewingGeofences),

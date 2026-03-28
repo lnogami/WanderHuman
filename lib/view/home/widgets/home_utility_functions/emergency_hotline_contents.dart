@@ -34,30 +34,34 @@ class _EmergencyHotlineContentsState extends State<EmergencyHotlineContents> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: MyDimensionAdapter.getWidth(context),
-      height:
-          MyDimensionAdapter.getHeight(context) *
-          ((isToAddContact) ? 0.7 : 0.6),
-      padding: EdgeInsets.only(top: 20),
-      decoration: BoxDecoration(
-        color: (isToAddContact) ? MyColorPalette.formColor : Colors.white70,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(30),
-          topRight: Radius.circular(30),
+    return SafeArea(
+      child: Container(
+        width: MyDimensionAdapter.getWidth(context),
+        height:
+            MyDimensionAdapter.getHeight(context) *
+            ((isToAddContact) ? 0.7 : 0.6),
+        padding: EdgeInsets.only(top: 20),
+        decoration: BoxDecoration(
+          color: (isToAddContact) ? MyColorPalette.formColor : Colors.white70,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(30),
+            topRight: Radius.circular(30),
+          ),
         ),
-      ),
-      child: Column(
-        children: [
-          header(context),
-          SizedBox(height: 15),
+        child: Column(
+          children: [
+            header(context),
+            SizedBox(height: 15),
 
-          (isToAddContact) ? addContactHotlineArea() : fetchedContactHotlines(),
-          SizedBox(height: 10),
+            (isToAddContact)
+                ? addContactHotlineArea()
+                : fetchedContactHotlines(),
+            SizedBox(height: 10),
 
-          buttonsArea(context),
-          SizedBox(height: 20),
-        ],
+            buttonsArea(context),
+            SizedBox(height: 20),
+          ],
+        ),
       ),
     );
   }

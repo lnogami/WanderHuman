@@ -48,32 +48,32 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
   // // will return all the patients in the PersonalInfo in the database (PersonalInfo)
   // Future<void> getActivePatientList() async {
   //   // activeDevice includes both the patient device and the mobile app (caregivers)
-
+  //
   //   // List<MyRealtimeActiveStatusModel> activeDevices =
   //   //     await MyRealtimeActiveStatusRepository.getAllDeviceIDWithActiveStatus();
-
+  //
   //   // log("ALL ACTIVE DEVICESSSSSSSSSSSSSSSSSSSSSS: ${activeDevices.length}");
-
+  //
   //   Map<String, PersonalInfo> activeDevices =
   //       activePersonsProvider.activePersons;
-
+  //
   //   // Storing the data in a temporary local variable is a preventive measure for multiple occurance of data
   //   // that triggers when the dropdown is quickly clode while still loading then opening it again.
   //   List<PersonalInfo> tempPatientList = [];
   //   // Map<String, Position> tempPatientLocations = {};
   //   Map<String, Uint8List> tempDecodedImagesBuffer = {};
-
+  //
   //   for (var device in activeDevices.values) {
   //     // log("PERSON's IDDDDDDDDDDDDDDDD: ${device.userID}");
-
+  //
   //     var person = await MyPersonalInfoRepository.getSpecificPersonalInfo(
   //       userID: device.userID,
   //     );
-
+  //
   //     log(
   //       "Active Person: ${person.name}, userID: ${person.userID}, deviceID: ${person.deviceID}",
   //     );
-
+  //
   //     // add the patient as an active person to a temporaruy list
   //     tempPatientList.add(person);
   //     // // store the coordinates of the patient in a temporary map
@@ -86,11 +86,11 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
   //     tempDecodedImagesBuffer[person.userID] =
   //         MyImageProcessor.decodeStringToUint8List(person.picture);
   //   }
-
+  //
   //   // log("ALL ACTIVE PERSONSSSSSSSSSSSSSSSSSSSSS: ${patientList.length}");
-
+  //
   //   tempPatientList.sort((a, b) => a.name.compareTo(b.name));
-
+  //
   //   setState(() {
   //     patientList = tempPatientList;
   //     // patientLocations = tempPatientLocations;
@@ -111,6 +111,8 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
     // first store the value of the provider in a variable
     final mapboxProvider = context.watch<MyMapboxRefProvider>();
     activePersonsProvider = context.watch<MyHomeActivePersonsProvider>();
+    MyHomeSettingsProvider settingsProvider = context
+        .watch<MyHomeSettingsProvider>();
 
     // this condition will prevent a few second error
     if (mapboxProvider.getMapboxMapController != null) {
@@ -133,11 +135,22 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
           });
         },
         // Main Container
-        child: Container(
+        child: AnimatedContainer(
+          duration: Duration(milliseconds: 300),
           width: width,
+          padding: EdgeInsetsDirectional.only(
+            top: (settingsProvider.minimizeHomePageButtons && isExpanded)
+                ? 15
+                : 0,
+          ),
           decoration: BoxDecoration(
             color: (isExpanded) ? Colors.white60 : Colors.white54,
-            borderRadius: BorderRadius.all(Radius.circular(7)),
+            borderRadius: (settingsProvider.minimizeHomePageButtons)
+                ? BorderRadius.only(
+                    topLeft: Radius.circular(50),
+                    bottomLeft: Radius.circular(50),
+                  )
+                : BorderRadius.all(Radius.circular(7)),
           ),
           child: Column(
             children: [
@@ -158,28 +171,64 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
                 duration: Duration(milliseconds: 400),
                 width: MyDimensionAdapter.getWidth(context) * 0.12,
                 height: (isExpanded)
-                    ? MyDimensionAdapter.getHeight(context) * 0.65
+                    ? MyDimensionAdapter.getHeight(context) * 0.675
                     : 0,
                 padding: EdgeInsets.only(top: 3),
                 decoration: BoxDecoration(
                   color: Colors.white30,
-                  borderRadius: BorderRadius.all(Radius.circular(7)),
+                  borderRadius: (settingsProvider.minimizeHomePageButtons)
+                      ? BorderRadius.only(
+                          topLeft: Radius.circular(7),
+                          bottomLeft: Radius.circular(50),
+                        )
+                      : BorderRadius.all(Radius.circular(7)),
                 ),
                 alignment: AlignmentGeometry.topCenter,
-                child:
-                    // (isLoading)
-                    //     ? CircularProgressIndicator.adaptive()
-                    //     :
-                    ListView.builder(
-                      itemCount: activePersonsProvider.activePersons.length,
-                      itemBuilder: (context, index) {
-                        return individualPatientIcon(
-                          personalInfo:
-                              activePersonsProvider.activePersons[index],
-                          context: context,
-                        );
-                      },
-                    ),
+                // child: ClipRRect(
+                //   borderRadius:
+                //       (settingsProvider.minimizeHomePageButtons && isExpanded)
+                //       ? BorderRadius.only(bottomLeft: Radius.circular(50))
+                //       : BorderRadius.only(
+                //           topLeft: Radius.circular(7),
+                //           bottomLeft: Radius.circular(7),
+                //         ),
+                //   child: ListView.builder(
+                //     itemCount: activePersonsProvider.activePersons.length,
+                //     padding: EdgeInsets.only(bottom: 25),
+                //     itemBuilder: (context, index) {
+                //       return individualPatientIcon(
+                //         personalInfo:
+                //             activePersonsProvider.activePersons[index],
+                //         context: context,
+                //       );
+                //     },
+                //   ),
+                // ),
+
+                // ✅ FIX: Wrap the ListView in an AnimatedOpacity
+                child: AnimatedOpacity(
+                  // We make the fade slightly faster (300ms) than the drop (400ms)
+                  // so the text fades out before the box completely closes!
+                  duration: const Duration(milliseconds: 300),
+                  opacity: isExpanded ? 1.0 : 0.0,
+                  curve: Curves.easeInOut,
+                  child: ListView.builder(
+                    // ✅ PRO-TIP: Disable scrolling while the box is closed/animating
+                    // so the user can't accidentally swipe invisible items
+                    physics: isExpanded
+                        ? const BouncingScrollPhysics()
+                        : const NeverScrollableScrollPhysics(),
+                    itemCount: activePersonsProvider.activePersons.length,
+                    padding: EdgeInsets.only(bottom: 25),
+                    itemBuilder: (context, index) {
+                      return individualPatientIcon(
+                        personalInfo:
+                            activePersonsProvider.activePersons[index],
+                        context: context,
+                      );
+                    },
+                  ),
+                ),
               ),
             ],
           ),
@@ -227,6 +276,7 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
         //   // patientID: personalInfo.userID,
         // );
         // }
+
         Position? currentPosition =
             activePersonsProvider.personCurrentPosition[personalInfo.userID];
 

@@ -84,34 +84,7 @@ class _MySettingsInterfaceState extends State<MySettingsInterface> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              MyLine(
-                length: width * 0.3,
-                isVertical: false,
-                isRounded: true,
-                thickness: 5,
-                margin: 10,
-              ),
-              SizedBox(height: 10),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                spacing: 3,
-                children: [
-                  Icon(
-                    Icons.settings_outlined,
-                    size: 36,
-                    color: const Color.fromARGB(224, 30, 136, 229),
-                  ),
-                  MyTextFormatter.p(
-                    text: "Settings",
-                    fontWeight: FontWeight.w600,
-                    fontsize: kDefaultFontSize + 10,
-                    color: Colors.grey.shade700,
-                  ),
-                ],
-              ),
-              SizedBox(height: 30),
+              header(width),
 
               myMapZoomSlider(width, context, height),
               SizedBox(height: 7),
@@ -128,11 +101,56 @@ class _MySettingsInterfaceState extends State<MySettingsInterface> {
               mapViewOptions(height),
               SizedBox(height: 7),
 
+              minimizeHomeButtons(width),
+              SizedBox(height: 7),
+
               cancelAndSaveButtons(context),
               SizedBox(height: 15),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  GestureDetector header(double width) {
+    return GestureDetector(
+      onVerticalDragUpdate: (details) {
+        if (details.delta.dy > 15) {
+          Navigator.pop(context);
+        }
+      },
+      child: Column(
+        children: [
+          MyLine(
+            length: width * 0.3,
+            isVertical: false,
+            isRounded: true,
+            thickness: 5,
+            margin: 10,
+          ),
+          SizedBox(height: 10),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            spacing: 3,
+            children: [
+              Icon(
+                Icons.settings_outlined,
+                size: 36,
+                color: const Color.fromARGB(224, 30, 136, 229),
+              ),
+              MyTextFormatter.p(
+                text: "Settings",
+                fontWeight: FontWeight.w600,
+                fontsize: kDefaultFontSize + 10,
+                color: Colors.grey.shade700,
+              ),
+            ],
+          ),
+          SizedBox(height: 30),
+        ],
       ),
     );
   }
@@ -414,6 +432,39 @@ class _MySettingsInterfaceState extends State<MySettingsInterface> {
     );
   }
 
+  Container minimizeHomeButtons(double width) {
+    return _myLayoutContainer(
+      width: width,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        spacing: 5,
+        children: [
+          MyTextFormatter.p(text: "Minimize Home Buttons?"),
+          MyCustTooltip(
+            triggerMode: TooltipTriggerMode.tap,
+            duration: 3000,
+            heightConstraints: 75,
+            message:
+                "This will make the home screen buttons simplified in order to make space for the map.",
+            child: Icon(
+              Icons.info_outline_rounded,
+              size: 20,
+              color: Colors.grey.shade500,
+            ),
+          ),
+          Spacer(),
+          CupertinoSwitch(
+            activeTrackColor: Colors.blue.shade400,
+            value: settingsProvider.minimizeHomePageButtons,
+            onChanged: (value) {
+              settingsProvider.setMinimizeHomePageButtons(value);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   Row cancelAndSaveButtons(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -457,6 +508,8 @@ class _MySettingsInterfaceState extends State<MySettingsInterface> {
                           enableAvatarDistanceAccuracy:
                               settingsProvider.enableAvatarDistanceAccuracy,
                           mapView: selectedMapViewOption!,
+                          minimizeHomePageButtons:
+                              settingsProvider.minimizeHomePageButtons,
                         ),
                       );
 

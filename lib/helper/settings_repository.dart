@@ -24,6 +24,7 @@ class MySettigsRepository {
         'useDefaultAvatar': settings.useDefaultAvatar,
         'enableAvatarDistanceAccuracy': settings.enableAvatarDistanceAccuracy,
         'mapView': settings.mapView,
+        'minimizeHomePageButtons': settings.minimizeHomePageButtons,
       }, SetOptions(merge: true));
     } catch (e, stackTrace) {
       log("Error adding settings: $e, at $stackTrace");
@@ -49,6 +50,7 @@ class MySettigsRepository {
           useDefaultAvatar: true,
           enableAvatarDistanceAccuracy: true,
           mapView: 0,
+          minimizeHomePageButtons: false,
         );
       }
     } catch (e) {
@@ -86,6 +88,7 @@ class MySettigsRepository {
         'useDefaultAvatar': settings.useDefaultAvatar,
         'enableAvatarDistanceAccuracy': settings.enableAvatarDistanceAccuracy,
         'mapView': settings.mapView,
+        'minimizeHomePageButtons': settings.minimizeHomePageButtons,
       }, SetOptions(merge: true));
       log("Settings successfully updated for user: ${settings.userID}");
     } catch (e) {

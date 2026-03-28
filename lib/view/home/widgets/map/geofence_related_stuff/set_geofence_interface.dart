@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
 import 'package:wanderhuman_app/view-model/home_geofence_config_provider.dart';
+import 'package:wanderhuman_app/view-model/home_settings_provider.dart';
 import 'package:wanderhuman_app/view/components/bottom_sheet.dart';
 import 'package:wanderhuman_app/view/components/button.dart';
 import 'package:wanderhuman_app/view/components/tooltip.dart';
@@ -18,24 +19,48 @@ class SetGeofence extends StatefulWidget {
 class _SetGeofenceState extends State<SetGeofence> {
   @override
   Widget build(BuildContext context) {
+    MyHomeSettingsProvider settingsProvider = context
+        .watch<MyHomeSettingsProvider>();
+
     return GestureDetector(
       onTap: () {
         _bottomPanelContents(context);
       },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.location_searching_rounded,
-            size: 32,
-            color: Colors.blue.shade100,
-          ),
-          MyTextFormatter.p(
-            text: "Geofence",
-            fontsize: kDefaultFontSize - 4,
-            color: Colors.blue.shade100,
-          ),
-        ],
+      child: AnimatedContainer(
+        duration: Duration(milliseconds: 600),
+        padding: EdgeInsets.all(5),
+        decoration: BoxDecoration(
+          borderRadius: (settingsProvider.minimizeHomePageButtons)
+              ? BorderRadius.only(
+                  topRight: Radius.circular(50),
+                  bottomRight: Radius.circular(50),
+                )
+              : null,
+          color: (settingsProvider.minimizeHomePageButtons)
+              ? Colors.white54
+              : Colors.transparent,
+        ),
+        child: (settingsProvider.minimizeHomePageButtons)
+            ? Icon(
+                Icons.location_searching_rounded,
+                color: Colors.grey.shade600,
+                size: 28,
+              )
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.location_searching_rounded,
+                    size: 32,
+                    color: Colors.blue.shade100,
+                  ),
+                  MyTextFormatter.p(
+                    text: "Geofence",
+                    fontsize: kDefaultFontSize - 4,
+                    color: Colors.blue.shade100,
+                  ),
+                ],
+              ),
       ),
     );
   }

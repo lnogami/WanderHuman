@@ -5,6 +5,7 @@ class MySettingsModel {
   bool useDefaultAvatar;
   bool enableAvatarDistanceAccuracy;
   int mapView;
+  bool minimizeHomePageButtons;
 
   MySettingsModel({
     required this.userID,
@@ -13,6 +14,7 @@ class MySettingsModel {
     required this.useDefaultAvatar,
     required this.enableAvatarDistanceAccuracy,
     required this.mapView,
+    required this.minimizeHomePageButtons,
   });
 
   factory MySettingsModel.fromMap(Map<String, dynamic> map) {
@@ -23,6 +25,7 @@ class MySettingsModel {
       useDefaultAvatar: map['useDefaultAvatar'] ?? true,
       enableAvatarDistanceAccuracy: map['enableAvatarDistanceAccuracy'] ?? true,
       mapView: map['mapView'] ?? 0,
+      minimizeHomePageButtons: map['minimizeHomePageButtons'] ?? false,
     );
   }
 }

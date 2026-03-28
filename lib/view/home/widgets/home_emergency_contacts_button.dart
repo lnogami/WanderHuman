@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
+import 'package:wanderhuman_app/view-model/home_settings_provider.dart';
 import 'package:wanderhuman_app/view/home/widgets/home_utility_functions/emergency_hotline_contents.dart';
 
 class MyHomeEmergencyContactsButton extends StatelessWidget {
@@ -7,31 +9,46 @@ class MyHomeEmergencyContactsButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    MyHomeSettingsProvider settingsProvider = context
+        .watch<MyHomeSettingsProvider>();
+
     return GestureDetector(
       onTap: () {
         showMyBottomPanel(context);
       },
-      child: Container(
+      child: AnimatedContainer(
+        duration: Duration(milliseconds: 600),
         padding: EdgeInsets.all(5),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(7),
+          borderRadius: (settingsProvider.minimizeHomePageButtons)
+              ? BorderRadius.only(
+                  topRight: Radius.circular(50),
+                  bottomRight: Radius.circular(50),
+                )
+              : BorderRadius.circular(7),
           color: Colors.white54,
         ),
-        child: Column(
-          children: [
-            Icon(Icons.call_outlined, color: Colors.grey.shade800, size: 16),
-            MyTextFormatter.p(
-              text: "Emergency",
-              fontWeight: FontWeight.w500,
-              fontsize: kDefaultFontSize - 6,
-            ),
-            MyTextFormatter.p(
-              text: "Contacts",
-              fontWeight: FontWeight.w500,
-              fontsize: kDefaultFontSize - 6,
-            ),
-          ],
-        ),
+        child: (settingsProvider.minimizeHomePageButtons)
+            ? Icon(Icons.call_outlined, color: Colors.grey.shade600, size: 28)
+            : Column(
+                children: [
+                  Icon(
+                    Icons.call_outlined,
+                    color: Colors.grey.shade800,
+                    size: 16,
+                  ),
+                  MyTextFormatter.p(
+                    text: "Emergency",
+                    fontWeight: FontWeight.w500,
+                    fontsize: kDefaultFontSize - 6,
+                  ),
+                  MyTextFormatter.p(
+                    text: "Contacts",
+                    fontWeight: FontWeight.w500,
+                    fontsize: kDefaultFontSize - 6,
+                  ),
+                ],
+              ),
       ),
     );
   }
