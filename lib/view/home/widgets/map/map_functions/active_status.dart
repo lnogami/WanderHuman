@@ -12,10 +12,14 @@ class ActiveStatus {
   }
 
   static Future<void> setActiveStatusToOffline() async {
-    await MyRealtimeActiveStatusRepository.updateActiveStatus(
-      userID: FirebaseAuth.instance.currentUser!.uid,
-      isActive: false,
-    );
+    User? loggedInUser = FirebaseAuth.instance.currentUser;
+
+    if (loggedInUser != null) {
+      await MyRealtimeActiveStatusRepository.updateActiveStatus(
+        userID: loggedInUser.uid,
+        isActive: false,
+      );
+    }
   }
 
   /// This will trigger if the mobile device is disconnected to the internet or closing the app

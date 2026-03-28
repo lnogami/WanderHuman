@@ -118,7 +118,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     MyRealtimeActiveStatusRepository.connectionObserverSubscription?.cancel();
-    ActiveStatus.setActiveStatusToOffline();
+    Future.wait([ActiveStatus.setActiveStatusToOffline()]);
     super.dispose();
   }
 
@@ -145,13 +145,6 @@ class _HomePageState extends State<HomePage> {
       onPopInvokedWithResult: (bool didPop, Object? result) async {
         // If the system already popped the screen, do nothing
         if (didPop) return;
-
-        // // 3. Show your custom confirmation dialog
-        // final bool shouldExit = await showExitDialog(context);
-        // // 4. If they clicked "Yes", forcefully close the app
-        // if (shouldExit) {
-        //   SystemNavigator.pop();
-        // }
 
         // Show confirmation dialog
         myAlertDialogue(
@@ -187,11 +180,6 @@ class _HomePageState extends State<HomePage> {
 
                     // Danger indicator
                     Positioned.fill(
-                      // child: RectangularVignette(
-                      //   fadeColor: Colors.red.withAlpha(100),
-                      //   edgeThickness:
-                      //       0.15, // 25% of the screen fades from each side
-                      // ),
                       child: AnimatedWarningVignette(
                         isActive:
                             (context
@@ -240,31 +228,12 @@ class _HomePageState extends State<HomePage> {
                     AnimatedPositioned(
                       duration: Duration(milliseconds: 400),
                       top: MyDimensionAdapter.getHeight(context) * 0.2,
-                      left: settingsProvider.minimizeHomePageButtons ? 2 : 18,
+                      left: settingsProvider.minimizeHomePageButtons ? 0 : 18,
                       child: animatedOpacity(
                         child: SetGeofence(),
                         isVisible: (!isCreatingGeofence && !isViewingGeofences),
                       ),
                     ),
-
-                    // // Temporary for testing realtime database only (deletable)
-                    // Positioned(
-                    //   top: MyDimensionAdapter.getHeight(context) * 0.27,
-                    //   left: 18,
-                    //   child: animatedOpacity(
-                    //     child: IconButton(
-                    //       onPressed: () {
-                    //         MyNavigator.goTo(context, RealtimeTemporaryTest());
-                    //       },
-                    //       icon: Icon(
-                    //         Icons.data_saver_on_rounded,
-                    //         color: Colors.amber,
-                    //         size: 32,
-                    //       ),
-                    //     ),
-                    //     isVisible: (!isCreatingGeofence && !isViewingGeofences),
-                    //   ),
-                    // ),
 
                     // Dropdown
                     AnimatedPositioned(

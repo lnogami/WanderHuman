@@ -18,6 +18,7 @@ import 'package:wanderhuman_app/model/geofence_model.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/model/realtime_location_model.dart';
 import 'package:wanderhuman_app/utilities/properties/date_formatter.dart';
+import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/view-model/home_active_persons_provider.dart';
 import 'package:wanderhuman_app/view-model/home_appbar_provider.dart';
 import 'package:wanderhuman_app/view-model/home_geofence_config_provider.dart';
@@ -165,6 +166,11 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     mp.MapboxOptions.setAccessToken(dotenv.env['MAPBOX_ACCESS_TOKEN']!);
   }
 
+  void updateMapStyle(int styleIndex) {
+    final newUri = getMapViewStyle(styleIndex);
+    mapboxMapController?.style.setStyleURI(newUri);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -275,16 +281,18 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     required mp.StyleLoadedEventData? event,
   }) async {
     // this works with MapboxStyles.STANDARD as it is dynamic (NOTE: this does not work with SATELLITE_STREETS)
-    mapboxMapController?.style.setStyleImportConfigProperty(
-      "basemap",
-      "lightPreset",
-      "night",
-    );
-    mapboxMapController?.style.setStyleImportConfigProperty(
-      "basemap",
-      "showLandmarkIcons",
-      true,
-    );
+    if (myHomeSettingsProvider.mapView == 3) {
+      mapboxMapController?.style.setStyleImportConfigProperty(
+        "basemap",
+        "lightPreset",
+        "night",
+      );
+      mapboxMapController?.style.setStyleImportConfigProperty(
+        "basemap",
+        "showLandmarkIcons",
+        true,
+      );
+    }
   }
 
   /// this is the entry point of mapbox's map
@@ -341,9 +349,10 @@ class _MapBodyState extends State<MapBody> with RouteAware {
         context: context,
       );
 
-      mapboxMapController!.style.setStyleURI(
-        getMapViewStyle(myHomeSettingsProvider.mapView),
-      );
+      // mapboxMapController!.style.setStyleURI(
+      //   getMapViewStyle(myHomeSettingsProvider.mapView),
+      // );
+      updateMapStyle(myHomeSettingsProvider.mapView);
     }
 
     if (isLocationServiceEnabled) {
@@ -416,33 +425,6 @@ class _MapBodyState extends State<MapBody> with RouteAware {
           locationSettings: locationSettings,
         ).listen((gl.Position? position) async {
           if (position != null && mapboxMapController != null) {
-            //// (old code, the update function is the one below this)
-            // // State management purposes
-            // myHomeActivePersonsProvider.updatePersonCurrentPosition(
-            //   myHomeAppBarProvider.loggedInUserData.userID,
-            //   mp.Position(position.longitude, position.latitude),
-            // );
-            //
-            // // CameraOptios sets where the map is centered and how zoomed in it is.
-            // if (isIntroAudioPlayingForTheFirstTime ||
-            //     myHomeSettingsProvider.alwaysFollowYourAvatar) {
-            //   await MyMapCameraAnimations.myMapFlyTo(
-            //     mapboxController: mapboxMapController!,
-            //     position: mp.Position(position.longitude, position.latitude),
-            //     animationDurationInMilliseconds:
-            //         (isIntroAudioPlayingForTheFirstTime)
-            //         ? ((myHomeSettingsProvider.zoomLevel.toInt()) + 6250)
-            //         : 700,
-            //     zoomLevel: myHomeSettingsProvider.zoomLevel,
-            //   );
-            //   Future.delayed(Duration(milliseconds: 6260), () {
-            //     setState(() => isIntroAudioPlayingForTheFirstTime = false);
-            //     context
-            //         .read<MyHomeMiscellaneousProvider>()
-            //         .setIsIntroAnimationDone(true);
-            //   });
-            // }
-
             mp.Position? validatedPosition = myDistanceValidator
                 .processNewLocation(position.longitude, position.latitude);
             log(
@@ -469,30 +451,15 @@ class _MapBodyState extends State<MapBody> with RouteAware {
                 zoomLevel: myHomeSettingsProvider.zoomLevel,
               );
               Future.delayed(Duration(milliseconds: 6260), () {
-                setState(() => isIntroAudioPlayingForTheFirstTime = false);
-                // ignore: use_build_context_synchronously
-                context
-                    .read<MyHomeMiscellaneousProvider>()
-                    .setIsIntroAnimationDone(true);
+                if (context.mounted) {
+                  setState(() => isIntroAudioPlayingForTheFirstTime = false);
+                  // ignore: use_build_context_synchronously
+                  context
+                      .read<MyHomeMiscellaneousProvider>()
+                      .setIsIntroAnimationDone(true);
+                }
               });
             }
-
-            // (deletable) old code, updated version is below this one
-            // updateLoggedInUserLocationToTheDatabase(
-            //   gl.Position(
-            //     longitude: validatedPosition.lng.toDouble(),
-            //     latitude: validatedPosition.lat.toDouble(),
-            //     timestamp: position.timestamp, // not really needed
-            //     speed: position.speed, //
-            //     speedAccuracy: position.speedAccuracy, //
-            //     accuracy: position.accuracy, //
-            //     altitude: position.altitude, //
-            //     altitudeAccuracy: position.altitudeAccuracy, //
-            //     // heading: position.heading, //
-            //     heading: myDistanceValidator.currentHeading, //
-            //     headingAccuracy: position.headingAccuracy, //
-            //   ),
-            // );
 
             // updateLoggedInUserLocationToTheDatabase(position);
             updateLoggedInUserLocationToTheDatabase(
@@ -545,50 +512,6 @@ class _MapBodyState extends State<MapBody> with RouteAware {
         });
   }
 
-  // (old function) the new version of this one is the function below
-  // // this will update the location data of only the current logged in user of this mobile app, the patients' location data will be hanlded by the device
-  // Future<void> updateLoggedInUserLocationToTheDatabase(
-  //   gl.Position position,
-  // ) async {
-  //   try {
-  //     // Check if 30 seconds have passed, to save to the database
-  //     if (DateTime.now()
-  //             .difference(lastLoggedInUserUpdateToDatabase)
-  //             .inSeconds <
-  //         30) {
-  //       log(
-  //         "SAVING LOCATION DATA TO FIREBASE WAS SKIPPED! TOO EARLY TO SAVE LOCATION DATA of THE CURRENT LOGGED IN USER!",
-  //       );
-  //       return;
-  //     } else {
-  //       log("SAVING LOGGED IN USER's LOCATION DATA TO FIREBASE!");
-  //     }
-  //
-  //     lastLoggedInUserUpdateToDatabase = DateTime.now();
-  //     MyRealtimeLocationReposity.updateLocation(
-  //       deviceID: widget.loggedInUserData.userID,
-  //       realtimeData: MyRealtimeLocationModel(
-  //         deviceID: widget.loggedInUserData.userID,
-  //         patientID: widget.loggedInUserData.userID,
-  //         isInSafeZone: true,
-  //         isCurrentlySafe: true,
-  //         currentlyIn: "NOT APPLICABLE",
-  //         currentLocationLng: position.longitude.toString(),
-  //         currentLocationLat: position.latitude.toString(),
-  //         timeStamp: MyDateFormatter.formatDate(
-  //           dateTimeInString: DateTime.now(),
-  //           formatOptions: 8,
-  //         ),
-  //         deviceBatteryPercentage: await Battery().batteryLevel,
-  //         bPM: "NOT APPLICABLE",
-  //         requestBPM: false,
-  //       ),
-  //     );
-  //   } catch (e, stackTrace) {
-  //     log("ERROR WHILE UPDATING USER LOCATION in MapBody: $e. AT $stackTrace");
-  //   }
-  // }
-
   // Now accepts the clean doubles directly
   Future<void> updateLoggedInUserLocationToTheDatabase(
     double filteredLng,
@@ -600,16 +523,8 @@ class _MapBodyState extends State<MapBody> with RouteAware {
       // GATE 1: THE TIME GATE                           // originally 30 seconds
       if (now.difference(lastLoggedInUserUpdateToDatabase).inSeconds < 15) {
         log(
-          "LOGGED IN USER's LOCATION DATA WAS SKIPPED: TOO EARLY TO SAVE LOCATION DATA!",
+          "LOGGED IN USER's LOCATION DATA WAS SKIPPED: (TOO EARLY TO SAVE LOCATION DATA!)",
         );
-
-        // (deletable) for debugging purposes only
-        // showMyAnimatedSnackBar(
-        //   context: context,
-        //   // isAutoDismiss: false,
-        //   dataToDisplay:
-        //       "Saving your location to RTDB was skipped: (Too early to save location data: time passed since ${now.difference(lastLoggedInUserUpdateToDatabase).inSeconds} second(s))",
-        // );
         return;
       }
 
@@ -627,16 +542,8 @@ class _MapBodyState extends State<MapBody> with RouteAware {
           // Reset the timer so we check again in 30 seconds, but DO NOT write to Firebase.
           lastLoggedInUserUpdateToDatabase = now;
           log(
-            "DB WRITE SKIPPED: User is stationary. (Moved only ${distanceMoved.toStringAsFixed(2)}m)",
+            "DB WRITE SKIPPED: User is stationary. (Moved only ${distanceMoved.toStringAsFixed(2)} meters!)",
           );
-
-          // (deletable) for debugging purposes only
-          // showMyAnimatedSnackBar(
-          //   context: context,
-          //   // isAutoDismiss: false,
-          //   dataToDisplay:
-          //       "Saving your location to RTDB was also skipped: (Too near to save data: moved only ${distanceMoved.toStringAsFixed(2)})",
-          // );
           return;
         }
       }
@@ -668,13 +575,6 @@ class _MapBodyState extends State<MapBody> with RouteAware {
         ),
       );
 
-      // // (deletable) for debugging purposes only
-      // showMyAnimatedSnackBar(
-      //   context: context,
-      //   // isAutoDismiss: false,
-      //   dataToDisplay:
-      //       "Successfully save to database at exactly ${MyDateFormatter.formatDate(dateTimeInString: now, formatOptions: 6)}",
-      // );
       log(
         "########## CURRENTLY LOGGED IN USERS DATA WAS SUCCESSFULLY SAVE IN THE DATABASE",
       );
@@ -719,11 +619,6 @@ class _MapBodyState extends State<MapBody> with RouteAware {
   // }
 
   String getMapViewStyle(int style) {
-    // styleUri: mp.MapboxStyles.SATELLITE_STREETS, // default
-    // styleUri: mp.MapboxStyles.STANDARD,
-    // styleUri: mp.MapboxStyles.MAPBOX_STREETS,
-    // styleUri: mp.MapboxStyles.OUTDOORS,
-
     switch (style) {
       case 1:
         return mp.MapboxStyles.MAPBOX_STREETS;
@@ -742,8 +637,8 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     if (myHomeSettingsProvider.useDefaultAvatar) {
       mapboxMapController!.location.updateSettings(
         mp.LocationComponentSettings(
-          enabled: (myHomeSettingsProvider.useDefaultAvatar) ? true : false,
-          pulsingEnabled: true,
+          enabled: myHomeSettingsProvider.useDefaultAvatar,
+          pulsingEnabled: myHomeSettingsProvider.useDefaultAvatar,
           showAccuracyRing: myHomeSettingsProvider.enableAvatarDistanceAccuracy,
           // accuracyRingColor: const Color.fromARGB(45, 33, 149, 243).toARGB32(),
           // accuracyRingBorderColor: Colors.white12.toARGB32(),
@@ -760,9 +655,9 @@ class _MapBodyState extends State<MapBody> with RouteAware {
       mp.ScaleBarSettings(
         enabled: true,
         position: mp.OrnamentPosition.BOTTOM_LEFT,
-        primaryColor: Colors.blue.toARGB32(),
+        primaryColor: Colors.blue.withAlpha(100).toARGB32(),
         showTextBorder: true,
-        textColor: Colors.blue.toARGB32(),
+        textColor: Colors.blue.withAlpha(200).toARGB32(),
         borderWidth: 1,
         textBorderWidth: 0.2,
         marginBottom: 8,
@@ -791,7 +686,11 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     // the compass icon in the map that only appears if the map is tilted
     mapboxMapController!.compass.updateSettings(
       // mp.CompassSettings(marginTop: 80, marginRight: 15, opacity: 0.70),
-      mp.CompassSettings(marginTop: 90, marginRight: 70, opacity: 0.60),
+      mp.CompassSettings(
+        marginTop: MyDimensionAdapter.getHeight(context) * 0.12,
+        marginRight: MyDimensionAdapter.getWidth(context) * 0.16,
+        opacity: 0.50,
+      ),
     );
   }
 }
