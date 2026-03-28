@@ -16,7 +16,7 @@ class MyHomeSettingsProvider extends ChangeNotifier {
 
   double get zoomLevel => _zoomLevel ?? 15.0;
   bool get alwaysFollowYourAvatar => _alwaysFollowYourAvatar ?? true;
-  bool get useDefaultAvatar => _useDefaultAvatar ?? true;
+  bool get useDefaultAvatar => _useDefaultAvatar ?? false;
   bool get enableAvatarDistanceAccuracy =>
       _enableAvatarDistanceAccuracy ?? true;
   int get mapView => _mapView ?? 0;

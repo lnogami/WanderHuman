@@ -81,6 +81,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
   late MyHomeSettingsProvider myHomeSettingsProvider;
   late HomeAppBarProvider myHomeAppBarProvider;
   late MyHomeActivePersonsProvider myHomeActivePersonsProvider;
+  late MyHomeMiscellaneousProvider myHomeMiscellaneousProvider;
 
   // This two Managers are for temporary scenarios like when creating a safe zone (geofence)
   mp.PolygonAnnotationManager? markedPolygonAnnotationManager;
@@ -257,6 +258,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     myHomeSettingsProvider = context.watch<MyHomeSettingsProvider>();
     myHomeAppBarProvider = context.watch<HomeAppBarProvider>();
     myHomeActivePersonsProvider = context.read<MyHomeActivePersonsProvider>();
+    myHomeMiscellaneousProvider = context.read<MyHomeMiscellaneousProvider>();
 
     return mp.MapWidget(
       onMapCreated: _onMapCreated,
@@ -321,7 +323,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
             pointManager: markedPointAnnotationManager!,
           );
 
-      // other mapbox's requirements for its rules and policies
+      // other mapbox's requirements for its default avatar, and rules and policies
       initOtherMapRequirements(mapboxMapController!);
     });
 
@@ -352,12 +354,17 @@ class _MapBodyState extends State<MapBody> with RouteAware {
       // mapboxMapController!.style.setStyleURI(
       //   getMapViewStyle(myHomeSettingsProvider.mapView),
       // );
-      updateMapStyle(myHomeSettingsProvider.mapView);
+      String? style = await mapboxMapController?.style.getStyleURI();
+      String myStyle = getMapViewStyle(myHomeSettingsProvider.mapView);
+      if (style == null || style != myStyle) {
+        updateMapStyle(myHomeSettingsProvider.mapView);
+      }
     }
 
-    if (isLocationServiceEnabled) {
-      _myAudioPlayer.playLocalAudio("audios/introduction_audio.mp3");
-    }
+    // (this logic was moved somewhere else here)
+    // if (isLocationServiceEnabled) {
+    //   _myAudioPlayer.playLocalAudio("audios/introduction_audio.mp3");
+    // }
 
     // MyMapCameraAnimations.myMapFlyTo(
     //   position: mp.Position(125.79742622088162, 7.4283929355574685),
@@ -438,27 +445,35 @@ class _MapBodyState extends State<MapBody> with RouteAware {
               mp.Position(validatedPosition.lng, validatedPosition.lat),
             );
 
-            // CameraOptios sets where the map is centered and how zoomed in it is.
-            if (isIntroAudioPlayingForTheFirstTime ||
-                myHomeSettingsProvider.alwaysFollowYourAvatar) {
-              await MyMapCameraAnimations.myMapFlyTo(
-                mapboxController: mapboxMapController!,
-                position: validatedPosition,
-                animationDurationInMilliseconds:
-                    (isIntroAudioPlayingForTheFirstTime)
-                    ? ((myHomeSettingsProvider.zoomLevel.toInt()) + 6250)
-                    : 700,
-                zoomLevel: myHomeSettingsProvider.zoomLevel,
-              );
-              Future.delayed(Duration(milliseconds: 6260), () {
-                if (context.mounted) {
-                  setState(() => isIntroAudioPlayingForTheFirstTime = false);
-                  // ignore: use_build_context_synchronously
-                  context
-                      .read<MyHomeMiscellaneousProvider>()
-                      .setIsIntroAnimationDone(true);
-                }
-              });
+            // // CameraOptios sets where the map is centered and how zoomed in it is.
+            // if (isIntroAudioPlayingForTheFirstTime ||
+            //     myHomeSettingsProvider.alwaysFollowYourAvatar) {
+            //   await MyMapCameraAnimations.myMapFlyTo(
+            //     mapboxController: mapboxMapController!,
+            //     position: validatedPosition,
+            //     animationDurationInMilliseconds:
+            //         (isIntroAudioPlayingForTheFirstTime)
+            //         ? ((myHomeSettingsProvider.zoomLevel.toInt()) + 6250)
+            //         : 700,
+            //     zoomLevel: myHomeSettingsProvider.zoomLevel,
+            //   );
+            //   Future.delayed(Duration(milliseconds: 6260), () {
+            //     if (context.mounted) {
+            //       setState(() => isIntroAudioPlayingForTheFirstTime = false);
+            //       // ignore: use_build_context_synchronously
+            //       context
+            //           .read<MyHomeMiscellaneousProvider>()
+            //           .setIsIntroAnimationDone(true);
+            //     }
+            //   });
+            // }
+
+            // To prevent
+            // if (isIntroAudioPlayingForTheFirstTime ||
+            //     myHomeSettingsProvider.alwaysFollowYourAvatar) {
+            // To start the intro animation
+            if (isIntroAudioPlayingForTheFirstTime) {
+              playIntroAnimation(validatedPosition);
             }
 
             // updateLoggedInUserLocationToTheDatabase(position);
@@ -510,6 +525,28 @@ class _MapBodyState extends State<MapBody> with RouteAware {
             }
           }
         });
+  }
+
+  // To sync the intro music and the map animation
+  Future<void> playIntroAnimation(mp.Position validatedPosition) async {
+    await MyMapCameraAnimations.myMapFlyTo(
+      mapboxController: mapboxMapController!,
+      position: validatedPosition,
+      animationDurationInMilliseconds: (isIntroAudioPlayingForTheFirstTime)
+          ? ((myHomeSettingsProvider.zoomLevel.toInt()) + 6250)
+          : 700,
+      zoomLevel: myHomeSettingsProvider.zoomLevel,
+    );
+
+    _myAudioPlayer.playLocalAudio(
+      "audios/introduction_audio.mp3",
+      isOnRepeatMode: false,
+    );
+
+    Future.delayed(Duration(milliseconds: 6260), () {
+      setState(() => isIntroAudioPlayingForTheFirstTime = false);
+      myHomeMiscellaneousProvider.setIsIntroAnimationDone(true);
+    });
   }
 
   // Now accepts the clean doubles directly

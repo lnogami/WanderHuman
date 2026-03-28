@@ -13,8 +13,11 @@ class MyHomeMiscellaneousProvider extends ChangeNotifier {
     _isIntroAnimationDone = isDone;
     notifyListeners();
 
-    if (isDone == true) log("Intro Animation successfully set to Done");
-    if (isDone == false)
+    if (isDone == true)
+      log(
+        "++++++++++++++++++++++++++++++++++++++++++++++++++++Intro Animation successfully set to Done",
+      );
+    else
       log("Intro Animation successfully set to Not Yet Done");
   }
 
