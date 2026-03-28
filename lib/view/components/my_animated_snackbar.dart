@@ -44,18 +44,20 @@ void showMyAnimatedSnackBar({
   required BuildContext context,
   required String dataToDisplay,
   Color borderColor = Colors.white,
-  Color bgColor = Colors.white60,
+  // Color bgColor = Colors.white60,
+  // Color bgColor = const Color.fromARGB(242, 255, 255, 255),
+  Color bgColor = Colors.white70,
   bool isAutoDismiss = true,
 }) {
   final overlay = Overlay.of(context);
   final overlayEntry = OverlayEntry(
     builder: (context) {
       return Positioned(
-        bottom: 70,
+        top: 20,
         left: 20,
         right: 20,
         child: TweenAnimationBuilder<Offset>(
-          tween: Tween(begin: const Offset(0, 1), end: Offset.zero),
+          tween: Tween(begin: Offset.zero, end: const Offset(0, 1)),
           duration: const Duration(milliseconds: 500),
           curve: Curves.easeOutCubic,
           builder: (context, offset, child) {
