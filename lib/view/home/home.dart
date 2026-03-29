@@ -40,6 +40,8 @@ class _HomePageState extends State<HomePage> {
 
   // UID of the logged in user
   final String currentLoggedInUser = FirebaseAuth.instance.currentUser!.uid;
+  late MySettingsModel userSettings;
+  late MyHomeSettingsProvider settingsProvider;
 
   // this will initialize the logged in user's personal info in the HomeAppBarProvider
   Future<void> initUserData() async {
@@ -56,9 +58,6 @@ class _HomePageState extends State<HomePage> {
           context.read<HomeAppBarProvider>().initUserData(
             currentlyLoggedInUserData,
           );
-          setState(() {
-            isLoading = false;
-          });
         }
       });
     } catch (e, stackTrace) {
@@ -67,7 +66,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> setupUserSettings() async {
-    late MySettingsModel userSettings;
     // verifies if this person has no settings data yet
     bool isSettingsForThisUserIsAvailable =
         await MySettigsRepository.doesSettingsForThisUserExist(
@@ -93,9 +91,12 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
-    if (context.mounted) {
-      context.read<MyHomeSettingsProvider>().initUserSettings(userSettings);
-    }
+    context.read<MyHomeSettingsProvider>().initUserSettings(userSettings);
+
+    setState(() {
+      isLoading = false;
+    });
+    log("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHOME: User settings initialized.");
   }
 
   @override
@@ -104,11 +105,17 @@ class _HomePageState extends State<HomePage> {
     initUserData();
 
     log("------------------------\nTHE APP IS STARTING!"); // (deletable)
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       log(
         "------------------------\nTHE APP CALLS SETUPUSERSETTINGS METHOD!",
       ); // (deletable)
-      setupUserSettings();
+
+      settingsProvider.resetUserSettings();
+      await setupUserSettings();
+
+      log(
+        "HHHHHHHHHHHHHHHHHHHHHHHHHHHOME: addPostFrameCallback() is done!",
+      ); // (deletable)
     });
 
     // ActiveStatus.setupOnDisconnectStatus(); // old
@@ -134,8 +141,7 @@ class _HomePageState extends State<HomePage> {
         .watch<MyHomeGeofenceConfigurationProvider>()
         .isAboutToAddCenterPoint;
 
-    MyHomeSettingsProvider settingsProvider = context
-        .watch<MyHomeSettingsProvider>();
+    settingsProvider = context.watch<MyHomeSettingsProvider>();
 
     return PopScope(
       // 1. Set this to false to completely block the default back button behavior

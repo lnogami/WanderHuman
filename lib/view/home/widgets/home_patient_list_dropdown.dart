@@ -44,6 +44,7 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
 
   // Provider
   late MyHomeActivePersonsProvider activePersonsProvider;
+  late MyHomeSettingsProvider settingsProvider;
 
   // // will return all the patients in the PersonalInfo in the database (PersonalInfo)
   // Future<void> getActivePatientList() async {
@@ -111,8 +112,7 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
     // first store the value of the provider in a variable
     final mapboxProvider = context.watch<MyMapboxRefProvider>();
     activePersonsProvider = context.watch<MyHomeActivePersonsProvider>();
-    MyHomeSettingsProvider settingsProvider = context
-        .watch<MyHomeSettingsProvider>();
+    settingsProvider = context.watch<MyHomeSettingsProvider>();
 
     // this condition will prevent a few second error
     if (mapboxProvider.getMapboxMapController != null) {
@@ -311,7 +311,9 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
             selectedIndividualID = "";
             MyMapCameraAnimations.myMapZoom(
               mapboxController: _mapControllerRef,
-              zoomLevel: 15,
+              zoomLevel: (settingsProvider.zoomLevel < 15)
+                  ? settingsProvider.zoomLevel - 2
+                  : 15,
             );
           } else {
             selectedIndividualID = personalInfo.userID;
@@ -320,7 +322,7 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
               // position: Position(125.7989268, 7.4233187),
               // position: patientLocations[personalInfo.userID]!,
               position: currentPosition,
-              zoomLevel: context.read<MyHomeSettingsProvider>().zoomLevel,
+              zoomLevel: settingsProvider.zoomLevel,
               // patientID: personalInfo.userID,
             );
           }

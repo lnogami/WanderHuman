@@ -32,6 +32,16 @@ class MyHomeSettingsProvider extends ChangeNotifier {
     setMinimizeHomePageButtons(settings.minimizeHomePageButtons);
   }
 
+  void resetUserSettings() {
+    _zoomLevel = null;
+    _alwaysFollowYourAvatar = null;
+    _useDefaultAvatar = null;
+    _enableAvatarDistanceAccuracy = null;
+    _mapView = null;
+    _minimizeHomePageButtons = null;
+    notifyListeners();
+  }
+
   MySettingsModel getUserSettings() {
     return MySettingsModel(
       userID: "",

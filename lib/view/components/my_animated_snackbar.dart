@@ -83,7 +83,7 @@ void showMyAnimatedSnackBar({
               child: Container(
                 padding: EdgeInsets.all(0),
                 decoration: BoxDecoration(
-                  color: Colors.white24,
+                  color: Colors.white12,
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(

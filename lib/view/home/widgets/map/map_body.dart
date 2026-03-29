@@ -167,10 +167,10 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     mp.MapboxOptions.setAccessToken(dotenv.env['MAPBOX_ACCESS_TOKEN']!);
   }
 
-  void updateMapStyle(int styleIndex) {
-    final newUri = getMapViewStyle(styleIndex);
-    mapboxMapController?.style.setStyleURI(newUri);
-  }
+  // Future<void> updateMapStyle(int styleIndex) async {
+  //   final newUri = getMapViewStyle(styleIndex);
+  //   await mapboxMapController?.style.setStyleURI(newUri);
+  // }
 
   @override
   void initState() {
@@ -267,7 +267,6 @@ class _MapBodyState extends State<MapBody> with RouteAware {
       // this is the styles of the map
       // static realistic view
       styleUri: getMapViewStyle(myHomeSettingsProvider.mapView),
-      onStyleDataLoadedListener: (styleDataLoadedEventData) {},
       //// styleUri: mp.MapboxStyles.STANDARD_SATELLITE,
       //// dynamic 3D view
       // styleUri: mp.MapboxStyles.STANDARD,
@@ -323,6 +322,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
             pointManager: markedPointAnnotationManager!,
           );
 
+      log("MMMMMMMMMMMMMMMMMMMMMMAPBODY: addPostFrameCallback is done!");
       // other mapbox's requirements for its default avatar, and rules and policies
       initOtherMapRequirements(mapboxMapController!);
     });
@@ -354,11 +354,11 @@ class _MapBodyState extends State<MapBody> with RouteAware {
       // mapboxMapController!.style.setStyleURI(
       //   getMapViewStyle(myHomeSettingsProvider.mapView),
       // );
-      String? style = await mapboxMapController?.style.getStyleURI();
-      String myStyle = getMapViewStyle(myHomeSettingsProvider.mapView);
-      if (style == null || style != myStyle) {
-        updateMapStyle(myHomeSettingsProvider.mapView);
-      }
+      // String? style = await mapboxMapController?.style.getStyleURI();
+      // String myStyle = getMapViewStyle(myHomeSettingsProvider.mapView);
+      // if (style == null || style != myStyle) {
+      //   await updateMapStyle(myHomeSettingsProvider.mapView);
+      // }
     }
 
     // (this logic was moved somewhere else here)
@@ -372,6 +372,7 @@ class _MapBodyState extends State<MapBody> with RouteAware {
     //   zoomLevel: 15.0,
     //   animationDurationInMilliseconds: 6250,
     // );
+    log("MMMMMMMMMMMMMMMMMMMMMMAPBODY: _onMapCreated is done!");
   }
 
   //------------------------------------------------------------------------------
