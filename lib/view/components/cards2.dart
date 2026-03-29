@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
 import 'package:wanderhuman_app/utilities/properties/date_formatter.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
@@ -18,7 +17,8 @@ class MyCardInfoDisplayer2 extends StatefulWidget {
   final String diagnosis;
   // acts as the description/additional info of the card
   final String treatment;
-  final PersonalInfo medic;
+  // final PersonalInfo medic;
+  final String medic;
   final String fromDate;
   final String untilDate;
 
@@ -208,7 +208,7 @@ class _MyCardInfoDisplayer2 extends State<MyCardInfoDisplayer2> {
                   ),
                   // Icon(Icons.co_present_sharp),
                   SizedBox(width: 5),
-                  Expanded(child: MyTextFormatter.p(text: widget.medic.name)),
+                  Expanded(child: MyTextFormatter.p(text: widget.medic)),
                 ],
               ),
             ],

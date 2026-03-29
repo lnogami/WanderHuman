@@ -71,8 +71,31 @@ void showMyAnimatedSnackBar({
                 color: bgColor,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: borderColor),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.blue.withAlpha(80),
+                    blurRadius: 4,
+                    offset: Offset.zero,
+                    blurStyle: BlurStyle.outer,
+                  ),
+                ],
               ),
-              child: Center(child: Text(dataToDisplay)),
+              child: Container(
+                padding: EdgeInsets.all(0),
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.white.withAlpha(80),
+                      blurRadius: 6,
+                      offset: Offset.zero,
+                      blurStyle: BlurStyle.outer,
+                    ),
+                  ],
+                ),
+                child: Center(child: Text(dataToDisplay)),
+              ),
             ),
           ),
         ),

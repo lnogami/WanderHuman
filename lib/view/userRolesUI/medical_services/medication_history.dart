@@ -37,17 +37,18 @@ class _MedicalHistoryState extends State<MedicalHistory> {
 
   List<CombinedMedicalRecord> isNotYetOkayList = [];
   List<CombinedMedicalRecord> isNowOkayList = [];
-  Map<String, PersonalInfo> medicalStaffs = {};
+  // Map<String, PersonalInfo> medicalStaffs = {};
+  Map<String, String> medicalStaffs = {};
 
   Future<void> getMedicalStaffs() async {
     try {
       var medics = await MyPersonalInfoRepository.getAllPersonalInfoRecords(
-        fieldName: "userType",
-        valueToLookFor: "Medical Service",
+        // fieldName: "userType",
+        // valueToLookFor: "Medical Service",
       );
 
       for (var medic in medics) {
-        medicalStaffs[medic.userID] = medic;
+        medicalStaffs[medic.userID] = medic.name;
       }
     } catch (e, stackTrace) {
       log("ERROR IN getMedicalStaff: $e \n $stackTrace");
@@ -123,6 +124,7 @@ class _MedicalHistoryState extends State<MedicalHistory> {
   void initState() {
     super.initState();
     selectedStatusFilter = statusChoices[0];
+    getMedicalStaffs();
   }
 
   @override
@@ -292,7 +294,8 @@ class _MedicalHistoryState extends State<MedicalHistory> {
             trackVisibility: true,
             interactive: false, // prevents accidental touch scrolling
             thickness: 4,
-            radius: Radius.circular(30),
+            radius: Radius.circular(50),
+            trackRadius: Radius.circular(50),
             child: ListView.builder(
               padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
               itemCount: isNowOkayList.length,
@@ -308,7 +311,7 @@ class _MedicalHistoryState extends State<MedicalHistory> {
                   name: patient?.name ?? "Unknown Patient",
                   diagnosis: record.diagnosis,
                   treatment: record.treatment,
-                  medic: medicalStaffs[record.medic]!,
+                  medic: medicalStaffs[record.medic] ?? "Unknown Medic",
                   fromDate: record.fromDate,
                   untilDate: record.untilDate,
                   onTap: () {
@@ -383,7 +386,7 @@ class _MedicalHistoryState extends State<MedicalHistory> {
                   name: patient?.name ?? "Unknown Patient",
                   diagnosis: record.diagnosis,
                   treatment: record.treatment,
-                  medic: medicalStaffs[record.medic]!,
+                  medic: medicalStaffs[record.medic] ?? "Unknown Medic",
                   fromDate: record.fromDate,
                   untilDate: record.untilDate,
                   onTap: () {

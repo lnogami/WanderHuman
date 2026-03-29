@@ -15,7 +15,6 @@ import 'package:wanderhuman_app/view/components/button.dart';
 import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
-import 'package:wanderhuman_app/view/components/date_picker.dart';
 import 'package:wanderhuman_app/view/components/dropdown_button.dart';
 import 'package:wanderhuman_app/view/components/lines.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
@@ -24,7 +23,6 @@ import 'package:wanderhuman_app/view/components/textfield.dart';
 import 'package:wanderhuman_app/view/userRolesUI/medical_services/medication_history.dart';
 
 class Medication extends StatefulWidget {
-  /// This is for editing the Medication Form of a certain patient's medication record.
   final PersonalInfo? bufferedPatientInfo;
   final MedicationModel? medicationModel;
   final String? recordID;
@@ -43,7 +41,6 @@ class Medication extends StatefulWidget {
 }
 
 class _MedicationState extends State<Medication> {
-  // default values
   List<String> patientsNames = ["Please Select Patient"];
   String selectedNameValue = "";
   TextEditingController diagnosisController = TextEditingController();
@@ -54,18 +51,22 @@ class _MedicationState extends State<Medication> {
   String untilDate = "";
   String dateTime = DateTime.now().toString();
   bool isNowOkay = false;
-
-  /// only becomes true if a single info in this form is subject to change.
-  /// this is only usable if the Medication widget is accessed through MedicationHistory widget.
   bool isAltered = false;
-
-  // for User Experience enhancer
   IconData icon = Icons.person_outline_rounded;
-
-  // timer
   Timer? timer;
+  int numberOfDaysValidForEditing = 14;
 
-  // database connector call
+  bool isValidForEditing() {
+    if (widget.medicationModel == null) return true;
+    DateTime creationDate = DateTime.parse(widget.medicationModel!.createdAt);
+    DateTime expirationDate = creationDate.add(
+      Duration(days: numberOfDaysValidForEditing),
+    );
+    return expirationDate.isAfter(DateTime.now());
+  }
+
+  bool get canEdit => widget.isAccessedByMedicalStaff && isValidForEditing();
+
   Future<List<PersonalInfo>> getPatient() async {
     List<PersonalInfo> patients = [];
     List<PersonalInfo> fetchedRecords =
@@ -81,14 +82,6 @@ class _MedicationState extends State<Medication> {
     return patients;
   }
 
-  // Future<List<PersonalInfo>> getPatient() async {
-  //   return MyPersonalInfoRepository.getAllPersonalInfoRecords(
-  //     fieldToLookFor: "userType",
-  //     fieldValue: "Patient",
-  //   );
-  // }
-
-  // database connector call
   Future<void> getSpecificPatient(String name) async {
     List<PersonalInfo> fetchedRecords =
         await MyPersonalInfoRepository.getAllPersonalInfoRecords();
@@ -101,34 +94,21 @@ class _MedicationState extends State<Medication> {
     }
   }
 
-  // as of Dec 26, 2025,  not yet verified, I need to analyze this later
   void _checkForChanges() {
-    // If there is no original model (New Record mode), we might not need this logic
-    // or we treat everything as altered.
     if (widget.medicationModel == null) return;
-
     bool hasChanges = false;
-
-    // 1. Check Diagnosis
     if (diagnosisController.text != widget.medicationModel!.diagnosis) {
       hasChanges = true;
-    }
-    // 2. Check Treatment
-    else if (treatmentController.text != widget.medicationModel!.treatment) {
+    } else if (treatmentController.text != widget.medicationModel!.treatment) {
       hasChanges = true;
-    }
-    // 3. Check Boolean Toggle
-    else if (isNowOkay != widget.medicationModel!.isNowOkay) {
+    } else if (isNowOkay != widget.medicationModel!.isNowOkay) {
       hasChanges = true;
-    }
-    // 4. Check Dates
-    else if (fromDate != widget.medicationModel!.fromDate) {
+    } else if (fromDate != widget.medicationModel!.fromDate) {
       hasChanges = true;
     } else if (untilDate != widget.medicationModel!.untilDate) {
       hasChanges = true;
     }
 
-    // Only call setState if the status actually changed to avoid infinite rebuilds
     if (isAltered != hasChanges) {
       setState(() {
         isAltered = hasChanges;
@@ -141,7 +121,6 @@ class _MedicationState extends State<Medication> {
     super.initState();
     _patientsInfo = getPatient();
 
-    // if bufferedPatientInfo and recordID is not null
     if (widget.bufferedPatientInfo != null &&
         widget.recordID != null &&
         widget.medicationModel != null) {
@@ -158,8 +137,6 @@ class _MedicationState extends State<Medication> {
       diagnosisController.addListener(_checkForChanges);
       treatmentController.addListener(_checkForChanges);
     }
-
-    // Initialize timer only once when widget is created
     _initializeTimer();
   }
 
@@ -180,7 +157,6 @@ class _MedicationState extends State<Medication> {
             dateTime = DateTime.now().toString();
           });
         }
-        print("Timeeeeeeee: $dateTime");
       }
     });
   }
@@ -203,11 +179,9 @@ class _MedicationState extends State<Medication> {
       backgroundColor: MyColorPalette.formColor,
       body: SingleChildScrollView(
         scrollDirection: Axis.vertical,
-        // this is the main body of the Form
         child: Container(
-          padding: EdgeInsets.only(bottom: 30),
+          padding: const EdgeInsets.only(bottom: 30),
           width: MyDimensionAdapter.getWidth(context),
-          // decoration: const BoxDecoration(color: MyColorPalette.lightBlue),
           child: formSpace(context),
         ),
       ),
@@ -224,17 +198,12 @@ class _MedicationState extends State<Medication> {
             color: const Color.fromARGB(160, 33, 149, 243),
             textColor: Colors.white,
             fontWeight: FontWeight.w600,
-            backButton: () {
-              Navigator.pop(context);
-              // Navigator.pop(context);
-              // MyNavigator.goTo(context, Medication());
-            },
+            backButton: () => Navigator.pop(context),
             backButtonColor: Colors.white70,
           ),
         ),
-        SizedBox(height: 25),
+        const SizedBox(height: 25),
 
-        // Acts as a header for the form. These will only appear if the Medication page is accessed from the Medication itself not from the MedicationHistory page
         if (widget.bufferedPatientInfo == null) ...[
           dateTimeTimer(),
           MyLine(
@@ -246,15 +215,14 @@ class _MedicationState extends State<Medication> {
           ),
         ],
 
-        SizedBox(height: 10),
-        // MyDateTimeTimerHeader(),
+        const SizedBox(height: 10),
+
         (widget.bufferedPatientInfo == null)
-            /// if bufferecPatientInfo is not null, it means this Medication widget is accesed from MedicationHistory widget.
             ? FutureBuilder(
                 future: _patientsInfo,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
+                    return const Center(child: CircularProgressIndicator());
                   } else {
                     return MyDropdownMenuButton(
                       icon: Icon(icon, size: 32),
@@ -265,18 +233,13 @@ class _MedicationState extends State<Medication> {
                         if (patient != patientsNames[0]) {
                           setState(() {
                             icon = Icons.person_rounded;
-                            print("PATIENT NAMEEEEE: $patient");
-                            // assigns the _selectedPatient
                             getSpecificPatient(patient!);
                             selectedNameValue = patient;
-                            print("SELECTED NAME VALUE: $selectedNameValue");
                           });
                         } else {
                           setState(() {
                             icon = Icons.person_outline_outlined;
                             selectedNameValue = patientsNames[0];
-                            // _selectedPatient = null;
-                            print("SELECTED NAME VALUE: $selectedNameValue");
                           });
                         }
                       },
@@ -296,33 +259,26 @@ class _MedicationState extends State<Medication> {
                 activeBorderColor: Colors.blueGrey.shade100,
               ),
 
-        SizedBox(height: 15),
-
+        const SizedBox(height: 15),
         dateTimeArea(context),
-
-        SizedBox(height: 25),
+        const SizedBox(height: 25),
 
         MyCustTextfield(
           labelText: "Diagnosis",
           prefixIcon: Icons.info_outline_rounded,
           textController: diagnosisController,
           borderRadius: 7,
-          isReadOnly: // Indicates that this can't be edited if not accessed by a medical staff
-          (!widget.isAccessedByMedicalStaff)
-              ? true
-              : false,
-          borderColor: // Indicates that this can't be edited if not accessed by a medical staff
-          (!widget.isAccessedByMedicalStaff)
-              ? Colors.grey.shade400
-              : MyColorPalette.borderColor,
-          activeBorderColor: // Indicates that this can't be edited if not accessed by a medical staff
-          (!widget.isAccessedByMedicalStaff)
-              ? Colors.grey.shade400
-              : MyColorPalette.borderColor,
+          isReadOnly: !canEdit,
+          borderColor: canEdit
+              ? MyColorPalette.borderColor
+              : Colors.grey.shade400,
+          activeBorderColor: canEdit
+              ? MyColorPalette.borderColor
+              : Colors.grey.shade400,
         ),
         treatmentArea(context),
 
-        SizedBox(height: 15),
+        const SizedBox(height: 15),
         MyTextFormatter.p(
           text: (widget.bufferedPatientInfo != null)
               ? "${widget.bufferedPatientInfo?.name}'s Condition"
@@ -333,27 +289,25 @@ class _MedicationState extends State<Medication> {
           buttonText: (isNowOkay == true)
               ? "Already in Good Condition"
               : "Not Yet Okay",
-          onTap: // Indicates that this can't be edited if not accessed by a medical staff
-          (!widget.isAccessedByMedicalStaff)
+          onTap: canEdit
               ? () {
+                  setState(() {
+                    isNowOkay = !isNowOkay;
+                    if (widget.medicationModel != null) {
+                      isAltered =
+                          (isNowOkay != widget.medicationModel!.isNowOkay);
+                    } else {
+                      isAltered = true;
+                    }
+                  });
+                }
+              : () {
                   showMyAnimatedSnackBar(
                     context: context,
-                    dataToDisplay: "Can only be edited by a Medical Staff.",
+                    dataToDisplay:
+                        "This record is locked or you do not have permission to edit.",
+                    bgColor: Colors.white,
                   );
-                }
-              : () async {
-                  // by default, when registering a medication, it will be "Not Yet Okay".
-                  //             it can only be change if this is viewed from Med History
-                  if (widget.bufferedPatientInfo != null) {
-                    setState(() {
-                      isNowOkay = !isNowOkay;
-                      if (isNowOkay != widget.medicationModel!.isNowOkay) {
-                        isAltered = true;
-                      } else {
-                        isAltered = false;
-                      }
-                    });
-                  }
                 },
           widthPercentage: 0.8,
           borderColor: (isNowOkay == true)
@@ -370,23 +324,19 @@ class _MedicationState extends State<Medication> {
               : Colors.red.shade300,
         ),
 
-        SizedBox(height: 30),
-        // Indicates that this can ONLY be edited if accessed by a medical staff
+        const SizedBox(height: 30),
         if (widget.isAccessedByMedicalStaff) buttonArea(context),
       ],
     );
   }
 
-  // for storing DateTime values
   DateTime? fromDateTimeFormat;
   DateTime? untilDateTimeFormat;
-  // // for storing String DateTime value
-  // String? from;
+
   Row dateTimeArea(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // From Date Button
         Column(
           children: [
             MyTextFormatter.p(
@@ -397,75 +347,80 @@ class _MedicationState extends State<Medication> {
               buttonText: (fromDate == "")
                   ? "From Date"
                   : MyDateFormatter.formatDate(dateTimeInString: fromDate),
-              onTap: // can't be edited if not accessed by a medical staff
-              (!widget.isAccessedByMedicalStaff)
-                  ? () {}
-                  : () async {
-                      // store a temporary original DateTime
-                      DateTime? pickedFromDate = await myDatePicker(
-                        context,
-                        initialYear: DateTime.now().year,
-                      );
+              onTap: canEdit
+                  ? () async {
+                      late DateTime? pickedFromDate;
 
-                      // naay na pick nga date
+                      if (widget.bufferedPatientInfo == null &&
+                          widget.medicationModel == null) {
+                        pickedFromDate = await showDatePicker(
+                          context: context,
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime.now(),
+                          initialDate: DateTime.now(),
+                        );
+                      } else {
+                        pickedFromDate = await showDatePicker(
+                          context: context,
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime.now(),
+                          initialDate:
+                              DateTime.tryParse(
+                                widget.medicationModel!.fromDate,
+                              ) ??
+                              DateTime.now(),
+                        );
+                      }
+
                       if (pickedFromDate != null) {
                         setState(() {
                           fromDateTimeFormat = pickedFromDate;
                           isAltered = true;
-                          // // then use it to format a Human Comprehensible date format
-                          // from = MyDateFormatter.formatDate(
-                          //   dateTimeInString: fromDateTimeFormat,
-                          // );
-                          print("pickedFromDate is not null: $pickedFromDate");
-                          print("BEFORE DATE: $fromDateTimeFormat");
                         });
 
-                        // this is if the Medication is access through Medication (not from MedicationHistory)
                         if (untilDateTimeFormat == null) {
                           setState(() {
                             fromDate = fromDateTimeFormat.toString();
-                            isAltered = true;
                           });
                         } else {
-                          if ((fromDateTimeFormat!.isAfter(
+                          if (fromDateTimeFormat!.isAfter(
                             untilDateTimeFormat!,
-                          ))) {
+                          )) {
                             showMyAnimatedSnackBar(
                               context: context,
                               dataToDisplay:
-                                  "NOTICE: From Date must be before Until Date as it is the start of the medication durationn.",
+                                  "NOTICE: From Date must be before Until Date as it is the start of the medication duration.",
                             );
-                          }
-                          // else if (untilDateTimeFormat != null) {
-                          else {
+                          } else {
                             setState(() {
                               fromDate = fromDateTimeFormat.toString();
-                              isAltered = true;
                             });
-                            print("TRUEEEEEEEEEEEEEEEEEEEEEEEEE else if");
                           }
                         }
                       }
+                    }
+                  : () {
+                      showMyAnimatedSnackBar(
+                        context: context,
+                        dataToDisplay: "This record is locked.",
+                      );
                     },
               widthPercentage: 0.38,
-              borderColor: (!widget.isAccessedByMedicalStaff)
-                  ? Colors.grey.shade400
-                  : MyColorPalette.borderColor,
+              borderColor: canEdit
+                  ? MyColorPalette.borderColor
+                  : Colors.grey.shade400,
               borderRadius: 7,
               color: MyColorPalette.formColor,
               buttonTextFontSize: kDefaultFontSize + 1,
               buttonTextSpacing: 1,
-              enableShadow: (!widget.isAccessedByMedicalStaff) ? false : true,
-              buttonShadowColor: (!widget.isAccessedByMedicalStaff)
-                  ? Colors.transparent
-                  : Colors.blue.shade200,
+              enableShadow: canEdit,
+              buttonShadowColor: canEdit
+                  ? Colors.blue.shade200
+                  : Colors.transparent,
             ),
           ],
         ),
-
-        SizedBox(width: 10),
-
-        // Until Date Button
+        const SizedBox(width: 10),
         Column(
           children: [
             MyTextFormatter.p(
@@ -476,38 +431,44 @@ class _MedicationState extends State<Medication> {
               buttonText: (untilDate == "")
                   ? "Until Date"
                   : MyDateFormatter.formatDate(dateTimeInString: untilDate),
-              onTap: // can't be edited if not accessed by a medical staff
-              (!widget.isAccessedByMedicalStaff)
-                  ? () {}
-                  : () async {
-                      // store a temporary original DateTime
-                      DateTime? pickedUntilDate = await myDatePicker(
-                        context,
-                        initialYear: DateTime.now().year,
-                      );
+              onTap: canEdit
+                  ? () async {
+                      late DateTime? pickedUntilDate;
 
-                      // naay na pick nga date
+                      if (widget.bufferedPatientInfo == null &&
+                          widget.medicationModel == null) {
+                        pickedUntilDate = await showDatePicker(
+                          context: context,
+                          firstDate: fromDateTimeFormat ?? DateTime.now(),
+                          lastDate: DateTime(DateTime.now().year + 1),
+                          initialDate: DateTime.now(),
+                        );
+                      } else {
+                        pickedUntilDate = await showDatePicker(
+                          context: context,
+                          firstDate: fromDateTimeFormat ?? DateTime.now(),
+                          lastDate: DateTime.now(),
+                          initialDate:
+                              DateTime.tryParse(
+                                widget.medicationModel!.untilDate,
+                              ) ??
+                              DateTime.now(),
+                        );
+                      }
+
                       if (pickedUntilDate != null) {
                         setState(() {
                           untilDateTimeFormat = pickedUntilDate;
                           isAltered = true;
-                          // // then use it to format a Human Comprehensible date format
-                          // from = MyDateFormatter.formatDate(
-                          //   dateTimeInString: fromDateTimeFormat,
-                          // );
-                          print(
-                            "untilDateTimeFormat is not null: $untilDateTimeFormat",
-                          );
-                          print("UNTIL DATE: $untilDateTimeFormat");
                         });
 
-                        if ((untilDateTimeFormat!.isBefore(
+                        if (untilDateTimeFormat!.isBefore(
                           fromDateTimeFormat!,
-                        ))) {
+                        )) {
                           showMyAnimatedSnackBar(
                             context: context,
                             dataToDisplay:
-                                "NOTICE: From Date must be after From Date as it is the end of the medication duration.",
+                                "NOTICE: Until Date must be after From Date.",
                           );
                         } else if (fromDateTimeFormat == null) {
                           showMyAnimatedSnackBar(
@@ -518,22 +479,28 @@ class _MedicationState extends State<Medication> {
                         } else {
                           setState(() {
                             untilDate = untilDateTimeFormat.toString();
-                            isAltered = true;
                           });
-                          print("TRUEEEEEEEEEEEEEEEEEEEEEEEEE else");
                         }
                       }
+                    }
+                  : () {
+                      showMyAnimatedSnackBar(
+                        context: context,
+                        dataToDisplay: "This record is locked.",
+                      );
                     },
               widthPercentage: 0.38,
-              borderColor: (!widget.isAccessedByMedicalStaff)
-                  ? Colors.grey.shade400
-                  : MyColorPalette.borderColor,
+              borderColor: canEdit
+                  ? MyColorPalette.borderColor
+                  : Colors.grey.shade400,
               borderRadius: 7,
               color: MyColorPalette.formColor,
               buttonTextFontSize: kDefaultFontSize + 1,
               buttonTextSpacing: 1,
-              enableShadow: (!widget.isAccessedByMedicalStaff) ? false : true,
-              buttonShadowColor: Colors.blue.shade200,
+              enableShadow: canEdit,
+              buttonShadowColor: canEdit
+                  ? Colors.blue.shade200
+                  : Colors.transparent,
             ),
           ],
         ),
@@ -549,13 +516,9 @@ class _MedicationState extends State<Medication> {
         Container(
           width: MyDimensionAdapter.getWidth(context) * 0.8,
           height: MyDimensionAdapter.getHeight(context) * 0.12,
-          margin: EdgeInsets.only(top: 10),
+          margin: const EdgeInsets.only(top: 10),
           child: TextField(
-            readOnly: // can't be edited if not accessed by a medical staff
-            (!widget.isAccessedByMedicalStaff)
-                ? true
-                : false,
-            // if expand is true, maxlines or minLines must be null
+            readOnly: !canEdit,
             maxLines: null,
             expands: true,
             controller: treatmentController,
@@ -567,33 +530,31 @@ class _MedicationState extends State<Medication> {
                 right: 3,
                 bottom: 5,
               ),
-              prefixIcon: Padding(
-                padding: const EdgeInsets.only(left: 10),
+              prefixIcon: const Padding(
+                padding: EdgeInsets.only(left: 10),
                 child: Icon(Icons.zoom_out_rounded),
               ),
               label: Text(
                 "Treatment",
                 style: TextStyle(fontSize: kDefaultFontSize + 2),
               ),
-              prefixIconConstraints: BoxConstraints.tight(Size(50, 32)),
+              prefixIconConstraints: BoxConstraints.tight(const Size(50, 32)),
               prefixIconColor: Colors.grey,
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(7),
                 borderSide: BorderSide(
-                  color: // Indicates that this can't be edited if not accessed by a medical staff
-                  (!widget.isAccessedByMedicalStaff)
-                      ? Colors.grey.shade400
-                      : MyColorPalette.borderColor,
+                  color: canEdit
+                      ? MyColorPalette.borderColor
+                      : Colors.grey.shade400,
                   width: 1,
                 ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(7),
                 borderSide: BorderSide(
-                  color: // Indicates that this can't be edited if not accessed by a medical staff
-                  (!widget.isAccessedByMedicalStaff)
-                      ? Colors.grey.shade400
-                      : MyColorPalette.borderColor,
+                  color: canEdit
+                      ? MyColorPalette.borderColor
+                      : Colors.grey.shade400,
                   width: 2.5,
                 ),
               ),
@@ -607,11 +568,10 @@ class _MedicationState extends State<Medication> {
   Container dateTimeTimer() {
     return Container(
       width: MyDimensionAdapter.getWidth(context) * 0.85,
-      // margin: EdgeInsets.only(bottom: 30),
-      padding: EdgeInsets.only(bottom: 7),
+      padding: const EdgeInsets.only(bottom: 7),
       decoration: BoxDecoration(
         color: Colors.blue.shade50,
-        borderRadius: BorderRadius.all(Radius.circular(7)),
+        borderRadius: const BorderRadius.all(Radius.circular(7)),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -658,7 +618,6 @@ class _MedicationState extends State<Medication> {
                 text:
                     "${MyDateFormatter.formatDate(dateTimeInString: dateTime, formatOptions: 7, customedFormat: "y")}  ",
                 fontsize: kDefaultFontSize + 2,
-                // color: Colors.blue.shade400,
               ),
               MyTextFormatter.p(
                 text:
@@ -671,7 +630,6 @@ class _MedicationState extends State<Medication> {
                 text:
                     "${MyDateFormatter.formatDate(dateTimeInString: dateTime, formatOptions: 7, customedFormat: "a")} ",
                 fontsize: kDefaultFontSize + 2,
-                // color: Colors.blue.shade400,
               ),
             ],
           ),
@@ -680,19 +638,13 @@ class _MedicationState extends State<Medication> {
     );
   }
 
-  // This is where the two buttons are located
   SizedBox buttonArea(BuildContext context) {
     return SizedBox(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           cancelButton(context),
-
-          SizedBox(width: 10),
-
-          //    SAVE BUTTON   (if no patient is provided)
-          //    UPDATE BUTTON (if patient is explicitly provided, which also means, this widget is accessed from MedicaitonHistory widget)
-          // if bufferecPatientInfo is not null, it means this Medication widget is accesed from MedicationHistory widget.
+          const SizedBox(width: 10),
           (widget.bufferedPatientInfo == null)
               ? MyCustButton(
                   buttonText: "Save",
@@ -705,13 +657,12 @@ class _MedicationState extends State<Medication> {
                         diagnosisController.text != "" &&
                         treatmentController.text != "" &&
                         fromDate != "" &&
-                        untilDate != "" &&
-                        diagnosisController.text != "" &&
-                        treatmentController.text != "") {
+                        untilDate != "") {
                       myAlertDialogue(
                         context: context,
                         alertTitle: "Confirm to Save",
-                        alertContent: "Please press to continue",
+                        alertContent:
+                            "Confirming will save this record to the database.",
                         onApprovalPressed: () {
                           showMyAnimatedSnackBar(
                             context: context,
@@ -719,32 +670,23 @@ class _MedicationState extends State<Medication> {
                           );
                           MyMedicalRepository.addRecord(
                             MedicationModel(
-                              // recordID: "",
                               patientID: _selectedPatient!.userID,
                               diagnosis: diagnosisController.text,
                               treatment: treatmentController.text,
                               medic: FirebaseAuth.instance.currentUser!.uid,
                               fromDate: fromDate,
                               untilDate: untilDate,
-                              isNowOkay: false,
+                              isNowOkay: isNowOkay,
                               createdAt: DateTime.now().toString(),
                             ),
                           );
-                          // removes the dialog box
                           Navigator.pop(context);
-                          // removes the Medication Page
                           Navigator.pop(context);
-                          // goes to the MedicationHistory Page after saving an entry
-                          MyNavigator.goTo(context, MedicalHistory());
-                          // print(
-                          //   "ADDEDDDDDDDDDDDDDD: userID: ${_selectedPatient?.userID},  name: ${_selectedPatient?.name},  diagnosis: ${diagnosisController.text},  treatment: ${treatmentController.text}, medic: ${FirebaseAuth.instance.currentUser!.uid}",
-                          // );
+                          MyNavigator.goTo(context, const MedicalHistory());
                           showMyAnimatedSnackBar(
                             context: context,
-                            dataToDisplay: "Done..",
+                            dataToDisplay: "Successfully saved!",
                           );
-                          // Navigator.pop(context);
-                          // }
                         },
                       );
                     } else {
@@ -762,75 +704,79 @@ class _MedicationState extends State<Medication> {
                   buttonTextColor: Colors.white,
                   buttonTextFontSize: 18,
                   buttonTextSpacing: 1.2,
-                  color: (isAltered) ? Colors.blue : Colors.grey.shade400,
-                  buttonShadowColor: (isAltered)
+                  color: (isAltered && canEdit)
+                      ? Colors.blue
+                      : Colors.grey.shade400,
+                  buttonShadowColor: (isAltered && canEdit)
                       ? Colors.blue
                       : Colors.grey.shade600,
                   buttonWidth: MyDimensionAdapter.getWidth(context) * 0.40,
-                  onTap: () {
-                    if (isAltered) {
-                      myAlertDialogue(
-                        context: context,
-                        alertContent: "Are you sure about these changes?",
-                        onApprovalPressed: () {
-                          MyMedicalRepository.updateRecord(
-                            // NA means not applicable (not editable)
-                            record: MedicationModel(
-                              // recordID: "",
-                              patientID:
-                                  widget.bufferedPatientInfo!.userID, // NA
-                              diagnosis: diagnosisController.text,
-                              treatment: treatmentController.text,
-                              medic:
-                                  FirebaseAuth.instance.currentUser!.uid, // NA
-                              fromDate: fromDate,
-                              untilDate: DateTime.now().toString(),
-                              isNowOkay: isNowOkay,
-                              createdAt:
-                                  widget.medicationModel!.createdAt, // NA
-                            ),
-                            recordID: widget.recordID!,
-                          );
-                          Future.delayed(const Duration(milliseconds: 800), () {
-                            // removes the dialog box
-                            Navigator.pop(context);
-                            // removes the Medication Page
-                            Navigator.pop(context);
-                            // removes the MedicationHistory Page
-                            Navigator.pop(context);
-                            // reloads the MedicationHistory Page
-                            MyNavigator.goTo(context, MedicalHistory());
-                          });
-                          // print(
-                          //   "ADDEDDDDDDDDDDDDDD: userID: ${_selectedPatient?.userID},  name: ${_selectedPatient?.name},  diagnosis: ${diagnosisController.text},  treatment: ${treatmentController.text}, medic: ${FirebaseAuth.instance.currentUser!.uid}",
-                          // );
+                  onTap: canEdit
+                      ? () {
+                          if (isAltered) {
+                            myAlertDialogue(
+                              context: context,
+                              alertTitle: "Confirm to Update",
+                              alertContent: "Are you sure about these changes?",
+                              onApprovalPressed: () {
+                                MyMedicalRepository.updateRecord(
+                                  record: MedicationModel(
+                                    patientID:
+                                        widget.bufferedPatientInfo!.userID,
+                                    diagnosis: diagnosisController.text,
+                                    treatment: treatmentController.text,
+                                    medic:
+                                        FirebaseAuth.instance.currentUser!.uid,
+                                    fromDate: fromDate,
+                                    untilDate: untilDate,
+                                    isNowOkay: isNowOkay,
+                                    createdAt:
+                                        widget.medicationModel!.createdAt,
+                                  ),
+                                  recordID: widget.recordID!,
+                                );
+                                Future.delayed(
+                                  const Duration(milliseconds: 800),
+                                  () {
+                                    Navigator.pop(context);
+                                    Navigator.pop(context);
+                                    Navigator.pop(context);
+                                    MyNavigator.goTo(
+                                      context,
+                                      const MedicalHistory(),
+                                    );
+                                  },
+                                );
+                                showMyAnimatedSnackBar(
+                                  context: context,
+                                  dataToDisplay: "Successfully updated..",
+                                );
+                              },
+                            );
+                          }
+                        }
+                      : () {
                           showMyAnimatedSnackBar(
                             context: context,
-                            dataToDisplay: "Done..",
+                            dataToDisplay:
+                                "Sorry, editing is only allowed within $numberOfDaysValidForEditing days after the record creation.",
+                            bgColor: Colors.white70,
                           );
                         },
-                      );
-                    }
-                    // Navigator.pop(context);
-                    // }
-                  },
                 ),
         ],
       ),
     );
   }
 
-  // Just a form Cancelation button, nothing else
   GestureDetector cancelButton(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        Navigator.pop(context);
-        // Navigator.pop(context);
-        // MyNavigator.goTo(context, const Medication());
-      },
+      onTap: () => Navigator.pop(context),
       child: SizedBox(
         width: MyDimensionAdapter.getWidth(context) * 0.30,
-        child: Center(child: Text("Cancel", style: TextStyle(fontSize: 16))),
+        child: const Center(
+          child: Text("Cancel", style: TextStyle(fontSize: 16)),
+        ),
       ),
     );
   }

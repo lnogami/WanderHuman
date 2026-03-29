@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:provider/provider.dart';
 import 'package:wanderhuman_app/helper/geofence_repository.dart';
 import 'package:wanderhuman_app/helper/history_reposity.dart';
 import 'package:wanderhuman_app/helper/medical_services_repository.dart';
@@ -10,6 +11,7 @@ import 'package:wanderhuman_app/model/history_model.dart';
 import 'package:wanderhuman_app/model/medication_model.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
+import 'package:wanderhuman_app/view-model/home_appbar_provider.dart';
 import 'package:wanderhuman_app/view/components/cards2.dart';
 import 'package:wanderhuman_app/view/components/lines.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
@@ -41,8 +43,12 @@ class _MyTabBarState extends State<MyTabBar> {
   // Medical History Related
   final List<CombinedMedicalRecord> isNotYetOkayList = [];
   final List<CombinedMedicalRecord> isNowOkayList = [];
-  final Map<String, PersonalInfo> medicalStaffs = {};
+  // final Map<String, PersonalInfo> medicalStaffs = {};
+  final Map<String, String> medicalStaffs = {};
   bool isLoadingMedicalRecords = true;
+
+  // Provider
+  late HomeAppBarProvider myHomeAppBarProvider;
 
   Future<void> getMedicalStaffs() async {
     try {
@@ -53,7 +59,7 @@ class _MyTabBarState extends State<MyTabBar> {
       );
 
       for (var medic in medics) {
-        medicalStaffs[medic.userID] = medic;
+        medicalStaffs[medic.userID] = medic.name;
       }
     } catch (e, stackTrace) {
       log("ERROR IN getMedicalStaff: $e \n $stackTrace");
@@ -225,6 +231,8 @@ class _MyTabBarState extends State<MyTabBar> {
 
   @override
   Widget build(BuildContext context) {
+    myHomeAppBarProvider = context.read<HomeAppBarProvider>();
+
     return DefaultTabController(
       length: 3,
       child: Scaffold(
@@ -425,7 +433,8 @@ class _MyTabBarState extends State<MyTabBar> {
                             name: patient?.name ?? "Unknown Patient",
                             diagnosis: record.diagnosis,
                             treatment: record.treatment,
-                            medic: medicalStaffs[record.medic]!,
+                            medic:
+                                medicalStaffs[record.medic] ?? "Unknown Medic",
                             fromDate: record.fromDate,
                             untilDate: record.untilDate,
                             onTap: () {
@@ -437,7 +446,11 @@ class _MyTabBarState extends State<MyTabBar> {
                                     bufferedPatientInfo: patient,
                                     recordID: record.recordID,
                                     medicationModel: record,
-                                    isAccessedByMedicalStaff: false,
+                                    isAccessedByMedicalStaff:
+                                        myHomeAppBarProvider
+                                            .loggedInUserData
+                                            .userType ==
+                                        "Medical Service",
                                   ),
                                 );
                               }
@@ -478,7 +491,8 @@ class _MyTabBarState extends State<MyTabBar> {
                             // name: "jkajd dkajdkjw dkjawd",
                             diagnosis: record.diagnosis,
                             treatment: record.treatment,
-                            medic: medicalStaffs[record.medic]!,
+                            medic:
+                                medicalStaffs[record.medic] ?? "Unknown Medic",
                             fromDate: record.fromDate,
                             untilDate: record.untilDate,
                             onTap: () {
@@ -490,7 +504,11 @@ class _MyTabBarState extends State<MyTabBar> {
                                     bufferedPatientInfo: patient,
                                     recordID: record.recordID,
                                     medicationModel: record,
-                                    isAccessedByMedicalStaff: false,
+                                    isAccessedByMedicalStaff:
+                                        myHomeAppBarProvider
+                                            .loggedInUserData
+                                            .userType ==
+                                        "Medical Service",
                                   ),
                                 );
                               }
