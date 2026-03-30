@@ -1,8 +1,12 @@
+import 'dart:developer';
+
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
+import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
+import 'package:wanderhuman_app/view/app_version.dart';
 import 'package:wanderhuman_app/view/components/button.dart';
 import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/login/register_account.dart';
@@ -19,11 +23,12 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   // mainly for login
   late TextEditingController emailController;
+  late FocusNode emailFocusNode;
   late TextEditingController passwordController;
+  late FocusNode passwordFocusNode;
   // mainly for signup
   late TextEditingController confirmPasswordController;
 
-  late FocusNode passwordFocusNode;
   // error notifier
   Color emailFieldColor = MyColorPalette.borderColor;
   Color passwordFieldColor = MyColorPalette.borderColor;
@@ -61,13 +66,28 @@ class _LoginPageState extends State<LoginPage> {
 
   // FOR EMAIL INPUT FIELD VALIDATION
   void _latestValueOnEmailControllerListener() {
-    if (!emailController.text.contains('@')) {
+    if ((!emailController.text.contains('@') ||
+            (emailController.text.contains('@') &&
+                emailController.text.length < 6)) &&
+        emailController.text.isNotEmpty) {
+      setState(() => emailFieldColor = Colors.redAccent);
+    } else {
+      setState(() => emailFieldColor = MyColorPalette.borderColor);
+    }
+  }
+
+  // FOR PASSWORD INPUT FIELDS VALIDATION
+  void _latestValueOnPasswordListener() {
+    if (passwordController.text.trim().length < 6 &&
+        passwordController.text.isNotEmpty) {
       setState(() {
-        emailFieldColor = Colors.redAccent;
+        passwordFieldColor = Colors.redAccent;
       });
+      print("PASSWORDS DOES NOT MATCH!");
     } else {
       setState(() {
-        emailFieldColor = MyColorPalette.borderColor;
+        passwordFieldColor = MyColorPalette.borderColor;
+        print("PASSWORDS MATCH!");
       });
     }
   }
@@ -96,8 +116,10 @@ class _LoginPageState extends State<LoginPage> {
 
     emailController = TextEditingController();
     emailController.addListener(_latestValueOnEmailControllerListener);
+    emailFocusNode = FocusNode();
 
     passwordController = TextEditingController();
+    passwordController.addListener(_latestValueOnPasswordListener);
     passwordFocusNode = FocusNode();
 
     confirmPasswordController = TextEditingController();
@@ -112,12 +134,16 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
     emailController.removeListener(_latestValueOnEmailControllerListener);
     emailController.dispose();
+    emailFocusNode.dispose();
+
+    passwordController.removeListener(_latestValueOnPasswordListener);
     passwordController.dispose();
+    passwordFocusNode.dispose();
+
     confirmPasswordController.removeListener(
       _latestValueOnConfirmPasswordListener,
     );
     confirmPasswordController.dispose();
-    passwordFocusNode.dispose();
   }
 
   @override
@@ -145,12 +171,22 @@ class _LoginPageState extends State<LoginPage> {
                   borderRadius: 120,
                   rotationAngle: -4,
                 ),
-                // this is where the main content is
+                // This is where the main content is
                 MyLayoutMaterial(
                   distanceFromTop: 320,
                   heightPercentage: 0.7,
                   isRotatable: false,
-                  child: loginContentArea(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      loginContentArea(),
+
+                      SizedBox(height: 20),
+                      (isGoingToSignUp) ? confirmSignUpButton() : loginButton(),
+                      SizedBox(height: 5),
+                      (isGoingToSignUp) ? cancelSignUpButton() : signUpButton(),
+                    ],
+                  ),
                 ),
 
                 // this is where the logo will be placed, and be animated if possible
@@ -218,6 +254,9 @@ class _LoginPageState extends State<LoginPage> {
                     ],
                   ),
                 ),
+
+                // App version number
+                Positioned(bottom: 5, child: SafeArea(child: MyAppVersion())),
               ],
             ),
           ),
@@ -226,13 +265,10 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  /* 
-    This is where all the login related Widgets are put together. 
-    Scaffold > GestureDetector > MyLayoutMaterial > loginContentArea
-  */
   Column loginContentArea() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(height: 30),
         MyCustTextfield(
@@ -240,12 +276,28 @@ class _LoginPageState extends State<LoginPage> {
           prefixIcon: Icons.person_rounded,
           labelText: "Email",
           hintText: "inogami@gmail.com",
+          focusNode: emailFocusNode,
           borderRadius: 10,
           // color: emailFieldColor,
           borderColor: emailFieldColor,
           activeBorderColor: emailFieldColor,
         ),
+        invalidInputVisuals(
+          conditionToTriggerWarning:
+              (!emailController.text.contains('@') &&
+              emailController.text.isNotEmpty &&
+              !emailFocusNode.hasFocus),
+          warningText: "Please enter a valid email address.",
+        ),
+        invalidInputVisuals(
+          conditionToTriggerWarning:
+              (emailController.text.contains('@') &&
+              emailController.text.length < 6 &&
+              !emailFocusNode.hasFocus),
+          warningText: "Invalid email",
+        ),
         SizedBox(height: 10),
+
         MyCustTextfield(
           textController: passwordController,
           prefixIcon: Icons.key_rounded,
@@ -256,6 +308,13 @@ class _LoginPageState extends State<LoginPage> {
           borderColor: passwordFieldColor,
           activeBorderColor: passwordFieldColor,
         ),
+        invalidInputVisuals(
+          conditionToTriggerWarning:
+              (passwordController.text.length < 6 &&
+              passwordController.text.isNotEmpty),
+          warningText: "Invalid password length, at least 6 characters.",
+        ),
+
         AnimatedContainer(
           // width: 0,
           height: animatedContainerHeight,
@@ -282,12 +341,40 @@ class _LoginPageState extends State<LoginPage> {
             isPasswordField: true,
           ),
         ),
-        SizedBox(height: 20),
-        (isGoingToSignUp) ? confirmSignUpButton() : loginButton(),
-        SizedBox(height: 5),
-        (isGoingToSignUp) ? cancelSignUpButton() : signUpButton(),
+        invalidInputVisuals(
+          conditionToTriggerWarning:
+              (passwordController.text.trim() !=
+                  confirmPasswordController.text.trim() &&
+              confirmPasswordController.text.isNotEmpty &&
+              !passwordFocusNode.hasFocus),
+          warningText: "Passwords does not match.",
+        ),
       ],
     );
+  }
+
+  Widget invalidInputVisuals({
+    required bool conditionToTriggerWarning,
+    required String warningText,
+  }) {
+    if (conditionToTriggerWarning) {
+      log("False");
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: 1),
+          MyTextFormatter.p(
+            text: warningText,
+            fontsize: kDefaultFontSize - 4,
+            color: Colors.red,
+            maxLines: 2,
+          ),
+        ],
+      );
+    } else {
+      log("True");
+      return SizedBox();
+    }
   }
 
   Widget loginButton() {

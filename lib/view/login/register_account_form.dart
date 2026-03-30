@@ -252,14 +252,13 @@ class _RegisterAccountFormState extends State<RegisterAccountForm> {
         "age": ageController.text.trim(),
         "contactNumber": contactNumberController.text.trim(),
         "address": addressController.text.trim(),
-        "notableBehavior": "", // empty String, as this is for patients only
+        "notableBehavior": "", // this field is only applicable for patients
         "profilePictureURL": "", // to be updated later
         "createdAt": FieldValue.serverTimestamp(),
         "lastUpdatedAt": FieldValue.serverTimestamp(),
-        "registeredBy": "", // empty String, as this is for patients only
-        "assignedCaregiver": "", // empty String, as this is for patients only
-        "deviceID":
-            "", // to be updated later, this one can be null at account creation but can have a value later on when added.
+        "registeredBy": "", // this field is only applicable for patients
+        "assignedCaregiver": "", // this field is only applicable for patients
+        "deviceID": "", // this field is only applicable for patients
         "email": widget.email.trim(),
 
         // "status" : true,  // to be decided later, if ibutang ba jud ni

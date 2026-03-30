@@ -96,6 +96,8 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       isLoading = false;
     });
+
+    // (deletable) (for debuggin purposes only)
     log("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHOME: User settings initialized.");
   }
 
@@ -106,13 +108,13 @@ class _HomePageState extends State<HomePage> {
 
     log("------------------------\nTHE APP IS STARTING!"); // (deletable)
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      log(
-        "------------------------\nTHE APP CALLS SETUPUSERSETTINGS METHOD!",
-      ); // (deletable)
+      // (deletable) (for debuggin purposes only)
+      log("------------------------\nTHE APP CALLS SETUPUSERSETTINGS METHOD!");
 
       settingsProvider.resetUserSettings();
       await setupUserSettings();
 
+      // (deletable) (for debuggin purposes only)
       log(
         "HHHHHHHHHHHHHHHHHHHHHHHHHHHOME: addPostFrameCallback() is done!",
       ); // (deletable)
