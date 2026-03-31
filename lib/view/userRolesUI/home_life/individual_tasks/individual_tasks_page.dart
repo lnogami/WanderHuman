@@ -56,8 +56,26 @@ class _IndividualTasksState extends State<IndividualTasks> {
 
   /// Load all days
   Future<void> getDaysToDisplayInDropdown() async {
-    List<String> days = await HomeLifeRepository.getAllDaysOfRecordedTasks();
-    days.sort();
+    List<String> days = await HomeLifeRepository.getAllDaysOfRecordedTasks(
+      widget.patientInfo.userID,
+    );
+    days.sort((a, b) {
+      DateTime dateA = DateTime.parse(
+        MyDateFormatter.formatDate(
+          dateTimeInString: a,
+          formatOptions: 7,
+          customedFormat: "yyyy-MM-dd",
+        ),
+      );
+      DateTime dateB = DateTime.parse(
+        MyDateFormatter.formatDate(
+          dateTimeInString: b,
+          formatOptions: 7,
+          customedFormat: "yyyy-MM-dd",
+        ),
+      );
+      return dateA.compareTo(dateB);
+    });
 
     setState(() {
       allDaysToDisplayOptions.addAll(days.reversed);
@@ -80,7 +98,8 @@ class _IndividualTasksState extends State<IndividualTasks> {
         // );
         print("ALL HAS BEEN SELECTEDDDDDDDDDDDDDDDDDDD");
         return HomeLifeRepository.getAllIndividualPatientTasks(
-          dateID: "Jan 12, 2026",
+          dateID:
+              "Jan 12, 2026", // this is just a dummy date, the date parameter will not be used in the backend when fetching all tasks, so it can be anything
           participantID: widget.patientInfo.userID,
         );
       default:
@@ -156,7 +175,8 @@ class _IndividualTasksState extends State<IndividualTasks> {
                             return Center(
                               child: MyTextFormatter.p(
                                 text:
-                                    "No Tasks for ${widget.patientInfo.name.trim()} Today . .\n\n",
+                                    "No Tasks for ${widget.patientInfo.name.trim()} on this day.\n\n",
+                                maxLines: 2,
                               ),
                             );
                           }
@@ -220,8 +240,13 @@ class _IndividualTasksState extends State<IndividualTasks> {
   }
 
   ListView listViewBuilderThatCatersAllDates(
+    // AsyncSnapshot<List<HLTaskModel>> rawSnapshot,
     AsyncSnapshot<List<HLTaskModel>> snapshot,
   ) {
+    // rawSnapshot.data?.sort((a,b){
+    //   return a..compareTo(b.createdAt!);
+    // });
+
     return ListView.builder(
       itemCount: snapshot.data?.length ?? 0,
       itemBuilder: (context, index) {

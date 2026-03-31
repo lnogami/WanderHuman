@@ -339,6 +339,7 @@ class ListenToPatients {
       _activePersonsProvider.activePersons.clear();
       _activePersonsProvider.personCurrentPosition.clear();
       _activePersonsProvider.decodedImagesBuffer.clear();
+      // _activePersonsProvider.devicesBattery.clear();
 
       log("Notice: 🛑 All map listeners were successfully stopped.");
     } catch (e, stackTrace) {
@@ -412,6 +413,9 @@ class ListenToPatients {
               tempMyDetails.userID,
               tempMyDetails.picture,
             );
+            // (deletable)
+            // _activePersonsProvider.addDeviceBattery(
+            //   tempMyDetails.userID, batteryPercentage)
 
             continue; // Skip ourselves from being included in the map interface
           }
@@ -547,6 +551,15 @@ class ListenToPatients {
             personInfo.userID,
             mp.Position(lng, lat),
           );
+          _activePersonsProvider.addDeviceBattery(
+            personInfo.userID,
+            realtimeLocModel.deviceBatteryPercentage,
+          );
+
+          log(
+            "55555555555555555555 Patient ${personInfo.name} location updated: lng:$lng, lat:$lat. Battery: ${realtimeLocModel.deviceBatteryPercentage}%",
+          );
+
           // if (!(activePersonsProvider.decodedImagesBuffer.containsKey(
           //   personInfo.userID,
           // ))) {
@@ -869,6 +882,7 @@ class ListenToPatients {
       if (!(activePersonsProvider!.decodedImagesBuffer.containsKey(userID))) {
         activePersonsProvider.removeDecodedImageInBuffer(userID!);
       }
+      activePersonsProvider.removeDeviceBattery(userID!);
 
       // 2. Remove them from our local list
       _activePersonsProvider.activePersons.removeWhere(

@@ -123,6 +123,7 @@ class _IndividualTaskCardState extends State<IndividualTaskCard> {
                 context: context,
                 dataToDisplay:
                     "Sorry, this task is already out of date, therefore it can't be done.",
+                bgColor: Colors.white,
               );
             }
             // if task is not yet done
@@ -146,7 +147,7 @@ class _IndividualTaskCardState extends State<IndividualTaskCard> {
             else {
               showMyAnimatedSnackBar(
                 context: context,
-                bgColor: Colors.white70,
+                bgColor: Colors.white,
                 dataToDisplay: "This task was already marked as done!",
               );
             }

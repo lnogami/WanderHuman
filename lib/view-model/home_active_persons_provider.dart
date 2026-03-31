@@ -10,10 +10,12 @@ class MyHomeActivePersonsProvider extends ChangeNotifier {
   final List<PersonalInfo> _activePersons = [];
   final Map<String, Position> _personCurrentPosition = {};
   final Map<String, Uint8List> _decodedImagesBuffer = {};
+  final Map<String, int> _devicesBattery = {};
 
   List<PersonalInfo> get activePersons => _activePersons;
   Map<String, Position> get personCurrentPosition => _personCurrentPosition;
   Map<String, Uint8List> get decodedImagesBuffer => _decodedImagesBuffer;
+  Map<String, int> get devicesBattery => _devicesBattery;
 
   // Active Status
   void addActivePerson(PersonalInfo person) {
@@ -65,6 +67,28 @@ class MyHomeActivePersonsProvider extends ChangeNotifier {
   // Decoded Image Buffer
   void removeDecodedImageInBuffer(String userID) {
     _decodedImagesBuffer.remove(userID);
+    notifyListeners();
+  }
+
+  // Device Battery
+  void addDeviceBattery(String userID, int batteryPercentage) {
+    // for (var entry in _devicesBattery.entries) {
+    //   log(
+    //     "`````````````````````Current Device Battery in Provider: ${entry.key}: ${entry.value}%",
+    //   );
+    // }
+    // log(
+    //   "AAAAAAAAAAAAAAAAAAAAAAAAAAAADDED DEVICE BATTERY: ${_devicesBattery.length}",
+    // );
+    _devicesBattery[userID] = batteryPercentage;
+    notifyListeners();
+  }
+
+  // Device Battery
+  void removeDeviceBattery(String userID) {
+    if (_devicesBattery.containsKey(userID)) {
+      _devicesBattery.remove(userID);
+    }
     notifyListeners();
   }
 }

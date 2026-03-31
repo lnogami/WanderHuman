@@ -311,7 +311,7 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
             selectedIndividualID = "";
             MyMapCameraAnimations.myMapZoom(
               mapboxController: _mapControllerRef,
-              zoomLevel: (settingsProvider.zoomLevel < 15)
+              zoomLevel: (settingsProvider.zoomLevel <= 15)
                   ? settingsProvider.zoomLevel - 2
                   : 15,
             );
