@@ -52,12 +52,13 @@ class _SetGeofenceState extends State<SetGeofence> {
                   Icon(
                     Icons.location_searching_rounded,
                     size: 32,
-                    color: Colors.blue.shade100,
+                    // color: Colors.blue.shade100,
+                    color: Colors.grey.shade600,
                   ),
                   MyTextFormatter.p(
                     text: "Geofence",
                     fontsize: kDefaultFontSize - 4,
-                    color: Colors.blue.shade100,
+                    color: Colors.grey.shade700,
                   ),
                 ],
               ),

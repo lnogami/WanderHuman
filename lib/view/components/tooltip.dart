@@ -31,8 +31,18 @@ class MyCustTooltip extends StatelessWidget {
         width: MyDimensionAdapter.getWidth(context) * widthPercentage,
       ),
       decoration: BoxDecoration(
-        color: Colors.blue.shade300,
+        color: Colors.blue.withAlpha(100),
+        // color: Colors.white.withAlpha(150),
         borderRadius: BorderRadius.circular(7),
+        border: Border.all(color: Colors.white),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue.withAlpha(80),
+            blurRadius: 4,
+            offset: Offset.zero,
+            blurStyle: BlurStyle.outer,
+          ),
+        ],
       ),
       child: child,
     );

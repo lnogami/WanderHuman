@@ -14,6 +14,8 @@ class MyAnimations {
     return Container(
       width: width,
       height: height,
+      // width: 50,
+      // height: 30,
       alignment: Alignment.center,
       child: Stack(
         alignment: Alignment.center,

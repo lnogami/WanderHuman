@@ -42,6 +42,8 @@ class _HomePageState extends State<HomePage> {
   final String currentLoggedInUser = FirebaseAuth.instance.currentUser!.uid;
   late MySettingsModel userSettings;
   late MyHomeSettingsProvider settingsProvider;
+  late HomeAppBarProvider homeAppBarProvider;
+  String role = "";
 
   // this will initialize the logged in user's personal info in the HomeAppBarProvider
   Future<void> initUserData() async {
@@ -51,6 +53,7 @@ class _HomePageState extends State<HomePage> {
           await MyPersonalInfoRepository.getSpecificPersonalInfo(
             userID: currentLoggedInUser,
           );
+      role = currentlyLoggedInUserData.userType.toUpperCase();
 
       // using addPostFrameCallback ensures it doesn't conflict with the build cycle
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -91,7 +94,8 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
-    context.read<MyHomeSettingsProvider>().initUserSettings(userSettings);
+    // context.read<MyHomeSettingsProvider>().initUserSettings(userSettings);
+    settingsProvider.initUserSettings(userSettings);
 
     setState(() {
       isLoading = false;
@@ -144,6 +148,8 @@ class _HomePageState extends State<HomePage> {
         .isAboutToAddCenterPoint;
 
     settingsProvider = context.watch<MyHomeSettingsProvider>();
+    homeAppBarProvider = context.watch<HomeAppBarProvider>();
+    // String role = homeAppBarProvider.loggedInUserData.userType.toUpperCase();
 
     return PopScope(
       // 1. Set this to false to completely block the default back button behavior
@@ -178,9 +184,7 @@ class _HomePageState extends State<HomePage> {
                         width: MyDimensionAdapter.getWidth(context),
                         height: MyDimensionAdapter.getHeight(context),
                         child: MapBody(
-                          loggedInUserData: context
-                              .watch<HomeAppBarProvider>()
-                              .loggedInUserData,
+                          loggedInUserData: homeAppBarProvider.loggedInUserData,
                         ),
                         // child: MyMapBody(),
                       ),
@@ -232,16 +236,18 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
 
-                    // Set Geofence
-                    AnimatedPositioned(
-                      duration: Duration(milliseconds: 400),
-                      top: MyDimensionAdapter.getHeight(context) * 0.2,
-                      left: settingsProvider.minimizeHomePageButtons ? 0 : 18,
-                      child: animatedOpacity(
-                        child: SetGeofence(),
-                        isVisible: (!isCreatingGeofence && !isViewingGeofences),
+                    // Set Geofence icon
+                    if (role == "ADMIN" || role == "SOCIAL SERVICE")
+                      AnimatedPositioned(
+                        duration: Duration(milliseconds: 200),
+                        top: MyDimensionAdapter.getHeight(context) * 0.2,
+                        left: settingsProvider.minimizeHomePageButtons ? 0 : 18,
+                        child: animatedOpacity(
+                          child: SetGeofence(),
+                          isVisible:
+                              (!isCreatingGeofence && !isViewingGeofences),
+                        ),
                       ),
-                    ),
 
                     // Dropdown
                     AnimatedPositioned(
@@ -262,9 +268,7 @@ class _HomePageState extends State<HomePage> {
                       top: 20,
                       child: animatedOpacity(
                         child: HomeAppBar(
-                          loggedInUserData: context
-                              .watch<HomeAppBarProvider>()
-                              .loggedInUserData,
+                          loggedInUserData: homeAppBarProvider.loggedInUserData,
                         ),
                         isVisible: (!isCreatingGeofence && !isViewingGeofences),
                       ),

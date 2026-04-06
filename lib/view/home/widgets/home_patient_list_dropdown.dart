@@ -156,12 +156,16 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
             children: [
               // Dropdown Icon
               SizedBox(
-                width: width,
-                height: height,
+                // width: width,
+                // height: height,
+                width: 43.2,
+                height: 26.6,
                 child: MyAnimations.homeDropDownIconButton(
                   context,
-                  width: width,
-                  height: height,
+                  // width: width,
+                  // height: height,
+                  width: 43.2,
+                  height: 26.6,
                   isExpanded: isExpanded,
                 ),
               ),

@@ -56,11 +56,23 @@ class _LoginPageState extends State<LoginPage> {
       print("Error during login: ${e.message}");
       // stop the button's loading nimation
       setState(() => isLoggingIn = false);
-      showMyAnimatedSnackBar(
-        // ignore: use_build_context_synchronously
-        context: context,
-        dataToDisplay: "The email or password is incorrect.",
-      );
+
+      // If error was caused by internect connectivity failure
+      if (e.message.toString().contains("A network error")) {
+        showMyAnimatedSnackBar(
+          context: context,
+          dataToDisplay:
+              "A network error occured. Please check your internet connection and try again.",
+        );
+      }
+      // Incorrect credentials
+      else {
+        showMyAnimatedSnackBar(
+          // ignore: use_build_context_synchronously
+          context: context,
+          dataToDisplay: "The email or password is incorrect.",
+        );
+      }
     }
   }
 
@@ -358,7 +370,6 @@ class _LoginPageState extends State<LoginPage> {
     required String warningText,
   }) {
     if (conditionToTriggerWarning) {
-      log("False");
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -372,7 +383,6 @@ class _LoginPageState extends State<LoginPage> {
         ],
       );
     } else {
-      log("True");
       return SizedBox();
     }
   }

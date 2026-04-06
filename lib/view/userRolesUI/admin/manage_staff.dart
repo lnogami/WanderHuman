@@ -6,6 +6,7 @@ import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
 import 'package:wanderhuman_app/view/components/appbar.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
+import 'package:wanderhuman_app/view/components/tooltip.dart';
 import 'package:wanderhuman_app/view/userRolesUI/admin/add_staff_form.dart';
 import 'package:wanderhuman_app/view/components/card_admin_social_service_role.dart';
 import 'package:wanderhuman_app/view/userRolesUI/admin/view_staff_form.dart';
@@ -138,20 +139,23 @@ class _ManageStaffState extends State<ManageStaff> {
                                       ),
                                     ),
                             ),
-                            IconButton(
-                              highlightColor: Colors.blue.shade100,
-                              onPressed: () async {
-                                MyNavigator.goTo(
-                                  // ignore: use_build_context_synchronously
-                                  context,
-                                  AddStaffForm(
-                                    bufferedStaffNames: staffWithNoRoles,
-                                  ),
-                                );
-                              },
-                              icon: Icon(
-                                Icons.person_add_alt_1_rounded,
-                                color: Colors.blue.shade400,
+                            MyCustTooltip(
+                              message: "Staff with no roles will appear here.",
+                              child: IconButton(
+                                highlightColor: Colors.blue.shade100,
+                                onPressed: () async {
+                                  MyNavigator.goTo(
+                                    // ignore: use_build_context_synchronously
+                                    context,
+                                    AddStaffForm(
+                                      bufferedStaffNames: staffWithNoRoles,
+                                    ),
+                                  );
+                                },
+                                icon: Icon(
+                                  Icons.person_add_alt_1_rounded,
+                                  color: Colors.blue.shade400,
+                                ),
                               ),
                             ),
                           ],
