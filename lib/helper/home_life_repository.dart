@@ -273,6 +273,8 @@ class HomeLifeRepository {
                 time: task.time,
                 isDone: false,
                 isDoneBy: '', // will be filled later when it isDone is true,
+                isConfirmedDoneBy:
+                    '', // will be filled later when it isDoneBy is confirmed by the assigned caregiver,
                 caregiverId: task.createdBy,
                 createdAt: dateID,
               ),
@@ -431,6 +433,8 @@ class HomeLifeRepository {
               time: task.time,
               isDone: false,
               isDoneBy: '', // will be filled later when it isDone is true
+              isConfirmedDoneBy:
+                  '', // will be filled later when it isDoneBy has value
               caregiverId: task.createdBy,
               createdAt: dateOnlyFormat,
             ),
@@ -812,7 +816,6 @@ class HomeLifeRepository {
   // Update Logic
   // =========================================================
 
-  // TODO: not yet implemented
   /// To update the status (isDone) of a task
   static Future<void> updateIsDoneTaskStatus({
     required String dateID,
@@ -849,6 +852,58 @@ class HomeLifeRepository {
       print("SUCCESSFULLY UPDATED TASK STATUS: $isDone");
     } catch (e) {
       print("ERROR WHEN UPDATING TASK STATUS: $e");
+    }
+  }
+
+  // The return type bool is here for debugging purposes only
+  static Future<bool> updateIsConfirmedDoneTask({
+    required String dateID,
+    required String participantID,
+    required String taskID,
+    required String isConfirmedDoneBy,
+    required bool isConfirmedByDifferentPerson,
+  }) async {
+    try {
+      // NOTE: always use MyDateFormatter in the first doc, because we named the first doc
+      //       as a formatter date String like "Jan 10, 2025".
+      //       Otherwise, it will cause an unintended bug.
+      DocumentReference docRef = _rootCollection
+          .doc(MyDateFormatter.formatDate(dateTimeInString: dateID))
+          .collection("HLParticipants")
+          .doc(participantID)
+          .collection("HLTasks")
+          .doc(taskID);
+
+      bool isAlreadyDone = await getTaskStatus(
+        dateID: dateID,
+        participantID: participantID,
+        taskID: taskID,
+      );
+
+      // bool isTodayTask =
+      //     DateTime.now().difference(DateTime.parse(dateID)).inHours <= 24;
+      bool isTodayTask =
+          dateID ==
+          MyDateFormatter.formatDate(
+            dateTimeInString: DateTime.now().toString(),
+          );
+
+      log("isConfirmedByDifferentPerson: $isConfirmedByDifferentPerson");
+      log("isAlreadyDone:  $isAlreadyDone \nisTodayTask: $isTodayTask");
+
+      // only update if status isDone is already true and if the task is today
+      if (isAlreadyDone && isTodayTask && isConfirmedByDifferentPerson) {
+        await docRef.set({
+          "isConfirmedDoneBy": isConfirmedDoneBy,
+        }, SetOptions(merge: true));
+        log(
+          "SUCCESSFULLY UPDATED TASK STATUS IS REALLY DONE By: $isConfirmedDoneBy",
+        );
+      }
+      return true;
+    } catch (e) {
+      print("ERROR WHEN UPDATING TASK STATUS: $e");
+      return false;
     }
   }
 
