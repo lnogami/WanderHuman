@@ -18,6 +18,7 @@ import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/components/tooltip.dart';
 import 'package:wanderhuman_app/view/userRolesUI/medical_services/medication.dart';
 import 'package:wanderhuman_app/view/userRolesUI/medical_services/medication_history.dart';
+import 'package:wanderhuman_app/view/userRolesUI/patient/caregiver_tasks.dart';
 import 'package:wanderhuman_app/view/userRolesUI/patient/frequently_go_to.dart';
 import 'package:wanderhuman_app/view/userRolesUI/patient/in_danger_card.dart';
 import 'package:wanderhuman_app/view/userRolesUI/patient/static_mini_map_card.dart';
@@ -38,6 +39,10 @@ class MyTabBar extends StatefulWidget {
 }
 
 class _MyTabBarState extends State<MyTabBar> {
+  // Logged In User Info
+  bool isLoggedInUserIsSocialService =
+      true; // true by default, until verified otherwise
+
   final ScrollController forAllScrollController = ScrollController();
 
   // Medical History Related
@@ -46,6 +51,13 @@ class _MyTabBarState extends State<MyTabBar> {
   // final Map<String, PersonalInfo> medicalStaffs = {};
   final Map<String, String> medicalStaffs = {};
   bool isLoadingMedicalRecords = true;
+
+  List<String> tabNames = [
+    "Home Life Tasks", // Only for social service role
+    "Frequently Go-To",
+    "Medical History",
+    "In Danger History",
+  ];
 
   // Provider
   late HomeAppBarProvider myHomeAppBarProvider;
@@ -232,9 +244,14 @@ class _MyTabBarState extends State<MyTabBar> {
   @override
   Widget build(BuildContext context) {
     myHomeAppBarProvider = context.read<HomeAppBarProvider>();
+    if (myHomeAppBarProvider.loggedInUserData.userType != "Social Service") {
+      isLoggedInUserIsSocialService = false;
+    }
 
     return DefaultTabController(
-      length: 3,
+      length: (isLoggedInUserIsSocialService)
+          ? tabNames.length
+          : tabNames.length - 1,
       child: Scaffold(
         body: Column(
           children: [
@@ -245,7 +262,17 @@ class _MyTabBarState extends State<MyTabBar> {
               unselectedLabelColor: Colors.grey.shade500,
               labelColor: Colors.blue,
               splashBorderRadius: BorderRadius.circular(15),
+              // isScrollable: true,
               tabs: [
+                if (isLoggedInUserIsSocialService)
+                  Tab(
+                    // text: "In Danger History",
+                    height: widget.height * 0.07,
+                    icon: Icon(Icons.task_alt_rounded, color: Colors.blue),
+                    child: FittedBox(
+                      child: MyTextFormatter.p(text: tabNames[0]),
+                    ),
+                  ),
                 Tab(
                   // text: "Frequently Go-To",
                   height: widget.height * 0.07,
@@ -253,9 +280,7 @@ class _MyTabBarState extends State<MyTabBar> {
                     Icons.directions_walk_outlined,
                     color: Colors.blue,
                   ),
-                  child: FittedBox(
-                    child: MyTextFormatter.p(text: "Frequently Go-To"),
-                  ),
+                  child: FittedBox(child: MyTextFormatter.p(text: tabNames[1])),
                 ),
                 Tab(
                   // text: "Medical History",
@@ -264,23 +289,21 @@ class _MyTabBarState extends State<MyTabBar> {
                     Icons.medical_information_rounded,
                     color: Colors.blue,
                   ),
-                  child: FittedBox(
-                    child: MyTextFormatter.p(text: "Medical History"),
-                  ),
+                  child: FittedBox(child: MyTextFormatter.p(text: tabNames[2])),
                 ),
                 Tab(
                   // text: "In Danger History",
                   height: widget.height * 0.07,
                   icon: Icon(Icons.warning_rounded, color: Colors.blue),
-                  child: FittedBox(
-                    child: MyTextFormatter.p(text: "In Danger History"),
-                  ),
+                  child: FittedBox(child: MyTextFormatter.p(text: tabNames[3])),
                 ),
               ],
             ),
             Expanded(
               child: TabBarView(
                 children: [
+                  if (isLoggedInUserIsSocialService)
+                    CaregiverTasks(patientInfo: widget.patient),
                   FrequentlyGoToArea(patientID: widget.patient.userID),
                   SingleChildScrollView(child: patientMedicalInfoTab()),
                   inDangerHistoryTab(),

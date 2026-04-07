@@ -17,6 +17,8 @@ class IndividualTaskCard extends StatefulWidget {
   final HLTaskModel plannedTask;
   final double widthPercentage;
   final double heightPercentage;
+  final bool isAccessedByHomeLifeStaff;
+
   const IndividualTaskCard({
     super.key,
     this.widthPercentage = 0.9,
@@ -24,6 +26,7 @@ class IndividualTaskCard extends StatefulWidget {
     required this.dateID,
     required this.participantID,
     required this.plannedTask,
+    this.isAccessedByHomeLifeStaff = true,
   });
 
   @override
@@ -151,6 +154,17 @@ class _IndividualTaskCardState extends State<IndividualTaskCard> {
         ),
         child: InkWell(
           onTap: () {
+            // Preventing non-home life staff to confirm the task as done, because only home life staff can confirm that a task is truly done by the one who marked it as done, to maintain the integrity of the task status.
+            if (!widget.isAccessedByHomeLifeStaff) {
+              showMyAnimatedSnackBar(
+                context: context,
+                dataToDisplay:
+                    "Sorry, only a Home Life staff can mark and confirm tasks as done. (You only have view access.)",
+                bgColor: Colors.white,
+              );
+              return;
+            }
+
             // if task is out of date, it can't be done anymore
             if (MyDateFormatter.formatDate(
                   dateTimeInString: DateTime.now().toString(),

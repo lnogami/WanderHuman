@@ -279,42 +279,46 @@ void showMyBottomNavigationSheet({
               ),
             ),
 
-            Container(
-              width: MyDimensionAdapter.getWidth(context) * 0.80,
-              padding: EdgeInsets.only(top: 1.5, bottom: 1.5),
-              margin: EdgeInsets.only(bottom: 15),
-              decoration: BoxDecoration(
-                color: Colors.white10,
-                border: BoxBorder.all(color: Colors.white, width: 1.2),
-                borderRadius: BorderRadius.circular(7),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color.fromARGB(31, 0, 42, 100),
-                    blurRadius: 4,
-                    blurStyle: BlurStyle.outer,
-                    offset: Offset(0, 1),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  MyTextFormatter.p(
-                    // TODO: to be change, OUTSIDE is temporary, unknown beacon values yet.
-                    text: (currentlyIn.toUpperCase() == "OUTSIDE")
-                        ? "is currently "
-                        : "is currently in ",
-                    fontsize: kDefaultFontSize - 4,
-                    color: Colors.grey.shade700,
-                  ),
-                  MyTextFormatter.p(
-                    text: currentlyIn,
-                    fontsize: kDefaultFontSize - 2,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey.shade800,
-                  ),
-                ],
+            MyCustTooltip(
+              triggerMode: TooltipTriggerMode.tap,
+              message: ((currentlyIn == "Unknown"))
+                  ? "No beacons detected nearby, the patient is not in a known location."
+                  : "This indicates the indoor location of the patient, which is determined by the beacones.",
+              opacity: 200,
+              child: Container(
+                width: MyDimensionAdapter.getWidth(context) * 0.80,
+                padding: EdgeInsets.only(top: 1.5, bottom: 1.5),
+                margin: EdgeInsets.only(bottom: 15),
+                decoration: BoxDecoration(
+                  color: Colors.white10,
+                  border: BoxBorder.all(color: Colors.white, width: 1.2),
+                  borderRadius: BorderRadius.circular(7),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color.fromARGB(31, 0, 42, 100),
+                      blurRadius: 4,
+                      blurStyle: BlurStyle.outer,
+                      offset: Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    MyTextFormatter.p(
+                      text: "is currently in ",
+                      fontsize: kDefaultFontSize - 4,
+                      color: Colors.grey.shade700,
+                    ),
+                    MyTextFormatter.p(
+                      text: currentlyIn,
+                      fontsize: kDefaultFontSize - 2,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade800,
+                    ),
+                  ],
+                ),
               ),
             ),
 

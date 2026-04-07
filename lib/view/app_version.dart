@@ -4,7 +4,7 @@ import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
 class MyAppVersion extends StatelessWidget {
   const MyAppVersion({super.key});
 
-  final String appVersion = "2.1.4";
+  final String appVersion = "1.12.0";
 
   @override
   Widget build(BuildContext context) {

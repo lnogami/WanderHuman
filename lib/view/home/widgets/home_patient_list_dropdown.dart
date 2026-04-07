@@ -303,7 +303,7 @@ class _HomePatientListDropDownState extends State<HomePatientListDropDown> {
           showMyAnimatedSnackBar(
             context: context,
             dataToDisplay:
-                "Something went wrong. Cannot determine the location.",
+                "Internet connectivity issues. Cannot determine the location. Please try again later.",
           );
           return;
         }
