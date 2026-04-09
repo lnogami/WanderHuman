@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
@@ -18,144 +20,159 @@ class HomeAppBar extends StatefulWidget {
 }
 
 class _HomeAppBarState extends State<HomeAppBar> {
-  int animationDuration = 200;
+  int animationDuration = 250;
   double animatedOpacity = 0.0;
   // bool isExpanded = false;
-  double borderRadius = 50;
-
-  // // pang cache sa user (patient) list
-  // List<PersonalInfo> usersList = [];
-  // String userName = "User";
-  // // fetches all the users from firestore through MyFirebaseServices
-  // Future<void> fetchUsers() async {
-  //   usersList = await MyPersonalInfoRepository.getAllPersonalInfoRecords();
-  // }
-  // // to get the current user's name and UPDATE the userName variable's state
-  // Future<void> fetchAndSetUsername() async {
-  //   try {
-  //     await fetchUsers();
-  //     String name =
-  //         MyPersonalInfoRepository.getSpecificUserNameOfTheLoggedInAccount(
-  //           personsList: usersList,
-  //           userIDToLookFor: FirebaseAuth.instance.currentUser!.uid,
-  //         );
-  //     setState(() {
-  //       userName = name;
-  //     });
-  //   } catch (e) {
-  //     print("❌❌❌ Error fetching user name: $e");
-  //   }
-  // }
+  double borderRadius = 30;
+  bool isGlassEffectEnabled = false;
 
   @override
   void initState() {
     super.initState();
-    // fetchAndSetUsername(); //(deletable)
   }
 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<HomeAppBarProvider>();
+    borderRadius = (provider.isAppBarExpanded) ? 25.5 : 25;
 
-    return AnimatedContainer(
-      duration: Duration(milliseconds: animationDuration),
-      width: MyDimensionAdapter.getWidth(context) * 0.80,
-      height: (provider.isAppBarExpanded)
-          ? MyDynamicAppbarHeight.expandingOuterPanelHeight(
-              widget.loggedInUserData.userType,
-            )
-          : 50,
-      decoration: BoxDecoration(
-        color: (provider.isAppBarExpanded)
-            ? const Color.fromARGB(210, 255, 255, 255)
-            : Colors.white70,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(borderRadius),
-          topRight: Radius.circular(borderRadius),
-          bottomLeft: Radius.circular(borderRadius),
-          bottomRight: Radius.circular(borderRadius),
-        ),
-      ),
-      padding: EdgeInsets.only(left: 8, right: 10, top: 5, bottom: 0),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Row(
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(borderRadius),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+        enabled: isGlassEffectEnabled,
+        child: AnimatedContainer(
+          duration: Duration(milliseconds: animationDuration),
+          width: MyDimensionAdapter.getWidth(context) * 0.80,
+          height: (provider.isAppBarExpanded)
+              ? MyDynamicAppbarHeight.expandingOuterPanelHeight(
+                  widget.loggedInUserData.userType,
+                )
+              : 50,
+          decoration: BoxDecoration(
+            color: (isGlassEffectEnabled)
+                ? (provider.isAppBarExpanded)
+                      ? const Color.fromARGB(180, 255, 255, 255)
+                      : Colors.white54
+                : (provider.isAppBarExpanded) // if glass effect is disabled
+                ? const Color.fromARGB(200, 255, 255, 255)
+                : Colors.white70,
+            gradient: (isGlassEffectEnabled)
+                ? LinearGradient(
+                    begin: provider.isAppBarExpanded
+                        ? Alignment.topCenter
+                        : Alignment.centerLeft,
+                    end: provider.isAppBarExpanded
+                        ? Alignment.bottomCenter
+                        : Alignment.centerRight,
+                    colors: [
+                      provider.isAppBarExpanded
+                          ? Colors.white.withAlpha(170)
+                          : Colors.white54,
+                      provider.isAppBarExpanded
+                          ? Colors.white.withAlpha(80)
+                          : Colors.white60,
+                    ],
+                  )
+                : null,
+            boxShadow: [
+              BoxShadow(
+                blurStyle: BlurStyle.outer,
+                offset: Offset(2, 2),
+                color: Colors.white70,
+                blurRadius: 8,
+                spreadRadius: 2,
+              ),
+              BoxShadow(
+                blurStyle: BlurStyle.outer,
+                offset: Offset(-2, -2),
+                color: Colors.white70,
+                blurRadius: 8,
+                spreadRadius: 2,
+              ),
+            ],
+            borderRadius: BorderRadius.circular(borderRadius),
+          ),
+          padding: EdgeInsets.only(left: 8, right: 10, top: 5, bottom: 0),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                // the user avatar/pic/icon container
-                GestureDetector(
-                  onTap: () {
-                    showProfilePictureBottomModalSheet(
-                      context,
-                      currentLoggedInUserData: widget.loggedInUserData,
-                    );
-                  },
-                  child: CircleAvatar(
-                    backgroundColor: Colors.blue[100],
-                    child: MyImageDisplayer(
-                      base64ImageString: provider.cachedImageString,
-                    ),
-                  ),
-                ),
-                SizedBox(width: 10),
-                // greeting text
-                SizedBox(
-                  width: MyDimensionAdapter.getWidth(context) * 0.50,
-                  // this userName will be updated by setState
-                  // child: (userName == "...")
-                  child: (widget.loggedInUserData.name == "...")
-                      ? CircularProgressIndicator()
-                      : Text(
-                          // "${dotenv.env['SAMPLE_TEXT']}",
-                          // "a dnbajbdjab ahbdhjabd ajbdhwbahw abdabhj",
-                          // userName,
-                          provider.userName,
-                          style: TextStyle(
-                            // color: Colors.,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          overflow: TextOverflow.ellipsis,
+                Row(
+                  children: [
+                    // the user avatar/pic/icon container
+                    GestureDetector(
+                      onTap: () {
+                        showProfilePictureBottomModalSheet(
+                          context,
+                          currentLoggedInUserData: widget.loggedInUserData,
+                        );
+                      },
+                      child: CircleAvatar(
+                        backgroundColor: Colors.blue[100],
+                        child: MyImageDisplayer(
+                          base64ImageString: provider.cachedImageString,
                         ),
-                ),
-                Spacer(),
-                // menu button
-                InkWell(
-                  onTap: () {
-                    setState(() {
-                      // isExpanded = !isExpanded;
-                      provider.toggleAppBarExpansion(
-                        !(provider.isAppBarExpanded),
-                      );
-                      borderRadius = (provider.isAppBarExpanded) ? 20 : 50;
-                    });
-                  },
-                  child: Icon(
-                    (provider.isAppBarExpanded)
-                        ? Icons.close_rounded
-                        : Icons.menu_rounded,
-                    size: 32,
-                    color: (provider.isAppBarExpanded)
-                        ? Colors.blueAccent
-                        : Colors.blue,
-                  ),
+                      ),
+                    ),
+                    SizedBox(width: 10),
+
+                    SizedBox(
+                      width: MyDimensionAdapter.getWidth(context) * 0.50,
+                      child: (widget.loggedInUserData.name == "...")
+                          ? CircularProgressIndicator()
+                          : Text(
+                              provider.userName,
+                              style: TextStyle(
+                                // color: Colors.,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                    ),
+
+                    Spacer(),
+
+                    // Icon button
+                    InkWell(
+                      onTap: () {
+                        provider.toggleAppBarExpansion(
+                          !(provider.isAppBarExpanded),
+                        );
+                      },
+                      child: Icon(
+                        (provider.isAppBarExpanded)
+                            ? Icons.close_rounded
+                            : Icons.menu_rounded,
+                        size: 32,
+                        color: (provider.isAppBarExpanded)
+                            ? Colors.blue.shade400
+                            : Colors.blue.shade400,
+                        shadows: [
+                          Shadow(
+                            blurRadius: 4,
+                            color: Colors.blueGrey.withAlpha(50),
+                            offset: Offset(1, 2),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
 
-                // to be fixed
+                // this contains the menu options
+                AnimatedOpacity(
+                  opacity: (provider.isAppBarExpanded) ? 1.0 : 0.0,
+                  curve: Curves.easeInOut,
+                  duration: Duration(milliseconds: animationDuration),
+                  child: MyMenuOptions(
+                    isVisible: provider.isAppBarExpanded,
+                    loggedInUserData: widget.loggedInUserData,
+                  ),
+                ),
               ],
             ),
-
-            // this contains the menu options
-            AnimatedOpacity(
-              opacity: (provider.isAppBarExpanded) ? 1.0 : 0.0,
-              curve: Curves.easeInOut,
-              duration: Duration(milliseconds: animationDuration),
-              child: MyMenuOptions(
-                isVisible: provider.isAppBarExpanded,
-                loggedInUserData: widget.loggedInUserData,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

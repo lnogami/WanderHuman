@@ -232,7 +232,10 @@ class _HomePageState extends State<HomePage> {
                       left: settingsProvider.minimizeHomePageButtons ? 0 : 18,
                       child: animatedOpacity(
                         child: MyHomeEmergencyContactsButton(),
-                        isVisible: (!isCreatingGeofence && !isViewingGeofences),
+                        isVisible:
+                            (!isCreatingGeofence &&
+                            !isViewingGeofences &&
+                            !homeAppBarProvider.isAppBarExpanded),
                       ),
                     ),
 
@@ -245,7 +248,9 @@ class _HomePageState extends State<HomePage> {
                         child: animatedOpacity(
                           child: SetGeofence(),
                           isVisible:
-                              (!isCreatingGeofence && !isViewingGeofences),
+                              (!isCreatingGeofence &&
+                              !isViewingGeofences &&
+                              !homeAppBarProvider.isAppBarExpanded),
                         ),
                       ),
 
@@ -259,7 +264,10 @@ class _HomePageState extends State<HomePage> {
                           : 18,
                       child: animatedOpacity(
                         child: HomePatientListDropDown(),
-                        isVisible: (!isCreatingGeofence && !isViewingGeofences),
+                        isVisible:
+                            (!isCreatingGeofence &&
+                            !isViewingGeofences &&
+                            !homeAppBarProvider.isAppBarExpanded),
                       ),
                     ),
 
