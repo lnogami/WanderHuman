@@ -495,6 +495,9 @@ class _MapBodyState extends State<MapBody> with RouteAware {
                       ),
                       // name: widget.loggedInUserData.name,
                       name: "Me",
+                      batteryPercentage: await Battery().batteryLevel,
+                      enableBatteryPecentage:
+                          myHomeSettingsProvider.enableBatteryPercentage,
                       textSize: 12.5,
                       myPosition: mp.Position(
                         validatedPosition.lng,

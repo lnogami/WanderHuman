@@ -12,12 +12,22 @@ Future<PointAnnotationOptions> myPointAnnotationOptions({
   required String name,
   double? textSize,
   required Position myPosition,
+  required int batteryPercentage,
+  required bool enableBatteryPecentage,
   bool isAPatient =
       true, // true by default because this function is initialy for patients
   required bool isCurrentlySafe,
   double iconRotate = 0.0,
   bool isIconRotateEnabled = false,
 }) async {
+  //
+  String formattedName = nameFormatter(
+    name: name,
+    batteryPercentage: batteryPercentage,
+    isPatient: isAPatient,
+    enableBatteryPercentage: enableBatteryPecentage,
+  );
+
   return PointAnnotationOptions(
     // textHaloColor: Colors.blue.toARGB32(),
     textHaloColor: (isAPatient)
@@ -34,11 +44,7 @@ Future<PointAnnotationOptions> myPointAnnotationOptions({
     iconSize: 0.35,
     // icon color is still static because I used a png image as marker
     iconColor: Colors.blue.toARGB32(), // if image is not applicable
-    textField: (isAPatient)
-        ? name // THIS IS A PATIENT NAME
-        : (name == "Me") // FOR STAFF NAME
-        ? name // FOR LOGGED IN USER NAME
-        : "${name.split(" ").first} (staff)", // FOR STAFF NAME
+    textField: formattedName,
     textSize: MySizes.mapTextFieldSize,
     textColor: Colors.white.toARGB32(),
     textOcclusionOpacity: 1,
@@ -141,6 +147,43 @@ Future<Uint8List> makeCircularImage(
   }
 
   return Uint8List.fromList(img.encodePng(circularImage));
+}
+
+String nameFormatter({
+  required String name,
+  required int batteryPercentage,
+  required bool isPatient,
+  required bool enableBatteryPercentage,
+}) {
+  // Patient
+  if (isPatient) {
+    if (enableBatteryPercentage) {
+      return "$name \n${batteryPercentage.toString()}%";
+    } else {
+      return name;
+    }
+  }
+  // Staff
+  else {
+    // Me
+    if (name == "Me") {
+      return name;
+    }
+    // Others
+    else {
+      if (enableBatteryPercentage) {
+        return "${name.split(" ").first} (staff)\n${batteryPercentage.toString()}%";
+      } else {
+        return "${name.split(" ").first} (staff)";
+      }
+    }
+  }
+
+  // (isAPatient)
+  //       ? "$name \n${batteryPercentage.toString()}%" // THIS IS A PATIENT NAME
+  //       : (name == "Me") // FOR STAFF NAME
+  //       ? name // FOR LOGGED IN USER NAME
+  //       : "${name.split(" ").first} (staff)\n${batteryPercentage.toString()}%", // FOR STAFF NAME
 }
 
 // Future<Uint8List> makeCircularImage(

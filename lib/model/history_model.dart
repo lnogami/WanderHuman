@@ -12,6 +12,7 @@ class MyHistoryModel {
   int deviceBatteryPercentage;
   String bPM;
   bool requestBPM;
+  String assistedByWhenInDanger;
 
   MyHistoryModel({
     required this.deviceID,
@@ -25,6 +26,7 @@ class MyHistoryModel {
     required this.deviceBatteryPercentage,
     required this.bPM,
     required this.requestBPM,
+    required this.assistedByWhenInDanger,
   });
 
   factory MyHistoryModel.fromFirestore(Map<String, dynamic> data) {
@@ -41,6 +43,7 @@ class MyHistoryModel {
         deviceBatteryPercentage: data['deviceBatteryPercentage'] ?? "",
         bPM: data['bPM'] ?? "",
         requestBPM: data['requestBPM'] ?? "",
+        assistedByWhenInDanger: data['assistedByWhenInDanger'] ?? "",
       );
     } catch (e) {
       print(
@@ -52,7 +55,10 @@ class MyHistoryModel {
   }
 
   /// To convert into Map object, for efficiently uploading to firebase
-  static Map<String, dynamic> toMap(MyRealtimeLocationModel data) {
+  static Map<String, dynamic> toMap(
+    MyRealtimeLocationModel data, [
+    String assistedByWhenInDanger = "",
+  ]) {
     return {
       "deviceID": data.deviceID,
       "patientID": data.patientID,
@@ -66,6 +72,8 @@ class MyHistoryModel {
       "deviceBatteryPercentage": data.deviceBatteryPercentage,
       "bPM": data.bPM,
       "requestBPM": data.requestBPM,
+      // only used when the patient is in danger, otherwise it will be an empty string
+      "assistedByWhenInDanger": assistedByWhenInDanger,
     };
   }
 }

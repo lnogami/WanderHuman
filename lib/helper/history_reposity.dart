@@ -293,6 +293,8 @@ class MyHistoryReposity {
 
       // 3. Check if the collection is empty before trying to read it
       if (snapshot.docs.isNotEmpty) {
+        // Store docID for later user in assistedByWhenInDanger method
+        _latestHistoryDocID = snapshot.docs.first.id;
         // Return the single document
         return MyHistoryModel.fromFirestore(
           snapshot.docs.first.data() as Map<String, dynamic>,
@@ -330,4 +332,44 @@ class MyHistoryReposity {
   //     log("ERROR REMOVING HISTORY: $e \nAT: $stackTrace");
   //   }
   // }
+
+  // Store the document ID of the latest history log
+  static String _latestHistoryDocID = "";
+  static Future<void> updateAssistedByWhenInDanger({
+    // required MyRealtimeLocationModel locationData,
+    required String patientID,
+    required String assistedByWhenInDanger,
+  }) async {
+    try {
+      // await _rootCollection
+      //     .doc(locationData.patientID)
+      //     .collection(_subCollection)
+      //     .doc(DateTime.now().toString())
+      //     .set(MyHistoryModel.toMap(locationData, assistedByWhenInDanger));
+
+      // log("✅ SUCCESSFULLY SAVED IMMEDIATE HISTORY for ${locationData.patientID}");
+
+      MyHistoryModel? latestHistory = await getLatestHistoryLog(patientID);
+      log(
+        "LATEST HISTORY LOGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG: $_latestHistoryDocID",
+      );
+      if (!latestHistory!.isCurrentlySafe && _latestHistoryDocID != "") {
+        DocumentReference docRef = _rootCollection
+            .doc(patientID)
+            .collection(_subCollection)
+            .doc(_latestHistoryDocID);
+        await docRef.set({
+          "assistedByWhenInDanger": assistedByWhenInDanger,
+        }, SetOptions(merge: true));
+
+        log(
+          "✅ SUCCESSFULLY UPDATED assistedByWhenInDanger field in HISTORY of $patientID",
+        );
+      }
+    } catch (e, stackTrace) {
+      log(
+        "ERROR UPDATING assistedByWhenInDanger field in HISTORY: $e \nAT: $stackTrace",
+      );
+    }
+  }
 }

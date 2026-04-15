@@ -3,9 +3,12 @@ import 'dart:typed_data';
 
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:wanderhuman_app/helper/history_reposity.dart';
 import 'package:wanderhuman_app/helper/realtime_location_repository.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
+import 'package:wanderhuman_app/view-model/home_appbar_provider.dart';
 import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
 import 'package:wanderhuman_app/view/components/button.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
@@ -260,6 +263,8 @@ void showMyBottomNavigationSheet({
                     context,
                     isCurrentlySafe: isCurrentlySafe,
                     deviceID: deviceID,
+                    // for updating the assistedByWhenInDanger field in the history
+                    patientID: patientID,
                   ),
                   verticalLine(context),
                   fixedSizedContainers(
@@ -371,6 +376,7 @@ Container isCurrentlySafeArea(
   BuildContext context, {
   required bool isCurrentlySafe,
   required String deviceID,
+  required String patientID,
 }) {
   return Container(
     width: MyDimensionAdapter.getWidth(context) * 0.12,
@@ -392,13 +398,29 @@ Container isCurrentlySafeArea(
               )
             : AnimatedTextKit(
                 onTap: () {
+                  // Staff name
+                  String assistedByWhenInDanger = context
+                      .read<HomeAppBarProvider>()
+                      .loggedInUserData
+                      .name;
+
                   myAlertDialogue(
                     context: context,
                     alertTitle: "Confirm Patient Status",
-                    alertContent: "Confirm that this patient is now okay?",
+                    alertContent:
+                        "Confirm that this patient is now okay? \n\nNOTE: Your name will also be recorded as the one who acknowledged that the patient is now safe. So please only tap Acknowledge if you are there who helped the patient.",
                     onApprovalButtonText: "Acknowledge",
                     onCancelButtonText: "Not yet",
                     onApprovalPressed: () async {
+                      await MyHistoryReposity.updateAssistedByWhenInDanger(
+                        patientID: patientID,
+                        assistedByWhenInDanger: assistedByWhenInDanger,
+                      );
+
+                      log(
+                        "SUCCESSFULLY UPDATED assistedByWhenInDanger TO: $assistedByWhenInDanger",
+                      );
+
                       await MyRealtimeLocationReposity.updateASingleField(
                         deviceID: deviceID,
                         fieldToUpdate: "isCurrentlySafe",
@@ -409,7 +431,6 @@ Container isCurrentlySafeArea(
                       log(
                         "SUCCESSFULLY UPDATED PATIENT STATUS TO SAFEEEEEEEEEEE",
                       );
-
                       // ignore: use_build_context_synchronously
                       Navigator.pop(context); // removes the dialog box
                       // ignore: use_build_context_synchronously

@@ -5,6 +5,7 @@ class MySettingsModel {
   bool useDefaultAvatar;
   bool enableAvatarDistanceAccuracy;
   int mapView;
+  bool enableBatteryPercentage;
   bool minimizeHomePageButtons;
 
   MySettingsModel({
@@ -14,6 +15,7 @@ class MySettingsModel {
     required this.useDefaultAvatar,
     required this.enableAvatarDistanceAccuracy,
     required this.mapView,
+    required this.enableBatteryPercentage,
     required this.minimizeHomePageButtons,
   });
 
@@ -25,6 +27,7 @@ class MySettingsModel {
       useDefaultAvatar: map['useDefaultAvatar'] ?? true,
       enableAvatarDistanceAccuracy: map['enableAvatarDistanceAccuracy'] ?? true,
       mapView: map['mapView'] ?? 0,
+      enableBatteryPercentage: map['enableBatteryPercentage'] ?? false,
       minimizeHomePageButtons: map['minimizeHomePageButtons'] ?? false,
     );
   }

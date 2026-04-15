@@ -22,8 +22,8 @@ class HomeAppBar extends StatefulWidget {
 class _HomeAppBarState extends State<HomeAppBar> {
   int animationDuration = 250;
   double animatedOpacity = 0.0;
-  // bool isExpanded = false;
   double borderRadius = 30;
+  // Newly implemented (not yet fully tested) glass effect
   bool isGlassEffectEnabled = false;
 
   @override

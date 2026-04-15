@@ -84,6 +84,7 @@ class _HomePageState extends State<HomePage> {
         useDefaultAvatar: true,
         enableAvatarDistanceAccuracy: true,
         mapView: 0,
+        enableBatteryPercentage: false,
         minimizeHomePageButtons: false,
       );
 

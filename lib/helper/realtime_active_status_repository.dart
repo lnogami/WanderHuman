@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/helper/realtime_location_repository.dart';
 import 'package:wanderhuman_app/model/realtime_active_status_model.dart';
 
@@ -60,14 +61,45 @@ class MyRealtimeActiveStatusRepository {
     }
   }
 
+  // static Future<bool> getActiveStatus({required String userID}) async {
+  //   try {
+  //     final snapshot = await _rootRef
+  //         .child("Active_Status")
+  //         .child(userID)
+  //         .get();
+  //     if (snapshot.exists && snapshot.value != null) {
+  //       // return data.value["isActive"];
+  //       Map dataMap = Map<String, dynamic>.from(snapshot.value as Map);
+  //       return dataMap["isActive"];
+  //     } else {
+  //       return false;
+  //     }
+  //   } catch (e, stackTrace) {
+  //     log("ERROR WHILE RETRIEVING ACTIVE STATUS: $e. AT $stackTrace");
+  //     rethrow;
+  //   }
+  // }
   static Future<bool> getActiveStatus({required String userID}) async {
     try {
       final snapshot = await _rootRef
           .child("Active_Status")
           .child(userID)
           .get();
-      if (snapshot.exists && snapshot.value != null) {
-        // return data.value["isActive"];
+
+      if (!snapshot.exists) {
+        // This is to cater special case where deviceID is different from userID, because by default, those who do not have WanderHuman device assigned to them has assigend userID as their deviceID
+        var allDeviceIDWithActiveStatus =
+            await getAllDeviceIDWithActiveStatus();
+        var personalInfo =
+            await MyPersonalInfoRepository.getSpecificPersonalInfo(
+              userID: userID,
+            );
+
+        return allDeviceIDWithActiveStatus.any((deviceID) {
+          return deviceID.userID == personalInfo.deviceID &&
+              deviceID.isActive == true;
+        });
+      } else if (snapshot.value != null) {
         Map dataMap = Map<String, dynamic>.from(snapshot.value as Map);
         return dataMap["isActive"];
       } else {

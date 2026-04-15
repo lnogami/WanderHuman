@@ -71,6 +71,7 @@ class _EmergencyHotlineContentsState extends State<EmergencyHotlineContents> {
       message:
           "[Tap] to copy the number. [Double Tap] to edit. [Long Press] to delete.",
       triggerMode: TooltipTriggerMode.tap,
+      // opacity: 180,
       child: Container(
         width: MyDimensionAdapter.getWidth(context) * 0.9,
         height: 45,

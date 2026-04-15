@@ -53,48 +53,59 @@ class _MyInDangerCardState extends State<MyInDangerCard> {
       // height: widget.height * 0.045,
       // color: Colors.amber,
       margin: EdgeInsets.only(left: 10, right: 10),
-      child: Row(
+      child: Column(
         children: [
-          MyTextFormatter.p(text: "In Danger"),
-          Spacer(),
-          MyLine(
-            length: widget.height * 0.035,
-            thickness: 1,
-            margin: 7,
-            isRounded: true,
-          ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          Row(
             children: [
-              // MMM dd yyyy
-              Row(
+              MyTextFormatter.p(text: "In Danger"),
+              Spacer(),
+              MyLine(
+                length: widget.height * 0.04,
+                thickness: 1,
+                margin: 7,
+                isRounded: true,
+              ),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  // MMM dd yyyy
+                  Row(
+                    children: [
+                      MyTextFormatter.p(
+                        text: MyDateFormatter.formatDate(
+                          dateTimeInString: widget.history.timeStamp,
+                        ),
+                        fontsize: kDefaultFontSize - 2,
+                      ),
+                      // (EEE)
+                      MyTextFormatter.p(
+                        text:
+                            " (${MyDateFormatter.formatDate(dateTimeInString: widget.history.timeStamp, formatOptions: 7, customedFormat: "EEE")})",
+                        fontsize: kDefaultFontSize - 3,
+                      ),
+                    ],
+                  ),
+
+                  // (hh:mm a)
                   MyTextFormatter.p(
                     text: MyDateFormatter.formatDate(
                       dateTimeInString: widget.history.timeStamp,
+                      formatOptions: 7,
+                      customedFormat: "hh:mm a",
                     ),
-                    fontsize: kDefaultFontSize - 2,
-                  ),
-                  // (EEE)
-                  MyTextFormatter.p(
-                    text:
-                        " (${MyDateFormatter.formatDate(dateTimeInString: widget.history.timeStamp, formatOptions: 7, customedFormat: "EEE")})",
-                    fontsize: kDefaultFontSize - 3,
+                    fontsize: kDefaultFontSize,
                   ),
                 ],
               ),
-
-              // (hh:mm a)
-              MyTextFormatter.p(
-                text: MyDateFormatter.formatDate(
-                  dateTimeInString: widget.history.timeStamp,
-                  formatOptions: 7,
-                  customedFormat: "hh:mm a",
-                ),
-                fontsize: kDefaultFontSize,
-              ),
             ],
           ),
+
+          if (widget.history.assistedByWhenInDanger != "")
+            MyTextFormatter.p(
+              text: "Helped by: ${widget.history.assistedByWhenInDanger}",
+              color: Colors.grey.shade700,
+              fontsize: kDefaultFontSize - 4,
+            ),
         ],
       ),
     );

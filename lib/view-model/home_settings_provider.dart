@@ -9,6 +9,7 @@ class MyHomeSettingsProvider extends ChangeNotifier {
   bool? _useDefaultAvatar;
   bool? _enableAvatarDistanceAccuracy;
   int? _mapView;
+  bool? _enableBatteryPercentage;
   bool? _minimizeHomePageButtons;
 
   // bool? _useDefaultAvatar;
@@ -20,6 +21,7 @@ class MyHomeSettingsProvider extends ChangeNotifier {
   bool get enableAvatarDistanceAccuracy =>
       _enableAvatarDistanceAccuracy ?? true;
   int get mapView => _mapView ?? 0;
+  bool get enableBatteryPercentage => _enableBatteryPercentage ?? false;
   bool get minimizeHomePageButtons => _minimizeHomePageButtons ?? false;
 
   /// Initializes all the user settings data
@@ -29,6 +31,7 @@ class MyHomeSettingsProvider extends ChangeNotifier {
     setToUseDefaultAvatar(settings.useDefaultAvatar);
     setEnableAvatarDistanceAccuracy(settings.enableAvatarDistanceAccuracy);
     setMapView(settings.mapView);
+    setEnableBatteryPercentage(settings.enableBatteryPercentage);
     setMinimizeHomePageButtons(settings.minimizeHomePageButtons);
   }
 
@@ -38,6 +41,7 @@ class MyHomeSettingsProvider extends ChangeNotifier {
     _useDefaultAvatar = null;
     _enableAvatarDistanceAccuracy = null;
     _mapView = null;
+    _enableBatteryPercentage = null;
     _minimizeHomePageButtons = null;
     notifyListeners();
   }
@@ -50,6 +54,7 @@ class MyHomeSettingsProvider extends ChangeNotifier {
       useDefaultAvatar: useDefaultAvatar,
       enableAvatarDistanceAccuracy: enableAvatarDistanceAccuracy,
       mapView: mapView,
+      enableBatteryPercentage: enableBatteryPercentage,
       minimizeHomePageButtons: minimizeHomePageButtons,
     );
   }
@@ -78,6 +83,11 @@ class MyHomeSettingsProvider extends ChangeNotifier {
     _mapView = value;
     notifyListeners();
     log("MMMMMMMMMapView was successfully set to $value");
+  }
+
+  void setEnableBatteryPercentage(bool value) {
+    _enableBatteryPercentage = value;
+    notifyListeners();
   }
 
   void setMinimizeHomePageButtons(bool value) {

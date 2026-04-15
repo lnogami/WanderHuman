@@ -43,6 +43,8 @@ class _MySettingsInterfaceState extends State<MySettingsInterface> {
   bool? previousAvatarPreference; // original value of useDefaultAvatar
   bool? enableAvatarDistanceAccuracy;
   int? selectedMapViewOption;
+  bool? enableBatteryPercentage;
+  bool? previousEnableBattPercentage;
   int? previousMapViewOption;
 
   @override
@@ -57,14 +59,23 @@ class _MySettingsInterfaceState extends State<MySettingsInterface> {
     double height = MyDimensionAdapter.getHeight(context);
     // Provider
     settingsProvider = context.watch<MyHomeSettingsProvider>();
+
     zoomLevel = settingsProvider.zoomLevel;
     previousZoomLevel ??= zoomLevel;
+
     alwaysFollowYourAvatar = settingsProvider.alwaysFollowYourAvatar;
+
     useDefaultAvatar = settingsProvider.useDefaultAvatar;
     previousAvatarPreference ??= useDefaultAvatar!;
+
     enableAvatarDistanceAccuracy =
         settingsProvider.enableAvatarDistanceAccuracy;
+
     selectedMapViewOption ??= settingsProvider.mapView;
+
+    enableBatteryPercentage = settingsProvider.enableBatteryPercentage;
+    previousEnableBattPercentage ??= enableBatteryPercentage!;
+
     previousMapViewOption ??= selectedMapViewOption!;
 
     return SafeArea(
@@ -101,11 +112,14 @@ class _MySettingsInterfaceState extends State<MySettingsInterface> {
               mapViewOptions(height),
               SizedBox(height: 7),
 
-              minimizeHomeButtons(width),
+              showBatteryPercentage(width),
               SizedBox(height: 7),
 
-              cancelAndSaveButtons(context),
+              minimizeHomeButtons(width),
               SizedBox(height: 15),
+
+              cancelAndSaveButtons(context),
+              SizedBox(height: 20),
             ],
           ),
         ),
@@ -432,6 +446,39 @@ class _MySettingsInterfaceState extends State<MySettingsInterface> {
     );
   }
 
+  Container showBatteryPercentage(double width) {
+    return _myLayoutContainer(
+      width: width,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        spacing: 5,
+        children: [
+          MyTextFormatter.p(text: "Enable battery percentage?"),
+          MyCustTooltip(
+            triggerMode: TooltipTriggerMode.tap,
+            duration: 2500,
+            heightConstraints: 75,
+            message:
+                "Battery percentage will appear below everyone's name on the map (exept for your avatar).",
+            child: Icon(
+              Icons.info_outline_rounded,
+              size: 20,
+              color: Colors.grey.shade500,
+            ),
+          ),
+          Spacer(),
+          CupertinoSwitch(
+            activeTrackColor: Colors.blue.shade400,
+            value: enableBatteryPercentage!,
+            onChanged: (value) {
+              settingsProvider.setEnableBatteryPercentage(value);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   Container minimizeHomeButtons(double width) {
     return _myLayoutContainer(
       width: width,
@@ -481,8 +528,13 @@ class _MySettingsInterfaceState extends State<MySettingsInterface> {
             Navigator.pop(context);
           },
         ),
+
+        // Save Button
         (isCurrentlySavingToDatabase)
-            ? Center(child: CircularProgressIndicator.adaptive())
+            ? SizedBox(
+                width: MyDimensionAdapter.getWidth(context) * 0.40,
+                child: Center(child: CircularProgressIndicator.adaptive()),
+              )
             : MyCustButton(
                 buttonText: "Save Changes",
                 widthPercentage: 0.40,
@@ -508,6 +560,7 @@ class _MySettingsInterfaceState extends State<MySettingsInterface> {
                           enableAvatarDistanceAccuracy:
                               settingsProvider.enableAvatarDistanceAccuracy,
                           mapView: selectedMapViewOption!,
+                          enableBatteryPercentage: enableBatteryPercentage!,
                           minimizeHomePageButtons:
                               settingsProvider.minimizeHomePageButtons,
                         ),
@@ -520,7 +573,9 @@ class _MySettingsInterfaceState extends State<MySettingsInterface> {
                       setState(() => isCurrentlySavingToDatabase = false);
 
                       if (useDefaultAvatar! == previousAvatarPreference &&
-                          selectedMapViewOption == previousMapViewOption) {
+                          selectedMapViewOption == previousMapViewOption &&
+                          enableBatteryPercentage ==
+                              previousEnableBattPercentage) {
                         Navigator.pop(context);
                       } else {
                         Navigator.pop(context);
