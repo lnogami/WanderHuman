@@ -20,8 +20,8 @@ class MyCardInfoDisplayer3 extends StatelessWidget {
   // final String contactNumber;
   // final String emailAdd;
   // final String batteryPercentage;
-  final String batteryPercentage;
-  MyCardInfoDisplayer3({
+  final int? batteryPercentage;
+  const MyCardInfoDisplayer3({
     super.key,
     this.onTap,
     // required this.name,
@@ -31,7 +31,7 @@ class MyCardInfoDisplayer3 extends StatelessWidget {
     // required this.profilePicture,
     required this.personalInfo,
     // required this.batteryPercentage,
-    this.batteryPercentage = "99",
+    this.batteryPercentage,
   });
 
   Future<String> numberOfTasksLeft() async {
@@ -131,6 +131,7 @@ class MyCardInfoDisplayer3 extends StatelessWidget {
                   MyTextFormatter.h5(
                     text: "${personalInfo.age} years old",
                     fontsize: kDefaultFontSize - 1,
+                    color: Colors.grey.shade800,
                   ),
                   Spacer(),
                   FutureBuilder(
@@ -191,12 +192,12 @@ class MyCardInfoDisplayer3 extends StatelessWidget {
                   // CircleAvatar(backgroundColor: Colors.green, radius: 5),
                   batteryVisual(
                     context: context,
-                    percentage: int.tryParse(batteryPercentage)!,
+                    percentage: batteryPercentage ?? 99,
                     // percentage: int.tryParse("100")!,
                   ),
                   SizedBox(width: 2.5),
                   MyTextFormatter.p(
-                    text: "$batteryPercentage%",
+                    text: "${batteryPercentage ?? 99}%",
                     fontsize: kDefaultFontSize - 2,
                   ),
                 ],

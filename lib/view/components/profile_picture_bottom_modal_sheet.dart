@@ -2,9 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
+import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/font_family.dart';
-import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
 import 'package:wanderhuman_app/view-model/home_appbar_provider.dart';
 import 'package:wanderhuman_app/view/components/button.dart';
 import 'package:wanderhuman_app/view/components/image_displayer.dart';
@@ -12,7 +12,10 @@ import 'package:wanderhuman_app/view/components/image_picker.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/userRolesUI/admin/view_staff_form.dart';
 
-void showProfilePictureBottomModalSheet(BuildContext context) {
+void showProfilePictureBottomModalSheet(
+  BuildContext context, {
+  PersonalInfo? currentLoggedInUserData,
+}) {
   showModalBottomSheet(
     backgroundColor: Colors.white70,
     context: context,
@@ -88,38 +91,39 @@ void showProfilePictureBottomModalSheet(BuildContext context) {
               },
             ),
             SizedBox(height: 10),
-            FutureBuilder(
-              future: MyPersonalInfoRepository.getSpecificPersonalInfo(
-                userID: FirebaseAuth.instance.currentUser!.uid,
-              ),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator.adaptive());
-                } else if (snapshot.hasData) {
-                  return MyCustButton(
-                    buttonText: "Go To Profile",
-                    buttonTextFontSize: kDefaultFontSize + 2,
-                    buttonTextFontWeight: FontWeight.w600,
-                    buttonTextColor: Colors.grey.shade700,
-                    borderColor: Colors.white54,
-                    color: Colors.white24,
-                    enableShadow: false,
-                    onTap: () async {
-                      MyNavigator.goTo(
-                        context,
-                        ViewStaffForm(staffPersonalInfo: snapshot.data!),
-                      );
-                    },
-                  );
-                } else {
-                  return Center(
-                    child: MyTextFormatter.p(
-                      text: "Oops, something went wrong!",
-                    ),
-                  );
-                }
+            // FutureBuilder(
+            //   future: MyPersonalInfoRepository.getSpecificPersonalInfo(
+            //     userID: FirebaseAuth.instance.currentUser!.uid,
+            //   ),
+            //   builder: (context, snapshot) {
+            //     if (snapshot.connectionState == ConnectionState.waiting) {
+            //       return Center(child: CircularProgressIndicator.adaptive());
+            //     } else if (snapshot.hasData) {
+            //       return
+            MyCustButton(
+              buttonText: "Go To Profile",
+              buttonTextFontSize: kDefaultFontSize + 2,
+              buttonTextFontWeight: FontWeight.w600,
+              buttonTextColor: Colors.grey.shade700,
+              borderColor: Colors.white54,
+              color: Colors.white24,
+              enableShadow: false,
+              onTap: () async {
+                MyNavigator.goTo(
+                  context,
+                  ViewStaffForm(staffPersonalInfo: currentLoggedInUserData!),
+                );
               },
             ),
+            // } else {
+            //   return Center(
+            //     child: MyTextFormatter.p(
+            //       text: "Oops, something went wrong!",
+            //     ),
+            //   );
+            // }
+            //   },
+            // ),
           ],
         ),
       );

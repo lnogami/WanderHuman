@@ -9,6 +9,7 @@ import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
 import 'package:wanderhuman_app/view/components/appbar.dart';
 import 'package:wanderhuman_app/view/components/dropdown_button.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
+import 'package:wanderhuman_app/view/components/tooltip.dart';
 import 'package:wanderhuman_app/view/userRolesUI/home_life/individual_tasks/individual_task_card.dart';
 import 'package:wanderhuman_app/view/userRolesUI/home_life/individual_tasks/patient_records.dart';
 
@@ -56,8 +57,26 @@ class _IndividualTasksState extends State<IndividualTasks> {
 
   /// Load all days
   Future<void> getDaysToDisplayInDropdown() async {
-    List<String> days = await HomeLifeRepository.getAllDaysOfRecordedTasks();
-    days.sort();
+    List<String> days = await HomeLifeRepository.getAllDaysOfRecordedTasks(
+      widget.patientInfo.userID,
+    );
+    days.sort((a, b) {
+      DateTime dateA = DateTime.parse(
+        MyDateFormatter.formatDate(
+          dateTimeInString: a,
+          formatOptions: 7,
+          customedFormat: "yyyy-MM-dd",
+        ),
+      );
+      DateTime dateB = DateTime.parse(
+        MyDateFormatter.formatDate(
+          dateTimeInString: b,
+          formatOptions: 7,
+          customedFormat: "yyyy-MM-dd",
+        ),
+      );
+      return dateA.compareTo(dateB);
+    });
 
     setState(() {
       allDaysToDisplayOptions.addAll(days.reversed);
@@ -80,7 +99,8 @@ class _IndividualTasksState extends State<IndividualTasks> {
         // );
         print("ALL HAS BEEN SELECTEDDDDDDDDDDDDDDDDDDD");
         return HomeLifeRepository.getAllIndividualPatientTasks(
-          dateID: "Jan 12, 2026",
+          dateID:
+              "Jan 12, 2026", // this is just a dummy date, the date parameter will not be used in the backend when fetching all tasks, so it can be anything
           participantID: widget.patientInfo.userID,
         );
       default:
@@ -124,6 +144,7 @@ class _IndividualTasksState extends State<IndividualTasks> {
                       text: "Display Options",
                       fontsize: kDefaultFontSize - 2,
                     ),
+                    SizedBox(height: 4),
                     (isDropdownLoading)
                         ? CircularProgressIndicator()
                         : Container(
@@ -142,52 +163,59 @@ class _IndividualTasksState extends State<IndividualTasks> {
                               },
                             ),
                           ),
+                    // Tasks area
                     Container(
                       width: MyDimensionAdapter.getWidth(context) * 0.8,
                       height: MyDimensionAdapter.getHeight(context) * 0.72,
                       // color: Colors.green,
-                      child: FutureBuilder(
-                        future: pageDisplayOptions(selectedDayToDisplay),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return Center(child: CircularProgressIndicator());
-                          } else if (snapshot.data!.isEmpty) {
-                            return Center(
-                              child: MyTextFormatter.p(
-                                text:
-                                    "No Tasks for ${widget.patientInfo.name.trim()} Today . .\n\n",
-                              ),
-                            );
-                          }
-                          // this is where data is displayed
-                          else {
-                            if (selectedDayToDisplay == "All Dates") {
-                              return listViewBuilderThatCatersAllDates(
-                                snapshot,
-                              );
-                            }
-                            // specific dates are catered here
-                            else {
-                              return ListView.builder(
-                                itemCount: snapshot.data?.length ?? 0,
-                                itemBuilder: (context, index) {
-                                  return IndividualTaskCard(
-                                    // // ✅ FIX: Add a unique Key!
-                                    // // This forces Flutter to rebuild the card from scratch when the date changes.
-                                    // key: ValueKey(
-                                    //   "${widget.patientInfo.userID}_$selectedDayToDisplay",
-                                    // ),
-                                    dateID: selectedDayToDisplay,
-                                    participantID: widget.patientInfo.userID,
-                                    plannedTask: snapshot.data![index],
+                      child: (isDropdownLoading)
+                          ? Center(child: CircularProgressIndicator.adaptive())
+                          : FutureBuilder(
+                              future: pageDisplayOptions(selectedDayToDisplay),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return Center(
+                                    child: CircularProgressIndicator(),
                                   );
-                                },
-                              );
-                            }
-                          }
-                        },
-                      ),
+                                } else if (snapshot.data!.isEmpty) {
+                                  return Center(
+                                    child: MyTextFormatter.p(
+                                      text:
+                                          "No Tasks for ${widget.patientInfo.name.trim()} on this day.\n\n",
+                                      maxLines: 2,
+                                    ),
+                                  );
+                                }
+                                // this is where data is displayed
+                                else {
+                                  if (selectedDayToDisplay == "All Dates") {
+                                    return listViewBuilderThatCatersAllDates(
+                                      snapshot,
+                                    );
+                                  }
+                                  // specific dates are catered here
+                                  else {
+                                    return ListView.builder(
+                                      itemCount: snapshot.data?.length ?? 0,
+                                      itemBuilder: (context, index) {
+                                        return IndividualTaskCard(
+                                          // // ✅ FIX: Add a unique Key!
+                                          // // This forces Flutter to rebuild the card from scratch when the date changes.
+                                          // key: ValueKey(
+                                          //   "${widget.patientInfo.userID}_$selectedDayToDisplay",
+                                          // ),
+                                          dateID: selectedDayToDisplay,
+                                          participantID:
+                                              widget.patientInfo.userID,
+                                          plannedTask: snapshot.data![index],
+                                        );
+                                      },
+                                    );
+                                  }
+                                }
+                              },
+                            ),
                     ),
                   ],
                 ),
@@ -199,29 +227,39 @@ class _IndividualTasksState extends State<IndividualTasks> {
     );
   }
 
-  MyCustAppBar appBar(BuildContext context) {
-    return MyCustAppBar(
-      title: "Tasks for ${widget.patientInfo.name}",
-      // // newly added, not yet final
-      // color: Colors.blue.shade200,
-      // textColor: Colors.white,
-      // backButtonColor: Colors.white70,
-      //
-      backButton: () {
-        Navigator.pop(context);
-        Navigator.pop(context);
-        MyNavigator.goTo(
-          context,
-          // IndividualTasks(patientInfo: widget.patientInfo),
-          HomeLifePatientRecords(),
-        );
-      },
+  MyCustTooltip appBar(BuildContext context) {
+    return MyCustTooltip(
+      message: "Tasks for ${widget.patientInfo.name}",
+      triggerMode: TooltipTriggerMode.tap,
+      opacity: 200,
+      child: MyCustAppBar(
+        title: "Tasks for ${widget.patientInfo.name}",
+        // // newly added, not yet final
+        // color: Colors.blue.shade200,
+        // textColor: Colors.white,
+        // backButtonColor: Colors.white70,
+        //
+        backButton: () {
+          Navigator.pop(context);
+          Navigator.pop(context);
+          MyNavigator.goTo(
+            context,
+            // IndividualTasks(patientInfo: widget.patientInfo),
+            HomeLifePatientRecords(),
+          );
+        },
+      ),
     );
   }
 
   ListView listViewBuilderThatCatersAllDates(
+    // AsyncSnapshot<List<HLTaskModel>> rawSnapshot,
     AsyncSnapshot<List<HLTaskModel>> snapshot,
   ) {
+    // rawSnapshot.data?.sort((a,b){
+    //   return a..compareTo(b.createdAt!);
+    // });
+
     return ListView.builder(
       itemCount: snapshot.data?.length ?? 0,
       itemBuilder: (context, index) {

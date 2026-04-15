@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 
 class MyNavigator {
   /// Navigates to the [nextPage] with a custom animation.
-  static void goTo(BuildContext context, Widget nextPage) {
+  static void goTo(
+    BuildContext context,
+    Widget nextPage, {
+    int animationType = 0,
+  }) {
     //
     Navigator.push(
       context,
@@ -15,30 +19,39 @@ class MyNavigator {
 
         // The Animation Logic
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          // ----------------------------------------------------------------
-          // OPTION 1: SLIDE FROM RIGHT (Standard iOS/Android feel) [ACTIVE]
-          // ----------------------------------------------------------------
-          const begin = Offset(1.0, 0.0); // X=1.0 means start from right
-          const end = Offset.zero;
-          const curve = Curves.ease;
+          switch (animationType) {
+            // ----------------------------------------------------------------
+            // OPTION 2: SLIDE FROM BOTTOM (Good for Modal/Details pages)
+            // ----------------------------------------------------------------
+            case 1:
+              const begin = Offset(0.0, 1.0); // Y=1.0 means start from bottom
+              const end = Offset.zero;
+              const curve = Curves.easeInOut;
+              var tween = Tween(
+                begin: begin,
+                end: end,
+              ).chain(CurveTween(curve: curve));
+              return SlideTransition(
+                position: animation.drive(tween),
+                child: child,
+              );
+            // ----------------------------------------------------------------
+            // OPTION 1: SLIDE FROM RIGHT (Standard iOS/Android feel) [ACTIVE]
+            // ----------------------------------------------------------------
+            default:
+              const begin = Offset(1.0, 0.0); // X=1.0 means start from right
+              const end = Offset.zero;
+              const curve = Curves.ease;
 
-          var tween = Tween(
-            begin: begin,
-            end: end,
-          ).chain(CurveTween(curve: curve));
-          return SlideTransition(
-            position: animation.drive(tween),
-            child: child,
-          );
-
-          // ----------------------------------------------------------------
-          // OPTION 2: SLIDE FROM BOTTOM (Good for Modal/Details pages)
-          // ----------------------------------------------------------------
-          // const begin = Offset(0.0, 1.0); // Y=1.0 means start from bottom
-          // const end = Offset.zero;
-          // const curve = Curves.easeInOut;
-          // var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-          // return SlideTransition(position: animation.drive(tween), child: child);
+              var tween = Tween(
+                begin: begin,
+                end: end,
+              ).chain(CurveTween(curve: curve));
+              return SlideTransition(
+                position: animation.drive(tween),
+                child: child,
+              );
+          }
 
           // ----------------------------------------------------------------
           // OPTION 3: FADE TRANSITION (Simple & Elegant)

@@ -17,6 +17,8 @@ class IndividualTaskCard extends StatefulWidget {
   final HLTaskModel plannedTask;
   final double widthPercentage;
   final double heightPercentage;
+  final bool isAccessedByHomeLifeStaff;
+
   const IndividualTaskCard({
     super.key,
     this.widthPercentage = 0.9,
@@ -24,6 +26,7 @@ class IndividualTaskCard extends StatefulWidget {
     required this.dateID,
     required this.participantID,
     required this.plannedTask,
+    this.isAccessedByHomeLifeStaff = true,
   });
 
   @override
@@ -34,6 +37,8 @@ class _IndividualTaskCardState extends State<IndividualTaskCard> {
   bool isDone = false;
   // temporary variable to quickly reflect the name after clicking this card checkbox/button
   String tempIsDoneBy = "";
+  String tempIsConfirmedDoneBy = "";
+  bool isConfirmedByLoading = false;
 
   /// to update isDone property of a task
   Future<void> updateIsDoneTask() async {
@@ -41,6 +46,7 @@ class _IndividualTaskCardState extends State<IndividualTaskCard> {
         await MyPersonalInfoRepository.getSpecificPersonalInfo(
           userID: FirebaseAuth.instance.currentUser!.uid,
         );
+
     await HomeLifeRepository.updateIsDoneTaskStatus(
       dateID: widget.dateID,
       participantID: widget.participantID,
@@ -51,6 +57,40 @@ class _IndividualTaskCardState extends State<IndividualTaskCard> {
 
     setState(() {
       tempIsDoneBy = personalInfo.name;
+    });
+  }
+
+  Future<void> updateIsConfirmedDoneTask() async {
+    setState(() => isConfirmedByLoading = true);
+    PersonalInfo personalInfo =
+        await MyPersonalInfoRepository.getSpecificPersonalInfo(
+          userID: FirebaseAuth.instance.currentUser!.uid,
+        );
+
+    // Don't proceed if the one who marked it done is the same as the one who will confirm it as done.
+    if (widget.plannedTask.isDoneBy == personalInfo.name) {
+      showMyAnimatedSnackBar(
+        // ignore: use_build_context_synchronously
+        context: context,
+        dataToDisplay: "Sorry, you can't confirm your own work.",
+        bgColor: Colors.white,
+      );
+      setState(() => isConfirmedByLoading = false);
+      return;
+    }
+
+    await HomeLifeRepository.updateIsConfirmedDoneTask(
+      dateID: widget.dateID,
+      participantID: widget.participantID,
+      taskID: widget.plannedTask.taskID!,
+      isConfirmedDoneBy: personalInfo.name,
+      isConfirmedByDifferentPerson:
+          widget.plannedTask.isDoneBy != personalInfo.name,
+    );
+
+    setState(() {
+      tempIsConfirmedDoneBy = personalInfo.name;
+      isConfirmedByLoading = false;
     });
   }
 
@@ -114,6 +154,17 @@ class _IndividualTaskCardState extends State<IndividualTaskCard> {
         ),
         child: InkWell(
           onTap: () {
+            // Preventing non-home life staff to confirm the task as done, because only home life staff can confirm that a task is truly done by the one who marked it as done, to maintain the integrity of the task status.
+            if (!widget.isAccessedByHomeLifeStaff) {
+              showMyAnimatedSnackBar(
+                context: context,
+                dataToDisplay:
+                    "Sorry, only a Home Life staff can mark and confirm tasks as done. (You only have view access.)",
+                bgColor: Colors.white,
+              );
+              return;
+            }
+
             // if task is out of date, it can't be done anymore
             if (MyDateFormatter.formatDate(
                   dateTimeInString: DateTime.now().toString(),
@@ -123,6 +174,7 @@ class _IndividualTaskCardState extends State<IndividualTaskCard> {
                 context: context,
                 dataToDisplay:
                     "Sorry, this task is already out of date, therefore it can't be done.",
+                bgColor: Colors.white,
               );
             }
             // if task is not yet done
@@ -141,13 +193,31 @@ class _IndividualTaskCardState extends State<IndividualTaskCard> {
                   Navigator.pop(context);
                 },
               );
+            } else if (isDone &&
+                widget.plannedTask.isConfirmedDoneBy == '' &&
+                tempIsConfirmedDoneBy == '') {
+              myAlertDialogue(
+                context: context,
+                alertTitle: "Confirm Task Completion",
+                alertContent:
+                    "Warning, only confirm if you are sure that this task is truly done by the one who marked it, as you will also hold accountable for this task's integrity.",
+                onApprovalPressed: () {
+                  updateIsConfirmedDoneTask();
+                  // to pop the dialog box
+                  Navigator.pop(context);
+                },
+              );
             }
             // if already done, just showing a visual cue that this task is already done
             else {
+              String name = (widget.plannedTask.isConfirmedDoneBy == '')
+                  ? tempIsConfirmedDoneBy
+                  : widget.plannedTask.isConfirmedDoneBy;
               showMyAnimatedSnackBar(
                 context: context,
-                bgColor: Colors.white70,
-                dataToDisplay: "This task was already marked as done!",
+                bgColor: Colors.white,
+                // dataToDisplay: "This task was already marked as done!",
+                dataToDisplay: "This task was already confirmed done by $name!",
               );
             }
           },
@@ -212,7 +282,7 @@ class _IndividualTaskCardState extends State<IndividualTaskCard> {
                           text:
                               (widget.plannedTask.isDoneBy != '' ||
                                   tempIsDoneBy != '')
-                              ? "Done by: "
+                              ? "By: "
                               : "",
                           // text: widget.plannedTask.description,
                           maxLines: 1,
@@ -230,6 +300,53 @@ class _IndividualTaskCardState extends State<IndividualTaskCard> {
                           maxLines: 1,
                         ),
                       ),
+
+                      Spacer(),
+                      if (widget.plannedTask.isConfirmedDoneBy != '' ||
+                          tempIsConfirmedDoneBy != '')
+                        MyLine(
+                          length: MyDimensionAdapter.getHeight(context) * 0.017,
+                          isRounded: true,
+                        ),
+
+                      FittedBox(
+                        child: MyTextFormatter.p(
+                          text:
+                              (widget.plannedTask.isConfirmedDoneBy != '' ||
+                                  tempIsConfirmedDoneBy != '')
+                              ? "Confirmed by: "
+                              : "",
+                          // text: widget.plannedTask.description,
+                          maxLines: 1,
+                        ),
+                      ),
+                      // This will display the name of the home life staff who confirmed that the task was really done by a certain staff
+                      (isConfirmedByLoading)
+                          ? Container(
+                              width:
+                                  MyDimensionAdapter.getWidth(context) * 0.04,
+                              height:
+                                  MyDimensionAdapter.getWidth(context) * 0.04,
+                              margin: EdgeInsets.only(left: 2, right: 2),
+                              child: CircularProgressIndicator.adaptive(
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : AnimatedOpacity(
+                              duration: Duration(milliseconds: 400),
+                              opacity: (isConfirmedByLoading) ? 0 : 1,
+                              child: FittedBox(
+                                child: MyTextFormatter.p(
+                                  // tempIsConfirmedDone is for when this task is not yet done and gets done,
+                                  //                     just to quickly reflect a temporary version of the data being save in the database
+                                  text: (tempIsConfirmedDoneBy != '')
+                                      ? tempIsConfirmedDoneBy
+                                      : widget.plannedTask.isConfirmedDoneBy,
+                                  fontWeight: FontWeight.w500,
+                                  maxLines: 1,
+                                ),
+                              ),
+                            ),
                     ],
                   ),
                 ),

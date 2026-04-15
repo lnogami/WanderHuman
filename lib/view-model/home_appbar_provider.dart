@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -6,39 +7,52 @@ import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 
 class HomeAppBarProvider extends ChangeNotifier {
-  // bool isExpanded = false;
-
   // Widget cachedImageWidget = MyImageDisplayer();
   // String _cachedImageString = "";
+  bool? _isAppBarExpanded;
   Uint8List? _cachedImageString;
-  // to contain the fetched user name
-  String _userName = "...";
+  PersonalInfo? _loggedInUserData;
 
+  bool get isAppBarExpanded => _isAppBarExpanded!;
+  PersonalInfo get loggedInUserData => _loggedInUserData!;
+  String get userName => _loggedInUserData?.name ?? "...";
   Uint8List? get cachedImageString => _cachedImageString;
-  String get userName => _userName;
 
-  // /// if Expanded, then Collaps, otherwise reverse.
-  // void toggleAppBar() {
-  //   isExpanded = !isExpanded;
-  //   notifyListeners(); // this is just like a setState() but for providers
-  // }
-
-  /// Fetches BOTH the Name and the Profile Picture string at once.
-  /// Call this in initState of your Home screen.
-  Future<void> initUserData() async {
+  /// Fetches the personal data of the current logged in user. This must only be called once.
+  Future<void> initUserData(PersonalInfo currentlyLoggedInUserData) async {
     try {
-      final String uid = FirebaseAuth.instance.currentUser!.uid;
-
-      // Fetch the full object once to save reads
-      PersonalInfo info =
-          await MyPersonalInfoRepository.getSpecificPersonalInfo(userID: uid);
-
-      _userName = info.name;
-      _cachedImageString = await compute(base64Decode, info.picture.toString());
+      _isAppBarExpanded = false;
+      _loggedInUserData = currentlyLoggedInUserData;
+      _cachedImageString = await compute(
+        base64Decode,
+        currentlyLoggedInUserData.picture,
+      );
 
       notifyListeners(); // Updates both App Bar and Modal immediately
     } catch (e) {
-      print("Error fetching user data: $e");
+      log("Error fetching user data: $e");
+    }
+  }
+
+  /// The value must be a true or false.
+  Future<void> toggleAppBarExpansion(bool value) async {
+    _isAppBarExpanded = value;
+    notifyListeners();
+    log("AppBar expansion toggled to $_isAppBarExpanded");
+  }
+
+  /// Call this when something changes in this current logged in user's data
+  Future<void> refreshLoggedInUserData() async {
+    try {
+      final String uid = FirebaseAuth.instance.currentUser!.uid;
+      PersonalInfo info =
+          await MyPersonalInfoRepository.getSpecificPersonalInfo(userID: uid);
+
+      _loggedInUserData = info;
+
+      notifyListeners();
+    } catch (e) {
+      log("Error refreshing picture: $e");
     }
   }
 
@@ -54,16 +68,7 @@ class HomeAppBarProvider extends ChangeNotifier {
       _cachedImageString = await compute(base64Decode, info.picture.toString());
       notifyListeners();
     } catch (e) {
-      print("Error refreshing picture: $e");
+      log("Error refreshing picture: $e");
     }
   }
 }
-
-// String profilePictureBase64String()  {
-
-//   return MyPersonalInfoRepository.getSpecificPersonalInfo(userID: FirebaseAuth.instance.currentUser!.uid)
-//       .then((personalInfo) {
-//       return personalInfo.picture;
-//   });
-
-// }

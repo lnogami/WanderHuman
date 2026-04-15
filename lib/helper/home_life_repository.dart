@@ -149,6 +149,8 @@
 
 // ignore_for_file: avoid_print
 
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wanderhuman_app/helper/hl_planner_repository.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
@@ -271,6 +273,8 @@ class HomeLifeRepository {
                 time: task.time,
                 isDone: false,
                 isDoneBy: '', // will be filled later when it isDone is true,
+                isConfirmedDoneBy:
+                    '', // will be filled later when it isDoneBy is confirmed by the assigned caregiver,
                 caregiverId: task.createdBy,
                 createdAt: dateID,
               ),
@@ -429,6 +433,8 @@ class HomeLifeRepository {
               time: task.time,
               isDone: false,
               isDoneBy: '', // will be filled later when it isDone is true
+              isConfirmedDoneBy:
+                  '', // will be filled later when it isDoneBy has value
               caregiverId: task.createdBy,
               createdAt: dateOnlyFormat,
             ),
@@ -578,7 +584,80 @@ class HomeLifeRepository {
     return (hour * 60) + minute;
   }
 
-  // TODO not yet implemented
+  // /// This will return all the dailyTaskRecorded of an Individual.
+  // static Future<List<HLTaskModel>> getAllIndividualPatientTasks({
+  //   required String dateID,
+  //   required String participantID,
+  //   bool isToRetrieveUnFinishTasks = false,
+  // }) async {
+  //   try {
+  //     List<HLTaskModel> allTasks = [];
+  //     List<String> dates = await getAllDaysOfRecordedTasks();
+
+  //     for (var date in dates) {
+  //       QuerySnapshot tasksSnapshot = await _rootCollection
+  //           .doc(MyDateFormatter.formatDate(dateTimeInString: date))
+  //           .collection(_subcollection1)
+  //           .doc(participantID)
+  //           .collection(_subcollection2)
+  //           .get();
+
+  //       print("TASKSNAPSHOT DOC COUNT: ${tasksSnapshot.size}");
+
+  //       List<HLTaskModel> tasks = tasksSnapshot.docs.map((doc) {
+  //         // 1. EXTRACT: We cast .data() to a Map because Firestore returns a generic Object.
+  //         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+
+  //         // print("DOES NOT ERROR AFTER CASTING");
+  //         // print("IS DATA EMPTY?: ${data.isEmpty}");
+
+  //         // 2. TRANSFORM: We convert the raw Map into our clean HLTaskModel object.
+  //         return HLTaskModel.fromFirestore(data, doc.id);
+  //       }).toList();
+  //       // 3. EXECUTE: .map() is "Lazy". It prepares the transformation instruction but doesn't run it yet.
+  //       //    Calling .toList() forces the iteration to happen NOW, processing all documents
+  //       //    and returning the final List<HLTaskModel>.
+
+  //       // sorts the list chronologically (by converting time to minutes)
+  //       // I think this somewhat like a quicksort, a as the pivot (middle element in the list)
+  //       // a compared to b, if a is smaller than b return -1 then b will go to the right side of a and vice versa.
+  //       tasks.sort((a, b) {
+  //         return _timeToMinutes(a.time).compareTo(_timeToMinutes(b.time));
+  //       });
+  //       tasks.sort((a, b) {
+  //         DateTime aCreatedAt = DateTime.parse(
+  //           MyDateFormatter.formatDate(
+  //             dateTimeInString: a.createdAt,
+  //             formatOptions: 7,
+  //             customedFormat: "yyyy-MM-dd",
+  //           ),
+  //         );
+  //         DateTime bCreatedAt = DateTime.parse(
+  //           MyDateFormatter.formatDate(
+  //             dateTimeInString: b.createdAt,
+  //             formatOptions: 7,
+  //             customedFormat: "yyyy-MM-dd",
+  //           ),
+  //         );
+
+  //         return aCreatedAt.compareTo(bCreatedAt);
+  //       });
+
+  //       allTasks.addAll(tasks);
+  //     }
+
+  //     // return tasks;
+  //     return allTasks.reversed.toList();
+  //   }
+  //   // just in case an error occurs, we will know what it is
+  //   catch (e) {
+  //     print(
+  //       "ERROW WHEN RETRIEVING DATAAAAAAAAAAAAAAAAA in getIndividualPatientTasks method: $e",
+  //     );
+  //     // throw FirebaseException(plugin: e.toString());
+  //     rethrow;
+  //   }
+  // }
   /// This will return all the dailyTaskRecorded of an Individual.
   static Future<List<HLTaskModel>> getAllIndividualPatientTasks({
     required String dateID,
@@ -587,8 +666,11 @@ class HomeLifeRepository {
   }) async {
     try {
       List<HLTaskModel> allTasks = [];
+
+      // 1. Get the dates (they can be in any random order, it doesn't matter anymore!)
       List<String> dates = await getAllDaysOfRecordedTasks();
 
+      // 2. Just dump ALL tasks into the allTasks list. No sorting here!
       for (var date in dates) {
         QuerySnapshot tasksSnapshot = await _rootCollection
             .doc(MyDateFormatter.formatDate(dateTimeInString: date))
@@ -600,38 +682,52 @@ class HomeLifeRepository {
         print("TASKSNAPSHOT DOC COUNT: ${tasksSnapshot.size}");
 
         List<HLTaskModel> tasks = tasksSnapshot.docs.map((doc) {
-          // 1. EXTRACT: We cast .data() to a Map because Firestore returns a generic Object.
           Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-
-          // print("DOES NOT ERROR AFTER CASTING");
-          // print("IS DATA EMPTY?: ${data.isEmpty}");
-
-          // 2. TRANSFORM: We convert the raw Map into our clean HLTaskModel object.
           return HLTaskModel.fromFirestore(data, doc.id);
         }).toList();
-        // 3. EXECUTE: .map() is "Lazy". It prepares the transformation instruction but doesn't run it yet.
-        //    Calling .toList() forces the iteration to happen NOW, processing all documents
-        //    and returning the final List<HLTaskModel>.
-
-        // sorts the list chronologically (by converting time to minutes)
-        // I think this somewhat like a quicksort, a as the pivot (middle element in the list)
-        // a compared to b, if a is smaller than b return -1 then b will go to the right side of a and vice versa.
-        tasks.sort((a, b) {
-          return _timeToMinutes(a.time).compareTo(_timeToMinutes(b.time));
-        });
 
         allTasks.addAll(tasks);
       }
 
-      // return tasks;
+      // =========================================================
+      // 3. THE MASTER SORT: Sorts the entire combined list!
+      // =========================================================
+      allTasks.sort((a, b) {
+        // Step A: Parse both dates using your exact logic
+        DateTime aDate = DateTime.parse(
+          MyDateFormatter.formatDate(
+            dateTimeInString: a.createdAt,
+            formatOptions: 7,
+            customedFormat: "yyyy-MM-dd",
+          ),
+        );
+        DateTime bDate = DateTime.parse(
+          MyDateFormatter.formatDate(
+            dateTimeInString: b.createdAt,
+            formatOptions: 7,
+            customedFormat: "yyyy-MM-dd",
+          ),
+        );
+
+        // Step B: Compare the Dates
+        int dateComparison = aDate.compareTo(bDate);
+
+        // Step C: The Magic Logic
+        if (dateComparison != 0) {
+          // If the dates are DIFFERENT (e.g., Jan vs March), sort by the Date
+          return dateComparison;
+        } else {
+          // If the dates are the SAME (e.g., both are March 10), sort by the Time!
+          return _timeToMinutes(a.time).compareTo(_timeToMinutes(b.time));
+        }
+      });
+
+      // 4. Return the beautifully sorted list
       return allTasks.reversed.toList();
-    }
-    // just in case an error occurs, we will know what it is
-    catch (e) {
+    } catch (e) {
       print(
-        "ERROW WHEN RETRIEVING DATAAAAAAAAAAAAAAAAA in getIndividualPatientTasks method: $e",
+        "ERROR WHEN RETRIEVING DATA in getIndividualPatientTasks method: $e",
       );
-      // throw FirebaseException(plugin: e.toString());
       rethrow;
     }
   }
@@ -656,21 +752,70 @@ class HomeLifeRepository {
     return doc["isDone"];
   }
 
-  /// Will return all the dateID (doc ID) of all the dailyRecordedTask
-  static Future<List<String>> getAllDaysOfRecordedTasks() async {
-    QuerySnapshot records = await _rootCollection.get();
+  // /// Will return all the dateID (doc ID) of all the dailyRecordedTask
+  // static Future<List<String>> getAllDaysOfRecordedTasks() async {
+  //   QuerySnapshot records = await _rootCollection.get();
 
-    // will return all the dateID
-    return records.docs.map((doc) {
-      return doc.id;
-    }).toList();
+  //   // will return all the dateID
+  //   return records.docs.map((doc) {
+  //     return doc.id;
+  //   }).toList();
+  // }
+
+  /// Will return all the dateID (doc ID) ONLY if the participant has records on that day
+  static Future<List<String>> getAllDaysOfRecordedTasks([
+    String? participantID,
+  ]) async {
+    try {
+      if (participantID != null) {
+        // 1. Get all the Date documents
+        QuerySnapshot records = await _rootCollection.get();
+
+        List<String> validDateIDs = [];
+
+        // 2. Check every date simultaneously
+        await Future.wait(
+          records.docs.map((dateDoc) async {
+            String dateID = dateDoc.id;
+
+            // 3. Peek directly inside their specific HLTasks subcollection
+            // .limit(1) makes it ultra-fast. It costs only 1 read and stops immediately if it finds a task.
+            QuerySnapshot tasks = await _rootCollection
+                .doc(dateID)
+                .collection("HLParticipants")
+                .doc(participantID)
+                .collection("HLTasks")
+                .limit(1)
+                .get();
+
+            // 4. If the subcollection has AT LEAST 1 task, they actively participated!
+            if (tasks.docs.isNotEmpty) {
+              validDateIDs.add(dateID);
+            }
+          }),
+        );
+
+        // 5. Sort newest to oldest
+        validDateIDs.sort((a, b) => b.compareTo(a));
+
+        return validDateIDs;
+      } else {
+        QuerySnapshot records = await _rootCollection.get();
+        // will return all the dateID
+        return records.docs.map((doc) {
+          return doc.id;
+        }).toList();
+      }
+    } catch (e, stackTrace) {
+      log("ERROR FETCHING PARTICIPANT DAYS: $e \nAT: $stackTrace");
+      return [];
+    }
   }
 
   // =========================================================
   // Update Logic
   // =========================================================
 
-  // TODO: not yet implemented
   /// To update the status (isDone) of a task
   static Future<void> updateIsDoneTaskStatus({
     required String dateID,
@@ -707,6 +852,58 @@ class HomeLifeRepository {
       print("SUCCESSFULLY UPDATED TASK STATUS: $isDone");
     } catch (e) {
       print("ERROR WHEN UPDATING TASK STATUS: $e");
+    }
+  }
+
+  // The return type bool is here for debugging purposes only
+  static Future<bool> updateIsConfirmedDoneTask({
+    required String dateID,
+    required String participantID,
+    required String taskID,
+    required String isConfirmedDoneBy,
+    required bool isConfirmedByDifferentPerson,
+  }) async {
+    try {
+      // NOTE: always use MyDateFormatter in the first doc, because we named the first doc
+      //       as a formatter date String like "Jan 10, 2025".
+      //       Otherwise, it will cause an unintended bug.
+      DocumentReference docRef = _rootCollection
+          .doc(MyDateFormatter.formatDate(dateTimeInString: dateID))
+          .collection("HLParticipants")
+          .doc(participantID)
+          .collection("HLTasks")
+          .doc(taskID);
+
+      bool isAlreadyDone = await getTaskStatus(
+        dateID: dateID,
+        participantID: participantID,
+        taskID: taskID,
+      );
+
+      // bool isTodayTask =
+      //     DateTime.now().difference(DateTime.parse(dateID)).inHours <= 24;
+      bool isTodayTask =
+          dateID ==
+          MyDateFormatter.formatDate(
+            dateTimeInString: DateTime.now().toString(),
+          );
+
+      log("isConfirmedByDifferentPerson: $isConfirmedByDifferentPerson");
+      log("isAlreadyDone:  $isAlreadyDone \nisTodayTask: $isTodayTask");
+
+      // only update if status isDone is already true and if the task is today
+      if (isAlreadyDone && isTodayTask && isConfirmedByDifferentPerson) {
+        await docRef.set({
+          "isConfirmedDoneBy": isConfirmedDoneBy,
+        }, SetOptions(merge: true));
+        log(
+          "SUCCESSFULLY UPDATED TASK STATUS IS REALLY DONE By: $isConfirmedDoneBy",
+        );
+      }
+      return true;
+    } catch (e) {
+      print("ERROR WHEN UPDATING TASK STATUS: $e");
+      return false;
     }
   }
 

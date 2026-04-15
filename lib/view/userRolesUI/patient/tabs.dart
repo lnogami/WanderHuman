@@ -1,0 +1,566 @@
+import 'dart:developer';
+
+import 'package:flutter/material.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:provider/provider.dart';
+import 'package:wanderhuman_app/helper/geofence_repository.dart';
+import 'package:wanderhuman_app/helper/history_reposity.dart';
+import 'package:wanderhuman_app/helper/medical_services_repository.dart';
+import 'package:wanderhuman_app/helper/personal_info_repository.dart';
+import 'package:wanderhuman_app/model/history_model.dart';
+import 'package:wanderhuman_app/model/medication_model.dart';
+import 'package:wanderhuman_app/model/personal_info.dart';
+import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
+import 'package:wanderhuman_app/view-model/home_appbar_provider.dart';
+import 'package:wanderhuman_app/view/components/cards2.dart';
+import 'package:wanderhuman_app/view/components/lines.dart';
+import 'package:wanderhuman_app/view/components/page_navigator.dart';
+import 'package:wanderhuman_app/view/components/tooltip.dart';
+import 'package:wanderhuman_app/view/userRolesUI/medical_services/medication.dart';
+import 'package:wanderhuman_app/view/userRolesUI/medical_services/medication_history.dart';
+import 'package:wanderhuman_app/view/userRolesUI/patient/caregiver_tasks.dart';
+import 'package:wanderhuman_app/view/userRolesUI/patient/frequently_go_to.dart';
+import 'package:wanderhuman_app/view/userRolesUI/patient/in_danger_card.dart';
+import 'package:wanderhuman_app/view/userRolesUI/patient/static_mini_map_card.dart';
+
+class MyTabBar extends StatefulWidget {
+  final PersonalInfo patient;
+  final double width;
+  final double height;
+  const MyTabBar({
+    super.key,
+    required this.patient,
+    required this.width,
+    required this.height,
+  });
+
+  @override
+  State<MyTabBar> createState() => _MyTabBarState();
+}
+
+class _MyTabBarState extends State<MyTabBar> {
+  // Logged In User Info
+  bool isLoggedInUserIsSocialService =
+      true; // true by default, until verified otherwise
+
+  final ScrollController forAllScrollController = ScrollController();
+
+  // Medical History Related
+  final List<CombinedMedicalRecord> isNotYetOkayList = [];
+  final List<CombinedMedicalRecord> isNowOkayList = [];
+  // final Map<String, PersonalInfo> medicalStaffs = {};
+  final Map<String, String> medicalStaffs = {};
+  bool isLoadingMedicalRecords = true;
+
+  List<String> tabNames = [
+    "Home Life Tasks", // Only for social service role
+    "Frequently Go-To",
+    "Medical History",
+    "In Danger History",
+  ];
+
+  // Provider
+  late HomeAppBarProvider myHomeAppBarProvider;
+
+  Future<void> getMedicalStaffs() async {
+    try {
+      // Lets just retrieve all records, because there will be times that the staff's role will be moved
+      var medics = await MyPersonalInfoRepository.getAllPersonalInfoRecords(
+        // fieldName: "userType",
+        // valueToLookFor: "Medical Service",
+      );
+
+      for (var medic in medics) {
+        medicalStaffs[medic.userID] = medic.name;
+      }
+    } catch (e, stackTrace) {
+      log("ERROR IN getMedicalStaff: $e \n $stackTrace");
+      rethrow;
+    }
+  }
+
+  Future<List<CombinedMedicalRecord>> getCombinedRecords() async {
+    try {
+      // 1. IMPORTANT: Clear the lists first!
+      // Because FutureBuilder can run multiple times, if you don't clear these,
+      // your lists will duplicate their data every time the screen redraws.
+      isNotYetOkayList.clear();
+      isNowOkayList.clear();
+
+      log("Fetching medical records for Patient ID: ${widget.patient.userID}");
+
+      // 2. Only fetch the Medical Records (We already have the PersonalInfo!)
+      List<MedicationModel> medicalRecords =
+          await MyMedicalRepository.getAllRecords(
+            fieldName: "patientID",
+            isEqualTo: widget.patient.userID,
+          );
+
+      // 3. Merge the data using the widget.personalInfo you already have
+      List<CombinedMedicalRecord> combinedList = [];
+
+      for (var record in medicalRecords) {
+        var combinedRecord = CombinedMedicalRecord(
+          medicalRecord: record,
+          personalInfo: widget.patient, // ✅ Use the data you already have!
+        );
+
+        combinedList.add(combinedRecord);
+
+        // Filter into appropriate lists
+        if (record.isNowOkay) {
+          isNowOkayList.add(combinedRecord);
+        } else {
+          isNotYetOkayList.add(combinedRecord);
+        }
+      }
+
+      // 4. Sort the lists
+      isNotYetOkayList.sort(
+        (a, b) => b.medicalRecord.fromDate.compareTo(a.medicalRecord.fromDate),
+      );
+      isNowOkayList.sort(
+        (a, b) => b.medicalRecord.fromDate.compareTo(a.medicalRecord.fromDate),
+      );
+
+      setState(() => isLoadingMedicalRecords = false);
+
+      return combinedList.reversed.toList();
+    } catch (e, stackTrace) {
+      log("ERROR IN getCombinedRecords: $e \n $stackTrace");
+      rethrow; // Let the FutureBuilder know it failed
+    }
+  }
+
+  // In Danger History
+  // final List<MyHistoryModel> outsideSafeZoneHistory = [];
+  final List<List<MyHistoryModel>> outsideSafeZoneHistory = [];
+  final List<MyHistoryModel> inDangerHistory = [];
+  final List<MyHistoryModel> combinedHistory = [];
+  bool isoutsideSafeZoneHistoryLoading = true;
+  late Position? centerPoint;
+
+  Future<void> getInDangerHistory() async {
+    try {
+      // var logs = await MyHistoryReposity.getPatientHistory(
+      //   widget.patient.userID,
+      //   field1: "isInSafeZone",
+      //   value1: false,
+      //   field2: "isCurrentlySafe",
+      //   value2: false,
+      // );
+      // outsideSafeZoneHistory.addAll(logs);
+
+      if (outsideSafeZoneHistory.isNotEmpty) outsideSafeZoneHistory.clear();
+      var outsideSafeZoneLogs =
+          await MyHistoryReposity.getGroupedUnsafeSessions(
+            widget.patient.userID,
+          );
+      outsideSafeZoneHistory.addAll(outsideSafeZoneLogs);
+
+      if (inDangerHistory.isNotEmpty) inDangerHistory.clear();
+      var inDangerLogs = await MyHistoryReposity.getPatientHistory(
+        widget.patient.userID,
+        field1: "isCurrentlySafe",
+        value1: false,
+      );
+      inDangerHistory.addAll(inDangerLogs);
+
+      if (combinedHistory.isNotEmpty) combinedHistory.clear();
+      for (var historyGroup in outsideSafeZoneHistory) {
+        if (historyGroup.isNotEmpty) {
+          // Check if a log with this exact same timestamp is already in our combined list
+          bool isDuplicate = combinedHistory.any((existingLog) {
+            return existingLog.timeStamp == historyGroup.last.timeStamp;
+          });
+
+          // Only add it if it is truly unique!
+          if (!isDuplicate) {
+            combinedHistory.add(historyGroup.last);
+          }
+        }
+      }
+
+      // To prevent duplication of data, where instances that both isCurrentlySafe and isInSafeZone are both false
+      for (var log in inDangerLogs) {
+        // ✅ THE FIX: Check if this log belongs to ANY of the groups we already fetched
+        bool isAlreadyInAGroup = false;
+        for (var historyGroup in outsideSafeZoneHistory) {
+          // Search the inner list to see if this ping is inside it
+          bool existsInThisGroup = historyGroup.any(
+            (groupLog) => groupLog.timeStamp == log.timeStamp,
+          );
+          if (existsInThisGroup) {
+            isAlreadyInAGroup = true;
+            break; // Stop searching, we found it!
+          }
+        }
+
+        // Only add it if it is a completely independent "In Danger" event!
+        if (!isAlreadyInAGroup) {
+          // Final safety check against combinedHistory just in case
+          bool isDuplicate = combinedHistory.any((existingLog) {
+            return existingLog.timeStamp == log.timeStamp;
+          });
+
+          if (!isDuplicate) {
+            combinedHistory.add(log);
+          }
+        }
+      }
+
+      combinedHistory.sort((a, b) {
+        // Assuming your timeStamp is an ISO8601 String.
+        // If it's a Firebase Timestamp, you would do a.timeStamp.toDate() instead.
+        DateTime timeA = DateTime.parse(a.timeStamp);
+        DateTime timeB = DateTime.parse(b.timeStamp);
+        // Descending (Newest first)
+        return timeB.compareTo(timeA);
+      });
+
+      centerPoint =
+          await MyGeofenceRepository.getCenterPointOfGeofenceBaseOnPatientParticipant(
+            patientID: widget.patient.userID,
+          );
+
+      setState(() => isoutsideSafeZoneHistoryLoading = false);
+      log(
+        "**********************${widget.patient.name} IS IN DANGER HISTORY logs: ${outsideSafeZoneHistory.length}",
+      );
+    } catch (e, stackTrace) {
+      log("ERROR IN getInDangerHistory: $e \nin $stackTrace");
+      rethrow;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    Future.wait([getMedicalStaffs()]);
+    getCombinedRecords();
+    getInDangerHistory();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    myHomeAppBarProvider = context.read<HomeAppBarProvider>();
+    if (myHomeAppBarProvider.loggedInUserData.userType != "Social Service") {
+      isLoggedInUserIsSocialService = false;
+    }
+
+    return DefaultTabController(
+      length: (isLoggedInUserIsSocialService)
+          ? tabNames.length
+          : tabNames.length - 1,
+      child: Scaffold(
+        body: Column(
+          children: [
+            TabBar(
+              // textScaler: TextScaler.noScaling,
+              padding: EdgeInsets.only(left: 20, right: 20),
+              labelPadding: EdgeInsets.only(left: 7, right: 7),
+              unselectedLabelColor: Colors.grey.shade500,
+              labelColor: Colors.blue,
+              splashBorderRadius: BorderRadius.circular(15),
+              // isScrollable: true,
+              tabs: [
+                if (isLoggedInUserIsSocialService)
+                  Tab(
+                    // text: "In Danger History",
+                    height: widget.height * 0.07,
+                    icon: Icon(Icons.task_alt_rounded, color: Colors.blue),
+                    child: FittedBox(
+                      child: MyTextFormatter.p(text: tabNames[0]),
+                    ),
+                  ),
+                Tab(
+                  // text: "Frequently Go-To",
+                  height: widget.height * 0.07,
+                  icon: Icon(
+                    Icons.directions_walk_outlined,
+                    color: Colors.blue,
+                  ),
+                  child: FittedBox(child: MyTextFormatter.p(text: tabNames[1])),
+                ),
+                Tab(
+                  // text: "Medical History",
+                  height: widget.height * 0.07,
+                  icon: Icon(
+                    Icons.medical_information_rounded,
+                    color: Colors.blue,
+                  ),
+                  child: FittedBox(child: MyTextFormatter.p(text: tabNames[2])),
+                ),
+                Tab(
+                  // text: "In Danger History",
+                  height: widget.height * 0.07,
+                  icon: Icon(Icons.warning_rounded, color: Colors.blue),
+                  child: FittedBox(child: MyTextFormatter.p(text: tabNames[3])),
+                ),
+              ],
+            ),
+            Expanded(
+              child: TabBarView(
+                children: [
+                  if (isLoggedInUserIsSocialService)
+                    CaregiverTasks(patientInfo: widget.patient),
+                  FrequentlyGoToArea(patientID: widget.patient.userID),
+                  SingleChildScrollView(child: patientMedicalInfoTab()),
+                  inDangerHistoryTab(),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Container inDangerHistoryTab() {
+    return Container(
+      width: widget.width * 0.80,
+      height: widget.height,
+      // color: Colors.amber,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(height: 40),
+          MyCustTooltip(
+            triggerMode: TooltipTriggerMode.tap,
+            message:
+                "Outside Safe Zone automatically means in danger, while In Danger means something happened inside the safe zone.",
+            heightConstraints: 90,
+            duration: 3000,
+            child: MyTextFormatter.h3(
+              text: "In Danger History",
+              fontsize: kDefaultFontSize + 9,
+              lineHeight: 1,
+            ),
+          ),
+          SizedBox(height: 20),
+
+          (isoutsideSafeZoneHistoryLoading)
+              ? Center(child: CircularProgressIndicator.adaptive())
+              : Expanded(
+                  child: (outsideSafeZoneHistory.isEmpty)
+                      ? Center(
+                          child: MyTextFormatter.p(
+                            text: "Oops. No History Found.",
+                          ),
+                        )
+                      : RawScrollbar(
+                          controller: forAllScrollController,
+                          thumbColor: Colors.blue.shade300,
+                          padding: EdgeInsets.only(
+                            top: 15,
+                            right: 20,
+                            bottom: 10,
+                          ),
+                          thumbVisibility: true,
+                          trackVisibility: false,
+                          thickness: 5,
+                          interactive: false,
+                          radius: Radius.circular(7),
+                          child: ListView.builder(
+                            controller: forAllScrollController,
+                            itemCount: combinedHistory.length,
+                            padding: EdgeInsets.only(top: 10, bottom: 20),
+                            itemBuilder: (context, index) {
+                              // Use outside safe zone history
+                              if (!combinedHistory[index].isInSafeZone) {
+                                return MyStaticMiniMapCard(
+                                  width: widget.width,
+                                  height: widget.height,
+                                  centerPoint: centerPoint!,
+                                  history: getAllRelativeHistory(
+                                    combinedHistory[index],
+                                  ),
+                                );
+                              }
+                              // Use in danger history
+                              else {
+                                return MyInDangerCard(
+                                  width: widget.width,
+                                  height: widget.height,
+                                  history: combinedHistory[index],
+                                );
+                              }
+                            },
+                          ),
+                        ),
+                ),
+        ],
+      ),
+    );
+  }
+
+  List<MyHistoryModel> getAllRelativeHistory(
+    MyHistoryModel lastHistoryAsIndex,
+  ) {
+    for (var historyLogs in outsideSafeZoneHistory) {
+      for (var historyLog in historyLogs) {
+        if (historyLog.timeStamp == lastHistoryAsIndex.timeStamp) {
+          return historyLogs;
+        }
+      }
+    }
+    return [];
+  }
+
+  SafeArea patientMedicalInfoTab() {
+    return SafeArea(
+      // child:
+      child: Center(
+        child: (isLoadingMedicalRecords)
+            ? CircularProgressIndicator.adaptive()
+            : SizedBox(
+                width: widget.width * 0.8,
+                // color: Colors.amber,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    MyCustTooltip(
+                      message:
+                          "Medical History is intended for tracking light medical procedures only. Not designed for managing prescription-based medications.",
+                      triggerMode: TooltipTriggerMode.tap,
+                      heightConstraints: 90,
+                      duration: 3000,
+                      child: MyTextFormatter.h3(
+                        text: "Medical History",
+                        fontsize: kDefaultFontSize + 9,
+                        lineHeight: 1,
+                      ),
+                    ),
+                    SizedBox(height: 20),
+
+                    if (isNotYetOkayList.isNotEmpty) ...[
+                      MyTextFormatter.p(
+                        text: "Not Yet Okay",
+                        fontsize: kDefaultFontSize - 4,
+                      ),
+                      ListView.builder(
+                        padding: EdgeInsets.all(0),
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: isNotYetOkayList.length,
+                        itemBuilder: (context, index) {
+                          final combinedItem = isNotYetOkayList[index];
+                          final record = combinedItem.medicalRecord;
+                          final patient = combinedItem.personalInfo;
+
+                          // Display the data
+                          return MyCardInfoDisplayer2(
+                            // Handle cases where patient info might be missing
+                            // profilePicture: patient?.picture ?? "",
+                            name: patient?.name ?? "Unknown Patient",
+                            diagnosis: record.diagnosis,
+                            treatment: record.treatment,
+                            medic:
+                                medicalStaffs[record.medic] ?? "Unknown Medic",
+                            fromDate: record.fromDate,
+                            untilDate: record.untilDate,
+                            onTap: () {
+                              // You can pass the combined data or just the patient info
+                              if (patient != null) {
+                                MyNavigator.goTo(
+                                  context,
+                                  Medication(
+                                    bufferedPatientInfo: patient,
+                                    recordID: record.recordID,
+                                    medicationModel: record,
+                                    isAccessedByMedicalStaff:
+                                        myHomeAppBarProvider
+                                            .loggedInUserData
+                                            .userType ==
+                                        "Medical Service",
+                                  ),
+                                );
+                              }
+                            },
+                          );
+                        },
+                      ),
+                      SizedBox(height: 10),
+                      MyLine(
+                        length: widget.width * 0.80,
+                        isVertical: false,
+                        isRounded: false,
+                        thickness: 5,
+                        color: Colors.grey.shade400,
+                      ),
+                    ],
+
+                    if (isNowOkayList.isNotEmpty) ...[
+                      MyTextFormatter.p(
+                        text: "Already Okay",
+                        fontsize: kDefaultFontSize - 4,
+                      ),
+                      ListView.builder(
+                        padding: EdgeInsets.all(0),
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: isNowOkayList.length,
+                        itemBuilder: (context, index) {
+                          final combinedItem = isNowOkayList[index];
+                          final record = combinedItem.medicalRecord;
+                          final patient = combinedItem.personalInfo;
+
+                          // Display the data
+                          return MyCardInfoDisplayer2(
+                            // Handle cases where patient info might be missing
+                            // profilePicture: patient?.picture ?? "",
+                            name: patient?.name ?? "Unknown Patient",
+                            // name: "jkajd dkajdkjw dkjawd",
+                            diagnosis: record.diagnosis,
+                            treatment: record.treatment,
+                            medic:
+                                medicalStaffs[record.medic] ?? "Unknown Medic",
+                            fromDate: record.fromDate,
+                            untilDate: record.untilDate,
+                            onTap: () {
+                              // You can pass the combined data or just the patient info
+                              if (patient != null) {
+                                MyNavigator.goTo(
+                                  context,
+                                  Medication(
+                                    bufferedPatientInfo: patient,
+                                    recordID: record.recordID,
+                                    medicationModel: record,
+                                    isAccessedByMedicalStaff:
+                                        myHomeAppBarProvider
+                                            .loggedInUserData
+                                            .userType ==
+                                        "Medical Service",
+                                  ),
+                                );
+                              }
+                            },
+                          );
+                        },
+                      ),
+                    ],
+
+                    if (isNotYetOkayList.isEmpty && isNowOkayList.isEmpty) ...[
+                      SizedBox(height: 60),
+                      Icon(
+                        Icons.menu_book_rounded,
+                        size: 128,
+                        color: Colors.grey.shade400,
+                      ),
+                      MyTextFormatter.p(
+                        text: "No Records Yet.",
+                        color: Colors.grey.shade800,
+                      ),
+                    ],
+                    SizedBox(height: 20),
+                  ],
+                ),
+              ),
+        //     );
+        //   }
+        // },
+      ),
+    );
+  }
+}

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
-import 'package:wanderhuman_app/view/home/home.dart';
 import 'package:wanderhuman_app/view/home/widgets/map/patient_simulator/patient_simulator_map.dart';
 
 class PatientSimulatorContainer extends StatefulWidget {
@@ -43,13 +43,14 @@ class _PatientSimulatorContainerState extends State<PatientSimulatorContainer> {
                 right: 30,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (context) {
-                          return HomePage();
-                        },
-                      ),
-                    );
+                    // Navigator.of(context).pushReplacement(
+                    //   MaterialPageRoute(
+                    //     builder: (context) {
+                    //       return HomePage();
+                    //     },
+                    //   ),
+                    // );
+                    Phoenix.rebirth(context);
                   },
                   child: Icon(Icons.undo_rounded),
                 ),

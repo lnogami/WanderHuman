@@ -1,21 +1,18 @@
-// NOT YET IMPLEMENTED
+import 'package:flutter/material.dart';
 
-// import 'package:flutter/material.dart';
-// void bottomSheet(BuildContext context, Widget child) {
-//   showModalBottomSheet(
-//     context: context,
-//     isScrollControlled: true,
-//     shape: const RoundedRectangleBorder(
-//       borderRadius: BorderRadius.only(
-//         topLeft: Radius.circular(20),
-//         topRight: Radius.circular(20),
-//       ),
-//     ),
-//     builder: (context) => Padding(
-//       padding: EdgeInsets.only(
-//         bottom: MediaQuery.of(context).viewInsets.bottom,
-//       ),
-//       child: child,
-//     ),
-//   );
-// }
+class MyBottomPanel {
+  /// A generic bottom sheet
+  static void showMyBottomPanel({
+    required BuildContext context,
+    required dynamic child,
+  }) {
+    showModalBottomSheet(
+      isScrollControlled: true,
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return child;
+      },
+    );
+  }
+}

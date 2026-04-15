@@ -1,0 +1,250 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:wanderhuman_app/model/personal_info.dart';
+import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
+import 'package:wanderhuman_app/utilities/properties/universal_sizes.dart';
+import 'package:wanderhuman_app/view-model/home_appbar_provider.dart';
+import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
+import 'package:wanderhuman_app/view/components/bottom_sheet.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/map_functions/active_status.dart';
+import 'package:wanderhuman_app/view/home_appbar/home_appbar_dynamic_panel.dart';
+import 'package:wanderhuman_app/view/home_appbar/settings_interface.dart';
+import 'package:wanderhuman_app/view/home_appbar/user_role_previlige.dart';
+import 'package:wanderhuman_app/view/components/option_container.dart';
+
+class MyMenuOptions extends StatefulWidget {
+  final bool isVisible;
+  final PersonalInfo loggedInUserData;
+  const MyMenuOptions({
+    super.key,
+    this.isVisible = false,
+    required this.loggedInUserData,
+  });
+
+  @override
+  State<MyMenuOptions> createState() => _MyMenuOptionsState();
+}
+
+class _MyMenuOptionsState extends State<MyMenuOptions> {
+  bool isGoingToLogout = false;
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: Duration(
+        milliseconds: 200,
+        // (widget.loggedInUserData.userType.toUpperCase() == "ADMIN")
+        // ? 200
+        // : 180,
+      ),
+      // color: Colors.amber,
+      width: MyDimensionAdapter.getWidth(context) - 60,
+      height: (widget.isVisible)
+          ? MyDynamicAppbarHeight.expandingInnerPanelHeight(
+              widget.loggedInUserData.userType,
+            )
+          : 0,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // this is just for drawing a thin horizontal line that acts as a border.
+            Container(
+              width: MyDimensionAdapter.getWidth(context) - 60,
+              height: 1,
+              decoration: BoxDecoration(
+                color: Colors.grey[400],
+                borderRadius: BorderRadius.all(Radius.circular(30)),
+              ),
+              margin: EdgeInsets.only(top: 5), // bottom: 22.5),
+            ),
+
+            // displays user type
+            toDisplayUserType(),
+            SizedBox(height: 10),
+
+            // Determine user role privilege options to display
+            MyUserRolePrevilige(userType: widget.loggedInUserData.userType),
+            SizedBox(height: MySizes.buttonsHorizontalGap),
+
+            // Common options (not role exclusive options)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                SizedBox(height: 10),
+                optionsContainer(
+                  context,
+                  Icons.settings_outlined,
+                  "Settings",
+                  onTap: () {
+                    // (deletable)
+                    // showMyAnimatedSnackBar(
+                    //   context: context,
+                    //   dataToDisplay: "Testing",
+                    // );
+
+                    context.read<HomeAppBarProvider>().toggleAppBarExpansion(
+                      false,
+                    );
+
+                    MyBottomPanel.showMyBottomPanel(
+                      context: context,
+                      child: MySettingsInterface(
+                        loggedInUserID: context
+                            .read<HomeAppBarProvider>()
+                            .loggedInUserData
+                            .userID,
+                      ),
+                    );
+                  },
+                ),
+                SizedBox(height: 10),
+                // if the logout button is pressed
+                (!isGoingToLogout)
+                    ? optionsContainer(
+                        context,
+                        Icons.logout_outlined,
+                        "Logout",
+                        // bgColor: const Color.fromARGB(80, 255, 108, 108),
+                        // bgColor: const Color.fromARGB(70, 255, 198, 198),
+                        bgColor: const Color.fromARGB(70, 255, 234, 234),
+                        onTap: () {
+                          myAlertDialogue(
+                            context: context,
+                            alertTitle: "Confirm Logout",
+                            alertContent: "Are you sure you want to logout?",
+                            onApprovalPressed: () async {
+                              setState(() {
+                                isGoingToLogout = true;
+                              });
+                              // await FirebaseAuth.instance.signOut();
+                            },
+                          );
+                        },
+                      )
+                    : SizedBox(
+                        width: MyDimensionAdapter.getWidth(context) * 0.35,
+                        child: FutureBuilder(
+                          future: ActiveStatus.setActiveStatusToOffline(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return Center(
+                                child: SizedBox(
+                                  width: 30,
+                                  height: 30,
+                                  child: CircularProgressIndicator(),
+                                ),
+                              );
+                            } else {
+                              signOut();
+                              return Icon(
+                                Icons.check_circle_outline_rounded,
+                                color: Colors.blue.shade400,
+                                size: 32,
+                              );
+                            }
+                          },
+                        ),
+                      ),
+                SizedBox(height: 10),
+              ],
+            ),
+            // SizedBox(height: 20),
+            // Row(
+            //   mainAxisAlignment: MainAxisAlignment.end,
+            //   children: [
+            //     Icon(
+            //       Icons.person_outline_rounded,
+            //       color: const Color.fromARGB(200, 0, 0, 0),
+            //     ),
+            //     Spacer(),
+            //     Text("Acount"),
+            //   ],
+            // ),
+            // SizedBox(height: 10),
+            // Row(
+            //   mainAxisAlignment: MainAxisAlignment.end,
+            //   children: [
+            //     Icon(Icons.add, color: const Color.fromARGB(200, 0, 0, 0)),
+            //     Spacer(),
+            //     Text("Add Patient"),
+            //   ],
+            // ),
+            // SizedBox(height: 10),
+            // Row(
+            //   mainAxisAlignment: MainAxisAlignment.end,
+            //   children: [
+            //     Icon(
+            //       Icons.settings_outlined,
+            //       color: const Color.fromARGB(200, 0, 0, 0),
+            //     ),
+            //     Spacer(),
+            //     Text("Settings"),
+            //   ],
+            // ),
+            // Container(
+            //   width: MyDimensionAdapter.getWidth(context),
+            //   height: 1,
+            //   decoration: BoxDecoration(
+            //     color: Colors.blue[100],
+            //     borderRadius: BorderRadius.all(Radius.circular(30)),
+            //   ),
+            //   margin: EdgeInsets.only(top: 10, bottom: 15),
+            // ),
+            // GestureDetector(
+            //   onTap: () => FirebaseAuth.instance.signOut(),
+            //   child: Row(
+            //     mainAxisAlignment: MainAxisAlignment.end,
+            //     children: [
+            //       Icon(
+            //         Icons.exit_to_app_rounded,
+            //         color: const Color.fromARGB(200, 0, 0, 0),
+            //       ),
+            //       Spacer(),
+            //       Text("Logout"),
+            //     ],
+            //   ),
+            // ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> signOut() async {
+    Navigator.pop(context);
+    await FirebaseAuth.instance.signOut();
+  }
+
+  Row toDisplayUserType() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          // for grammatical purposes
+          (widget.loggedInUserData.userType.toUpperCase() == "ADMIN")
+              ? "You are an "
+              : "You are a ",
+          // ? "Your role is an "
+          // : "Your role is ",
+          style: TextStyle(fontSize: 11, color: Colors.blueGrey),
+        ),
+        Text(
+          widget.loggedInUserData.userType.toUpperCase(),
+          style: TextStyle(
+            fontSize: 11,
+            // fontStyle: FontStyle.italic,
+            fontWeight: FontWeight.w500,
+            color: Colors.blueGrey,
+          ),
+        ),
+      ],
+    );
+  }
+}

@@ -1,5 +1,7 @@
 // ignore_for_file: avoid_print
 
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 
@@ -44,19 +46,56 @@ class MyPersonalInfoRepository {
     });
   }
 
-  // returns all the records there is in PersonalInfo collection in database (FirebaseFirestore)
-  static Future<List<PersonalInfo>> getAllPersonalInfoRecords() async {
-    try {
-      QuerySnapshot querySnapshot = await _personalInfoCollectionReference
-          // .where("userType", isEqualTo: "Patient")
-          .get();
-      List<PersonalInfo> patients = querySnapshot.docs.map((doc) {
-        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        return PersonalInfo.fromFirestore(doc.id, data);
-      }).toList();
+  // original before the revamp, if this is deleted, it means the revamp work successfully
+  // // returns all the records there is in PersonalInfo collection in database (FirebaseFirestore)
+  // static Future<List<PersonalInfo>> getAllPersonalInfoRecords() async {
+  //   try {
+  //     QuerySnapshot querySnapshot = await _personalInfoCollectionReference
+  //         // .where("userType", isEqualTo: "Patient")
+  //         .get();
+  //     List<PersonalInfo> patients = querySnapshot.docs.map((doc) {
+  //       Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+  //       return PersonalInfo.fromFirestore(doc.id, data);
+  //     }).toList();
 
-      // // to cache personal innfo records, for the purpose of getPatientIdAandName()
-      // _personalInfoRecords = patients;
+  //     // // to cache personal innfo records, for the purpose of getPatientIdAandName()
+  //     // _personalInfoRecords = patients;
+
+  //     print('✅🔍 Successfully fetched ${patients.length} patients');
+  //     return patients;
+  //   } catch (e) {
+  //     print("🔍 $e");
+  //     throw Exception();
+  //   }
+  // }
+
+  /// Returns all the records there is in PersonalInfo collection in database (FirebaseFirestore)
+  static Future<List<PersonalInfo>> getAllPersonalInfoRecords({
+    String? fieldName,
+    String? valueToLookFor,
+  }) async {
+    try {
+      late QuerySnapshot querySnapshot;
+      late List<PersonalInfo> patients;
+
+      // generic fetching, get all data (no specific query)
+      if (fieldName == null && valueToLookFor == null) {
+        querySnapshot = await _personalInfoCollectionReference.get();
+        patients = querySnapshot.docs.map((doc) {
+          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+          return PersonalInfo.fromFirestore(doc.id, data);
+        }).toList();
+      }
+      // has query a specific field based on the valueToLookFor
+      else {
+        querySnapshot = await _personalInfoCollectionReference
+            .where(fieldName!, isEqualTo: valueToLookFor)
+            .get();
+        patients = querySnapshot.docs.map((doc) {
+          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+          return PersonalInfo.fromFirestore(doc.id, data);
+        }).toList();
+      }
 
       print('✅🔍 Successfully fetched ${patients.length} patients');
       return patients;
@@ -66,25 +105,40 @@ class MyPersonalInfoRepository {
     }
   }
 
+  // newer version of what is below (as of Feb 17, 2026)
   static Future<PersonalInfo> getSpecificPersonalInfo({
     required String userID,
   }) async {
     try {
       // DocumentSnapshot queryDocumentSnapshot = await FirebaseFirestore.instance.collection("Personal Info").where("userID", isEqualTo: userID).get().then((value) => value.docs.first);
       // DocumentSnapshot queryDocumentSnapshot = await _personalInfoCollectionReference.doc(userID).get();
+      // List<PersonalInfo> tempIndividualRecord = await getAllPersonalInfoRecords(
+      //   fieldName: "userID",
+      //   valueToLookFor: userID,
+      // );
 
-      List<PersonalInfo> allPersonalInfoRecords =
-          await getAllPersonalInfoRecords();
-      PersonalInfo? personalInfo;
+      List<PersonalInfo> tempIndividualRecord;
 
-      for (var individualRecord in allPersonalInfoRecords) {
-        if (individualRecord.userID == userID) {
-          personalInfo = individualRecord;
-        }
+      // 1. First, try to find the user by their UserID
+      tempIndividualRecord = await getAllPersonalInfoRecords(
+        fieldName: "userID",
+        valueToLookFor: userID,
+      );
+
+      // 2. FIX: Check if the list is empty.
+      // If it is, THEN try searching by DeviceID.
+      if (tempIndividualRecord.isEmpty) {
+        tempIndividualRecord = await getAllPersonalInfoRecords(
+          fieldName: "deviceID",
+          valueToLookFor: userID,
+        );
       }
+      PersonalInfo? personalInfo = tempIndividualRecord.firstOrNull;
 
-      if (personalInfo == null)
+      // return immediately if null
+      if (personalInfo == null) {
         throw Exception("❌❌❌ No PersonalInfo found for userID: $userID");
+      }
 
       return PersonalInfo(
         userID: personalInfo.userID,
@@ -104,11 +158,88 @@ class MyPersonalInfoRepository {
         deviceID: personalInfo.deviceID,
         email: personalInfo.email,
       );
-    } catch (e) {
-      print("❌ AN EXCEPTION OCCURRED IN getSpecificPersonalInfo METHOD: $e");
-      throw Exception();
+    } catch (e, stackTrace) {
+      log(
+        "❌ AN EXCEPTION OCCURRED IN getSpecificPersonalInfo METHOD: $e, AT: $stackTrace",
+      );
+      rethrow;
     }
   }
+
+  //// Older version of what is above
+  // static Future<List<PersonalInfo>> getAllPersonalInfoRecords({
+  //   String? fieldName,
+  //   String? valueToLookFor,
+  // }) async {
+  //   try {
+  //     late QuerySnapshot querySnapshot;
+  //     late List<PersonalInfo> patients;
+  //     if (fieldName == null && valueToLookFor == null) {
+  //       querySnapshot = await _personalInfoCollectionReference
+  //           // .where("userType", isEqualTo: "Patient")
+  //           .get();
+  //       patients = querySnapshot.docs.map((doc) {
+  //         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+  //         return PersonalInfo.fromFirestore(doc.id, data);
+  //       }).toList();
+  //     } else {
+  //       querySnapshot = await _personalInfoCollectionReference
+  //           .where(fieldName!, isEqualTo: valueToLookFor)
+  //           .get();
+  //       patients = querySnapshot.docs.map((doc) {
+  //         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+  //         return PersonalInfo.fromFirestore(doc.id, data);
+  //       }).toList();
+  //     }
+  //     // // to cache personal innfo records, for the purpose of getPatientIdAandName()
+  //     // _personalInfoRecords = patients;
+  //     print('✅🔍 Successfully fetched ${patients.length} patients');
+  //     return patients;
+  //   } catch (e) {
+  //     print("🔍 $e");
+  //     throw Exception();
+  //   }
+  // }
+
+  // static Future<PersonalInfo> getSpecificPersonalInfo({
+  //   required String userID,
+  // }) async {
+  //   try {
+  //     // DocumentSnapshot queryDocumentSnapshot = await FirebaseFirestore.instance.collection("Personal Info").where("userID", isEqualTo: userID).get().then((value) => value.docs.first);
+  //     // DocumentSnapshot queryDocumentSnapshot = await _personalInfoCollectionReference.doc(userID).get();
+  //     List<PersonalInfo> allPersonalInfoRecords =
+  //         await getAllPersonalInfoRecords();
+  //     PersonalInfo? personalInfo;
+  //     for (var individualRecord in allPersonalInfoRecords) {
+  //       if (individualRecord.userID == userID) {
+  //         personalInfo = individualRecord;
+  //       }
+  //     }
+  //     if (personalInfo == null)
+  //       throw Exception("❌❌❌ No PersonalInfo found for userID: $userID");
+  //     return PersonalInfo(
+  //       userID: personalInfo.userID,
+  //       userType: personalInfo.userType,
+  //       name: personalInfo.name,
+  //       age: personalInfo.age,
+  //       sex: personalInfo.sex,
+  //       birthdate: personalInfo.birthdate,
+  //       contactNumber: personalInfo.contactNumber,
+  //       address: personalInfo.address,
+  //       notableBehavior: personalInfo.notableBehavior,
+  //       picture: personalInfo.picture,
+  //       createdAt: personalInfo.createdAt,
+  //       lastUpdatedAt: personalInfo.lastUpdatedAt,
+  //       registeredBy: personalInfo.registeredBy,
+  //       asignedCaregiver: personalInfo.asignedCaregiver,
+  //       deviceID: personalInfo.deviceID,
+  //       email: personalInfo.email,
+  //     );
+  //   } catch (e) {
+  //     print("❌ AN EXCEPTION OCCURRED IN getSpecificPersonalInfo METHOD: $e");
+  //     throw Exception();
+  //   }
+  // }
 
   /// Gets the name of the currently logged-in user and sets their userType
   /// in the static [_userType] variable for app-wide access.
@@ -275,6 +406,15 @@ class MyPersonalInfoRepository {
       print("❌❌❌ Error updating personal info: $e");
       // throw Exception();
       return false;
+    }
+  }
+
+  static Future<void> deletePersonalInfo({required String userID}) async {
+    try {
+      await _personalInfoCollectionReference.doc(userID).delete();
+    } catch (e) {
+      print("❌❌❌ Error deleting personal info: $e");
+      throw Exception();
     }
   }
 }

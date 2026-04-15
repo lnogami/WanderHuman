@@ -1,65 +1,375 @@
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:wanderhuman_app/model/history.dart';
+import 'package:wanderhuman_app/model/history_model.dart';
+import 'package:wanderhuman_app/model/realtime_location_model.dart';
 
 class MyHistoryReposity {
-  static final CollectionReference _historyCollectionReference =
-      FirebaseFirestore.instance.collection("History");
+  /// This will contain all the last saved times for each patient
+  static final Map<String, DateTime> _lastSavedTimes = {};
 
-  // FOR PATIENT SIMULATION
-  static Future<void> savePatientLocation(PatientHistory patient) async {
+  /// This _timeGapInSeconds means the duration between each log to save to the database
+  static final int _timeGapInSeconds = 30;
+
+  /// Root collection for History
+  static final CollectionReference _rootCollection = FirebaseFirestore.instance
+      .collection("History");
+
+  /// Sub-collection for PatientLogs
+  static final String _subCollection = "PatientLogs";
+
+  /// This checks RAM instead of the Database (Instant & Free)
+  static bool _shouldSaveNow(String patientID) {
+    // If we have never saved for this patient in this session, save now.
+    if (!_lastSavedTimes.containsKey(patientID)) {
+      return true;
+    }
+
+    DateTime lastSave = _lastSavedTimes[patientID]!;
+    DateTime now = DateTime.now();
+
+    // Check if 30 seconds have passed
+    if (now.difference(lastSave).inSeconds >= _timeGapInSeconds) {
+      return true;
+    }
+
+    return false;
+  }
+
+  static Future<void> savePatientLocation({
+    required MyRealtimeLocationModel locationData,
+  }) async {
     try {
-      _historyCollectionReference.doc().set({
-        "patientID": patient.patientID,
-        "isInSafeZone": patient.isInSafeZone,
-        "currentLocation": patient.currentLocation,
-        "currentlyIn": patient.currentlyIn,
-        "timeStamp": patient.timeStamp,
-        "deviceBatteryPercentage": patient.deviceBatteryPercentage,
-      });
-    } on FirebaseException catch (e) {
-      // ignore: avoid_print
-      print("❌ Error on saving user location:${e.message}");
-      throw Exception();
+      // 3. Check memory first!
+      // This stops the code from doing ANY database work if it's too soon.
+      if (!_shouldSaveNow(locationData.patientID)) {
+        // Uncomment this if you want to see how many saves are being skipped
+        log(
+          "NOTICEEEEE: Skipping history save for ${locationData.patientID} (Too soon)",
+        );
+        return;
+      }
+
+      // 4. Update the "Last Saved" time immediately so we don't save again too soon
+      _lastSavedTimes[locationData.patientID] = DateTime.now();
+
+      // 5. Proceed with saving to Firestore
+      // (You don't need _isPatientLogsEmpty checks anymore if you trust the timestamps)
+
+      await _rootCollection
+          .doc(locationData.patientID)
+          .collection(_subCollection)
+          .doc(DateTime.now().toString())
+          .set(MyHistoryModel.toMap(locationData));
+
+      log("✅ SUCCESSFULLY SAVED HISTORY for ${locationData.patientID}");
+    } catch (e, stackTrace) {
+      log("ERROR SAVING HISTORY: $e \nAT: $stackTrace");
     }
   }
 
-  /// Retrieves all the latest records of patients
-  static Future<List<PatientHistory>> getAllPatientsLatestHistory() async {
+  // /// Retrieve all history logs for a specific patient
+  // static Future<List<MyHistoryModel>> getPatientHistory(
+  //   String patientID, {
+  //   String orderBy = "timeStamp",
+  //   String? fieldToLookFor,
+  //   String? fieldValue,
+  //   bool isDescending = true,
+  // }) async {
+  //   try {
+  //     late QuerySnapshot snapshot;
+  //     bool? isFieldValueBoolean = bool.tryParse(fieldValue ?? "");
+  //
+  //     if (fieldToLookFor != null && fieldValue != null) {
+  //       snapshot = await _rootCollection
+  //           .doc(patientID)
+  //           .collection(_subCollection)
+  //           .where(fieldToLookFor, isNotEqualTo: isFieldValueBoolean ?? fieldValue)
+  //           .orderBy(orderBy, descending: isDescending) // Get newest first
+  //           .get();
+  //     } else if (orderBy == "timeStamp") {
+  //       snapshot = await _rootCollection
+  //           .doc(patientID)
+  //           .collection(_subCollection)
+  //           .orderBy(orderBy, descending: isDescending) // Get newest first
+  //           .get();
+  //     } else {
+  //       snapshot = await _rootCollection
+  //           .doc(patientID)
+  //           .collection(_subCollection)
+  //           .get();
+  //     }
+  //
+  //     return snapshot.docs.map((doc) {
+  //       return MyHistoryModel.fromFirestore(doc.data() as Map<String, dynamic>);
+  //     }).toList();
+  //   } catch (e) {
+  //     log("ERROR FETCHING HISTORY: $e");
+  //     return [];
+  //   }
+  // }
+
+  /// Retrieve all history logs for a specific patient
+  static Future<List<MyHistoryModel>> getPatientHistory(
+    String patientID, {
+    String orderBy = "timeStamp",
+    String? field1,
+    dynamic value1, // Changed to dynamic so you can pass bools directly
+    String? field2,
+    dynamic value2,
+    bool isDescending = true,
+  }) async {
     try {
-      // for caching until retrieval of certain needed records (documents)
-      List<PatientHistory> allPatientLatestHistory = [];
+      late QuerySnapshot snapshot;
 
-      // for conditional purposes only
-      final lastTimeEncounter = DateTime.now();
-
-      // StreamSubscription
-      _historyCollectionReference.snapshots().listen((snapshot) {
-        // for every document in snapshot of documents
-        for (var doc in snapshot.docs) {
-          // retrieves a single document as a Map<String, dynamic>
-          var data = doc.data() as Map<String, dynamic>;
-          // retieve the timeStamp in the map
-          DateTime timeStamp = DateTime.parse(data["timeStamp"]);
-          // only retrive the document I needed, in this case, the latest patient record (document) their is.
-          if (timeStamp.difference(lastTimeEncounter).inSeconds <= 30) {
-            // if it is latest, then add the PatientHisotry to the List of PatientHistory
-            allPatientLatestHistory.add(
-              PatientHistory(
-                patientID: doc["patientID"],
-                isInSafeZone: doc["isInSafeZone"],
-                currentlyIn: doc["currentlyIn"],
-                currentLocation: doc["currentLocation"],
-                timeStamp: timeStamp,
-                deviceBatteryPercentage: doc["deviceBatteryPercentage"],
+      // ==========================================
+      // THE "OR" QUERY LOGIC
+      // ==========================================
+      if (field1 != null &&
+          field2 != null &&
+          value1 != null &&
+          value2 != null) {
+        snapshot = await _rootCollection
+            .doc(patientID)
+            .collection(_subCollection)
+            .where(
+              Filter.or(
+                Filter(field1, isEqualTo: value1),
+                Filter(field2, isEqualTo: value2),
               ),
-            );
-          }
-        }
-      });
-      return allPatientLatestHistory;
+            )
+            .orderBy(orderBy, descending: isDescending)
+            .get();
+
+        log(
+          "**************** DONE FETCHING DATA IN getPatientHistory, ${snapshot.docs.length}",
+        );
+        // ==========================================
+        // STANDARD SINGLE-FIELD QUERY
+        // ==========================================
+      } else if (field1 != null && value1 != null) {
+        snapshot = await _rootCollection
+            .doc(patientID)
+            .collection(_subCollection)
+            .where(field1, isEqualTo: value1)
+            .orderBy(orderBy, descending: isDescending)
+            .get();
+
+        // ==========================================
+        // JUST ORDERED (NO FILTERS)
+        // ==========================================
+      } else {
+        snapshot = await _rootCollection
+            .doc(patientID)
+            .collection(_subCollection)
+            .orderBy(orderBy, descending: isDescending)
+            .get();
+      }
+
+      log(
+        "=======================\nNumber of Data fetched for ($patientID): ${snapshot.docs.length}",
+      );
+
+      return snapshot.docs.map((doc) {
+        return MyHistoryModel.fromFirestore(doc.data() as Map<String, dynamic>);
+      }).toList();
     } catch (e) {
-      print("❌ Something went wrong in getAllPatientHistory function: $e");
-      throw Exception();
+      log("ERROR FETCHING HISTORY: $e");
+      return [];
+    }
+  }
+
+  // (not yet tested as of March 22, 2026)
+  /// Fetches history and groups "Unsafe" episodes into separate sessions.
+  static Future<List<List<MyHistoryModel>>> getGroupedUnsafeSessions(
+    String patientID,
+  ) async {
+    // 1. Fetch all logs for this patient.
+    // IMPORTANT: We fetch in ASCENDING order (isDescending: false)
+    // so we can "trace" the path chronologically from start to finish.
+    List<MyHistoryModel> allLogs = await getPatientHistory(
+      patientID,
+      isDescending: false,
+    );
+
+    List<List<MyHistoryModel>> groupedSessions = [];
+    List<MyHistoryModel> currentSession = [];
+
+    for (int i = 0; i < allLogs.length; i++) {
+      MyHistoryModel logEntry = allLogs[i];
+
+      // Check if the patient is OUTSIDE the safe zone
+      if (logEntry.isInSafeZone == false) {
+        currentSession.add(logEntry);
+      }
+      // If the patient is INSIDE (Safe), it means the "Unsafe Session" has ended
+      else {
+        if (currentSession.isNotEmpty) {
+          // Add the completed unsafe session to our master list
+          groupedSessions.add(List.from(currentSession));
+          // Reset for the next time they might go out
+          currentSession.clear();
+        }
+      }
+    }
+
+    // Catch the case where the patient is STILL outside when the logs end
+    if (currentSession.isNotEmpty) {
+      groupedSessions.add(currentSession);
+    }
+
+    // Return the sessions. We reverse the outer list so the
+    // LATEST alert appears at the top of your Card List.
+    return groupedSessions.reversed.toList();
+  }
+
+  /// Retrieve all history logs for a specific patient
+  static Future<List<MyHistoryModel>> getPatientFrequentlyGoToHistory(
+    String patientID, {
+    String? fieldToLookFor,
+    String? fieldValue,
+    String? fieldValueStart,
+    String? fieldValueEnd,
+    String orderBy = "timeStamp",
+    bool isDescending = true,
+  }) async {
+    try {
+      late QuerySnapshot snapshot;
+
+      if (fieldToLookFor != null &&
+          fieldValueStart != null &&
+          fieldValueEnd != null) {
+        snapshot = await _rootCollection
+            .doc(patientID)
+            .collection(_subCollection)
+            .where(fieldToLookFor, isGreaterThanOrEqualTo: fieldValueStart)
+            .where(fieldToLookFor, isLessThanOrEqualTo: fieldValueEnd)
+            .orderBy(
+              fieldToLookFor,
+              descending: isDescending,
+            ) // Get newest first
+            .get();
+      } else if (fieldToLookFor != null && fieldValue != null) {
+        snapshot = await _rootCollection
+            .doc(patientID)
+            .collection(_subCollection)
+            .where(fieldToLookFor, isEqualTo: fieldValue)
+            .orderBy(
+              fieldToLookFor,
+              descending: isDescending,
+            ) // Get newest first
+            .get();
+      } else if (orderBy == "timeStamp") {
+        snapshot = await _rootCollection
+            .doc(patientID)
+            .collection(_subCollection)
+            .orderBy(orderBy, descending: isDescending) // Get newest first
+            .get();
+      } else {
+        snapshot = await _rootCollection
+            .doc(patientID)
+            .collection(_subCollection)
+            .get();
+      }
+
+      return snapshot.docs.map((doc) {
+        return MyHistoryModel.fromFirestore(doc.data() as Map<String, dynamic>);
+      }).toList();
+    } catch (e) {
+      log("ERROR FETCHING HISTORY: $e");
+      return [];
+    }
+  }
+
+  // Not yet implemented (as of March 21, 2026)
+  static Future<MyHistoryModel?> getLatestHistoryLog(String patientID) async {
+    try {
+      QuerySnapshot snapshot = await _rootCollection
+          .doc(patientID)
+          .collection(_subCollection)
+          .orderBy('timeStamp', descending: true) // 1. Sort newest first
+          .limit(1) // 2. ONLY download the top 1 result
+          .get();
+
+      // 3. Check if the collection is empty before trying to read it
+      if (snapshot.docs.isNotEmpty) {
+        // Store docID for later user in assistedByWhenInDanger method
+        _latestHistoryDocID = snapshot.docs.first.id;
+        // Return the single document
+        return MyHistoryModel.fromFirestore(
+          snapshot.docs.first.data() as Map<String, dynamic>,
+        );
+      } else {
+        return null; // No history exists yet
+      }
+    } catch (e) {
+      log("Error fetching latest log: $e");
+      return null;
+    }
+  }
+
+  // // for debugging purposes only
+  // static Future<void> removePatientHistory(
+  //   String patientID, {
+  //   required dynamic timeStampToDelete,
+  // }) async {
+  //   try {
+  //     await _rootCollection
+  //         .doc(patientID)
+  //         .collection(_subCollection)
+  //         .where("currentLocationLng", isEqualTo: timeStampToDelete)
+  //         .get()
+  //         .then((snapshot) {
+  //           for (var doc in snapshot.docs) {
+  //             if (snapshot.docs.first.exists) continue;
+  //             doc.reference.delete();
+  //           }
+  //         });
+  //     log(
+  //       "-------------------------\n✅ SUCCESSFULLY REMOVED HISTORY for $patientID",
+  //     );
+  //   } catch (e, stackTrace) {
+  //     log("ERROR REMOVING HISTORY: $e \nAT: $stackTrace");
+  //   }
+  // }
+
+  // Store the document ID of the latest history log
+  static String _latestHistoryDocID = "";
+  static Future<void> updateAssistedByWhenInDanger({
+    // required MyRealtimeLocationModel locationData,
+    required String patientID,
+    required String assistedByWhenInDanger,
+  }) async {
+    try {
+      // await _rootCollection
+      //     .doc(locationData.patientID)
+      //     .collection(_subCollection)
+      //     .doc(DateTime.now().toString())
+      //     .set(MyHistoryModel.toMap(locationData, assistedByWhenInDanger));
+
+      // log("✅ SUCCESSFULLY SAVED IMMEDIATE HISTORY for ${locationData.patientID}");
+
+      MyHistoryModel? latestHistory = await getLatestHistoryLog(patientID);
+      log(
+        "LATEST HISTORY LOGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG: $_latestHistoryDocID",
+      );
+      if (!latestHistory!.isCurrentlySafe && _latestHistoryDocID != "") {
+        DocumentReference docRef = _rootCollection
+            .doc(patientID)
+            .collection(_subCollection)
+            .doc(_latestHistoryDocID);
+        await docRef.set({
+          "assistedByWhenInDanger": assistedByWhenInDanger,
+        }, SetOptions(merge: true));
+
+        log(
+          "✅ SUCCESSFULLY UPDATED assistedByWhenInDanger field in HISTORY of $patientID",
+        );
+      }
+    } catch (e, stackTrace) {
+      log(
+        "ERROR UPDATING assistedByWhenInDanger field in HISTORY: $e \nAT: $stackTrace",
+      );
     }
   }
 }

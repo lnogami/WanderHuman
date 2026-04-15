@@ -3,15 +3,28 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:provider/provider.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:wanderhuman_app/firebase_options.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
+import 'package:wanderhuman_app/view-model/home_active_persons_provider.dart';
 import 'package:wanderhuman_app/view-model/home_appbar_provider.dart';
+import 'package:wanderhuman_app/view-model/home_geofence_config_provider.dart';
+import 'package:wanderhuman_app/view-model/home_miscellaneous_provider.dart';
+import 'package:wanderhuman_app/view-model/home_settings_provider.dart';
+import 'package:wanderhuman_app/view-model/my_mapbox_ref_provider.dart';
 import 'package:wanderhuman_app/view/home/home.dart';
+import 'package:wanderhuman_app/view/home/widgets/map/geofence_related_stuff/geo_logics/notifcation_alerts.dart';
 import 'package:wanderhuman_app/view/login/login.dart';
 import 'package:wanderhuman_app/view/userRolesUI/no_role_yet_landing_page.dart';
+
+// The "spy" that watches the navigation stack. This will be a big help later on
+// in the map. This will detect if the map screen is not visible, so that we can
+// save resources, like canceling StreamSubscriptions
+final RouteObserver<ModalRoute<void>> routeObserver =
+    RouteObserver<ModalRoute<void>>();
 
 void main() async {
   // this will enure that other components are initialized first before running the whole app
@@ -22,7 +35,13 @@ void main() async {
   await dotenv.load(fileName: ".env");
   // To prevent the device from sleeping.
   WakelockPlus.enable();
-  runApp(const MainApp());
+  // To initialize notification alerts
+  await MyAlertNotification.init();
+
+  runApp(
+    // Phoenix is a wrapper that is capable of resrting the app.
+    Phoenix(child: const MainApp()),
+  );
 }
 
 class MainApp extends StatelessWidget {
@@ -44,11 +63,26 @@ class MainApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         // NOTE: this is just a placeholder for now. It does not have a function yet as it is just a placeholder.
+        ChangeNotifierProvider(create: (context) => HomeAppBarProvider()),
+        // for Mapbox configuration
+        ChangeNotifierProvider(create: (context) => MyMapboxRefProvider()),
+        // newly added (not yet tested as of Feb05, 2026)
         ChangeNotifierProvider(
-          create: (context) => HomeAppBarProvider(),
-        ), // NOTE: this is just here because if I remove this it will call an error, the children must not be empty.
+          create: (context) => MyHomeGeofenceConfigurationProvider(),
+        ),
+        // newly added (not yet tested as of Feb14, 2026)
+        ChangeNotifierProvider(create: (context) => MyHomeSettingsProvider()),
+        // newly added (not yet tested as of Mar03, 2026)
+        ChangeNotifierProvider(
+          create: (context) => MyHomeMiscellaneousProvider(),
+        ),
+        // newly added (not yet tested as of Mar17, 2026)
+        ChangeNotifierProvider(
+          create: (context) => MyHomeActivePersonsProvider(),
+        ),
       ],
       child: MaterialApp(
+        navigatorObservers: [routeObserver], // registering the route observer
         debugShowCheckedModeBanner: false,
         color: MyColorPalette.formColor,
         theme: ThemeData(
@@ -96,7 +130,9 @@ class MainApp extends StatelessWidget {
                       ConnectionState.waiting) {
                     // we need to have a temporary scaffold here to have a surface for the loading visual
                     return Scaffold(
-                      body: const Center(child: CircularProgressIndicator()),
+                      body: SafeArea(
+                        child: const Center(child: CircularProgressIndicator()),
+                      ),
                     );
                   }
                   // will direct you to the NoRoleYetLandingPage if the user has no role yet

@@ -1,27 +1,38 @@
 name: wanderhuman_app
 description: "A new Flutter project."
 publish_to: 'none'
-version: 0.1.0
+version: 1.12.0
 
 environment:
   sdk: ^3.8.0
 
 dependencies:
+  animated_text_kit: ^4.3.0
+  audioplayers: ^6.5.1
   battery_plus: ^7.0.0
+  cached_network_image: ^3.4.1
   cloud_firestore: ^6.0.1
   firebase_auth: ^6.0.1
   firebase_core: ^4.0.0
+  firebase_database: ^12.1.2
   flutter:
     sdk: flutter
   flutter_dotenv: ^5.2.1
   flutter_launcher_icons: ^0.14.4
+  flutter_local_notifications: ^20.1.0
   flutter_login: ^5.1.0
+  flutter_native_splash: ^2.4.7
+  flutter_phoenix: ^1.1.1
   geolocator: ^14.0.2
   # lottie: ^3.3.1
+  google_polyline_algorithm: ^3.1.0
+  image: ^4.7.2
   image_picker: ^1.2.1
   intl: ^0.20.2
   mapbox_maps_flutter: ^2.10.0
   provider: ^6.1.5+1
+  turf: ^0.0.10
+  vibration: ^3.1.6
   wakelock_plus: ^1.3.3
 
 dev_dependencies:
@@ -29,18 +40,39 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^5.0.0
 
+flutter_native_splash:
+  android: true
+  ios: true
+
+  color: "#FFFFFF"
+  image: "assets/app_icon/splash_screen_smaller_logo.png"
+
+  # Fix for cropping: This ensures the image stays centered and doesn't stretch
+  android_gravity: center
+  ios_content_mode: center
+
+  android_12:
+    color: "#FFFFFF"
+    image: "assets/app_icon/splash_screen_smaller_logo.png"
+
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/image/app_icon.png"
-  adaptive_icon_foreground: "assets/image/app_icon.png"
-  adaptive_icon_background: "assets/image/icon_bg.png"
+  image_path: "assets/app_icon/wander_human_app_logo.png"
+  adaptive_icon_foreground: "assets/app_icon/wander_human_fg.png"
+  adaptive_icon_background: "assets/app_icon/plain_bg_only.png"
+  # image_path: "assets/image/app_icon.png"
+  # adaptive_icon_foreground: "assets/image/app_icon.png"
+  # adaptive_icon_background: "assets/image/icon_bg.png"
 
 flutter:
   assets:
     - .env
     - assets/icons/
     - assets/icons/location_marker.png
+    - assets/app_icon/
+    - assets/audios/
+    - assets/map_views/
   uses-material-design: true
   fonts:
     - family: Poppins

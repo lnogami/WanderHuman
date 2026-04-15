@@ -3,10 +3,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
 import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/date_formatter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
+import 'package:wanderhuman_app/view-model/home_appbar_provider.dart';
 import 'package:wanderhuman_app/view/components/alert_dialogue.dart';
 import 'package:wanderhuman_app/view/components/appbar.dart';
 import 'package:wanderhuman_app/view/components/button.dart';
@@ -521,6 +523,11 @@ class _AddViewStaffFormState extends State<ViewStaffForm> {
                       bgColor: Colors.white70,
                       dataToDisplay: "Successfully updated!",
                     );
+
+                    // this is responsible for updating the provider
+                    context
+                        .read<HomeAppBarProvider>()
+                        .refreshLoggedInUserData();
 
                     // to pop out the dialog box
                     Navigator.pop(context);

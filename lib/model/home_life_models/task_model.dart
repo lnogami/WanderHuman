@@ -7,6 +7,7 @@ class HLTaskModel {
   final String time;
   final bool isDone;
   final String isDoneBy;
+  final String isConfirmedDoneBy;
   // Added for that "Collection Group Query" capability we discussed
   final String? caregiverId;
   // newly added
@@ -20,6 +21,7 @@ class HLTaskModel {
     required this.time,
     required this.isDone, // Default to false (not done) when creating
     required this.isDoneBy,
+    required this.isConfirmedDoneBy,
     required this.caregiverId,
     // newly added
     required this.createdAt,
@@ -35,6 +37,7 @@ class HLTaskModel {
       'time': time,
       'isDone': isDone,
       'isDoneBy': isDoneBy,
+      'isConfirmedDoneBy': isConfirmedDoneBy,
       'caregiverId': caregiverId,
       'createdAt': createdAt,
       // Note: We rarely save 'id' inside the map because it's already the document name!
@@ -53,6 +56,7 @@ class HLTaskModel {
       time: data['time'] ?? '',
       isDone: data['isDone'] ?? false,
       isDoneBy: data['isDoneBy'] ?? '',
+      isConfirmedDoneBy: data['isConfirmedDoneBy'] ?? '',
       caregiverId: data['caregiverId'] ?? '',
       // dateID is not really required when creating task, it only optional for displaying in UI
       createdAt: data['createdAt'] ?? '',

@@ -1,7 +1,6 @@
 // ignore_for_file: avoid_print
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wanderhuman_app/helper/personal_info_repository.dart';
@@ -15,8 +14,10 @@ import 'package:wanderhuman_app/utilities/properties/color_palette.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/view/components/image_displayer.dart';
 import 'package:wanderhuman_app/view/components/image_picker.dart';
+import 'package:wanderhuman_app/view/components/lines.dart';
 import 'package:wanderhuman_app/view/components/my_animated_snackbar.dart';
 import 'package:wanderhuman_app/view/components/textfield.dart';
+import 'package:wanderhuman_app/view/userRolesUI/patient/frequently_go_to.dart';
 
 class ViewPatientForm extends StatefulWidget {
   final PersonalInfo patientPersonalInfo;
@@ -28,7 +29,9 @@ class ViewPatientForm extends StatefulWidget {
 
 class _AddViewPatientFormState extends State<ViewPatientForm> {
   bool otherInfoIsReadOnly = true;
+  bool isPatientInformationExpanded = false;
   TextEditingController nameController = TextEditingController();
+  TextEditingController deviceIDController = TextEditingController();
   TextEditingController contactNumController = TextEditingController();
   TextEditingController ageController = TextEditingController();
   TextEditingController addressController = TextEditingController();
@@ -36,7 +39,25 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
   TextEditingController notableBehaviorController = TextEditingController();
   TextEditingController assignedCaregiverController = TextEditingController();
 
-  ScrollController scrollController = ScrollController();
+  // // newly added
+  // String assignedCaregiverName = "";
+  // String assignedCaregiverID = "";
+  // Future<void> getAssignedCaregiverName() async {
+  //   try {
+  //     MyPersonalInfoRepository.getSpecificPersonalInfo(
+  //       userID: assignedCaregiverController.text,
+  //     ).then((personalInfo) {
+  //       setState(() {
+  //         assignedCaregiverName = personalInfo.name;
+  //       });
+  //     });
+  //   } catch (e) {
+  //     print("Error on getAssignedCaregiverName: $e");
+  //     rethrow;
+  //   }
+  // }
+
+  ScrollController wholePageScrollController = ScrollController();
 
   String pictureValue = "";
 
@@ -89,6 +110,7 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
 
     setState(() {
       nameController.text = widget.patientPersonalInfo.name;
+      deviceIDController.text = widget.patientPersonalInfo.deviceID;
       contactNumController.text = widget.patientPersonalInfo.contactNumber;
       ageController.text = widget.patientPersonalInfo.age;
       addressController.text = widget.patientPersonalInfo.address;
@@ -105,13 +127,14 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
   void dispose() {
     super.dispose();
     nameController.dispose();
+    deviceIDController.dispose();
     contactNumController.dispose();
     ageController.dispose();
     addressController.dispose();
     emailAddController.dispose();
     notableBehaviorController.dispose();
     assignedCaregiverController.dispose();
-    scrollController.dispose();
+    wholePageScrollController.dispose();
   }
 
   @override
@@ -119,275 +142,279 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
     return Scaffold(
       backgroundColor: MyColorPalette.formColor,
       body: SafeArea(
-        child: SingleChildScrollView(
-          scrollDirection: Axis.vertical,
-          // this is the main body of the Form
-          child: Container(
-            // padding: EdgeInsets.all(20),
-            width: MyDimensionAdapter.getWidth(context),
-            // no specified height since sulod man sya sa SingleChildScrollView
-            padding: EdgeInsets.only(bottom: 30),
-            // decoration: const BoxDecoration(color: MyColorPalette.formColor),
-            child: formSpace(context),
+        child: RawScrollbar(
+          controller: wholePageScrollController,
+          thumbColor: Colors.blue.shade300,
+          padding: EdgeInsets.only(right: 0, top: (kDefaultFontSize * 4) + 10),
+          thumbVisibility: true,
+          trackVisibility: true,
+          interactive: false, // prevents accidental touch scrolling
+          thickness: 5,
+          radius: Radius.circular(7),
+          child: SingleChildScrollView(
+            controller: wholePageScrollController,
+            scrollDirection: Axis.vertical,
+            // this is the main body of the Form
+            child: Column(
+              children: [
+                // headerBar(context),
+                appBar(context),
+                SizedBox(height: 30),
+
+                AnimatedContainer(
+                  duration: Duration(milliseconds: 400),
+                  // padding: EdgeInsets.all(20),
+                  color: Colors.transparent,
+                  width: MyDimensionAdapter.getWidth(context),
+                  height: (isPatientInformationExpanded)
+                      ? MyDimensionAdapter.getHeight(context) * 1.4
+                      : MyDimensionAdapter.getHeight(context) * 0.27,
+                  clipBehavior: Clip.hardEdge,
+                  child: patientPersonalInfoArea(context),
+                ),
+                MyLine(
+                  length: MyDimensionAdapter.getWidth(context) * 0.8,
+                  isVertical: false,
+                  color: Colors.blue.shade100,
+                  isRounded: true,
+                  margin: 0,
+                ),
+                expandCollapseButton(),
+
+                // Frequently Go-To Area
+                FrequentlyGoToArea(
+                  patientID: widget.patientPersonalInfo.userID,
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Column formSpace(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        // headerBar(context),
-        MyCustAppBar(
-          title: "Patient Information",
-          color: const Color.fromARGB(160, 33, 149, 243),
-          textColor: Colors.white,
-          backButton: () {
-            Navigator.pop(context);
-          },
-          backButtonColor: const Color.fromARGB(235, 255, 255, 255),
-          actionButtonsRightMargin: (otherInfoIsReadOnly) ? 5 : -5,
-          actionButtons: [
-            Tooltip(
-              message: (otherInfoIsReadOnly)
-                  ? "Turn on to enable editing other details of the staff."
-                  : "Press again to turn off editing other details of the staff.",
-              child: IconButton(
-                highlightColor: Colors.white24,
-                onPressed: () {
-                  setState(() {
-                    otherInfoIsReadOnly = !otherInfoIsReadOnly;
-                  });
-                },
-                icon: Icon(
-                  Icons.edit_note_outlined,
-                  color: (otherInfoIsReadOnly)
-                      ? const Color.fromARGB(255, 202, 202, 202)
-                      : const Color.fromARGB(235, 255, 255, 255),
-                  size: (otherInfoIsReadOnly) ? 32 : 45,
-                ),
-              ),
-            ),
-            SizedBox(width: 7),
-          ],
-        ),
-
-        SizedBox(height: 30),
-
-        Column(
-          children: [
-            // image part of the form
-            GestureDetector(
-              child: (imageInBytes == null)
-                  ? CircleAvatar(
-                      radius: 60,
-                      backgroundColor: MyColorPalette.formColor,
-                      child: (MyImageDisplayer(
-                        base64ImageString:
-                            MyImageProcessor.decodeStringToUint8List(
-                              widget.patientPersonalInfo.picture,
-                            ),
-                      )),
-                    )
-                  // this MyImageDisplayer is for displaying image from imagePicker,
-                  // while the one above is for displaying image that was passed down (from ManageStaff)
-                  : MyImageDisplayer(
-                      profileImageSize:
-                          // if naka protrait mode, mag base sa width, otherwise if naka landscape, mag basesa height
-                          (MyDimensionAdapter.getWidth(context) <
-                              MyDimensionAdapter.getHeight(context))
-                          ? MyDimensionAdapter.getWidth(context) * 0.3
-                          : MyDimensionAdapter.getWidth(context) * 0.2,
-                      base64ImageString: imageInBytes,
-                    ),
-              onTap: () async {
-                if (!otherInfoIsReadOnly) {
-                  MyImageProcessor.myImagePicker().then((value) async {
-                    setState(() {
-                      // this ensures that if no image was picked, the current image will remain
-                      if (value != "") {
-                        pictureValue = value;
-                        imageInBytes = MyImageProcessor.decodeStringToUint8List(
-                          value,
-                        );
-                      }
-                    });
-                    print("PICTURE VALUE IN FORM: $pictureValue");
-                  });
+  MyCustAppBar appBar(BuildContext context) {
+    return MyCustAppBar(
+      title: "Patient Information",
+      color: const Color.fromARGB(160, 33, 149, 243),
+      textColor: Colors.white,
+      backButton: () {
+        Navigator.pop(context);
+      },
+      backButtonColor: const Color.fromARGB(235, 255, 255, 255),
+      actionButtonsRightMargin: (otherInfoIsReadOnly) ? 5 : -5,
+      actionButtons: [
+        Tooltip(
+          message: (otherInfoIsReadOnly)
+              ? "Turn on to enable editing other details of the staff."
+              : "Press again to turn off editing other details of the staff.",
+          child: IconButton(
+            highlightColor: Colors.white24,
+            onPressed: () {
+              setState(() {
+                otherInfoIsReadOnly = !otherInfoIsReadOnly;
+                // if the patient information is not expanded, expand it.
+                if (!isPatientInformationExpanded) {
+                  isPatientInformationExpanded = true;
                 }
-              },
+              });
+            },
+            icon: Icon(
+              Icons.edit_note_outlined,
+              color: (otherInfoIsReadOnly)
+                  ? const Color.fromARGB(255, 202, 202, 202)
+                  : const Color.fromARGB(235, 255, 255, 255),
+              size: (otherInfoIsReadOnly) ? 32 : 45,
             ),
-            (!otherInfoIsReadOnly)
-                ? Container(
-                    margin: EdgeInsets.only(top: 5, bottom: 20),
-                    child: Text(
-                      "Tap to Select an Image",
-                      style: TextStyle(fontSize: 12),
-                    ),
-                  )
-                : SizedBox(height: 10),
-
-            informationRow(
-              labelText: "Full Name",
-              textController: nameController,
-              isReadOnly: otherInfoIsReadOnly,
-              prefixIcon: Icons.person_outline_rounded,
-            ),
-
-            notableBehaviorTextArea(context),
-            SizedBox(height: 10),
-
-            // information part of the form
-            informationRow(
-              labelText: "Sex",
-              textController: TextEditingController()
-                ..text = widget.patientPersonalInfo.sex,
-              isReadOnly: true,
-              prefixIcon: (otherInfoIsReadOnly)
-                  ? (widget.patientPersonalInfo.sex == "male")
-                        ? Icons.man_outlined
-                        : Icons.woman_outlined
-                  : Icons.info,
-            ),
-            informationRow(
-              labelText: "Age",
-              textController: TextEditingController()
-                ..text = widget.patientPersonalInfo.age,
-              isReadOnly: true,
-              prefixIcon: (otherInfoIsReadOnly)
-                  ? Icons.calendar_month_outlined
-                  : Icons.info,
-            ),
-            informationRow(
-              labelText: "Birthdate",
-              textController: TextEditingController()
-                ..text = MyDateFormatter.formatDate(
-                  dateTimeInString: (widget.patientPersonalInfo.birthdate),
-                ),
-              isReadOnly: true,
-              prefixIcon: (otherInfoIsReadOnly)
-                  ? Icons.calendar_today_outlined
-                  : Icons.info,
-            ),
-            informationRow(
-              labelText: "Contact Number",
-              textController: contactNumController,
-              isReadOnly: otherInfoIsReadOnly,
-              prefixIcon: Icons.contact_emergency_outlined,
-            ),
-            informationRow(
-              labelText: "Address",
-              textController: addressController,
-              isReadOnly: otherInfoIsReadOnly,
-              prefixIcon: Icons.maps_home_work_outlined,
-            ),
-            informationRow(
-              labelText: "Email Address",
-              textController: emailAddController,
-              isReadOnly: otherInfoIsReadOnly,
-              prefixIcon: Icons.contact_mail_outlined,
-            ),
-            informationRow(
-              labelText: "Assigned Caregiver",
-              textController: assignedCaregiverController,
-              isReadOnly: otherInfoIsReadOnly,
-              prefixIcon: Icons.assignment_ind_outlined,
-            ),
-            informationRow(
-              labelText: "Registed On",
-              textController: TextEditingController()
-                ..text = MyDateFormatter.formatDate(
-                  dateTimeInString: widget.patientPersonalInfo.createdAt,
-                ),
-              isReadOnly: true,
-              prefixIcon: (otherInfoIsReadOnly)
-                  ? Icons.library_books_outlined
-                  : Icons.info,
-            ),
-            informationRow(
-              labelText: "Last Updated At",
-              textController: TextEditingController()
-                ..text = MyDateFormatter.formatDate(
-                  dateTimeInString: widget.patientPersonalInfo.lastUpdatedAt,
-                ),
-              isReadOnly: true,
-              prefixIcon: (otherInfoIsReadOnly)
-                  ? Icons.library_books_outlined
-                  : Icons.info,
-            ),
-
-            SizedBox(height: 20),
-            (otherInfoIsReadOnly) ? SizedBox() : buttonArea(context),
-
-            // Frequently Go-To Area
-            frequentyGoToArea(context),
-          ],
+          ),
         ),
+        SizedBox(width: 7),
       ],
     );
   }
 
-  Container frequentyGoToArea(BuildContext context) {
-    return Container(
-      width: MyDimensionAdapter.getWidth(context),
-      height: 500,
-      margin: EdgeInsets.only(top: 20),
-      padding: EdgeInsets.symmetric(horizontal: 40),
+  GestureDetector expandCollapseButton() {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          isPatientInformationExpanded = !isPatientInformationExpanded;
+        });
+      },
+      child: Column(
+        children: [
+          SizedBox(height: 3),
+          MyTextFormatter.p(
+            text: (isPatientInformationExpanded) ? "Collapse" : "Expand",
+            color: Colors.grey.shade600,
+            fontsize: kDefaultFontSize - 4,
+          ),
+          Icon(
+            (isPatientInformationExpanded)
+                ? Icons.keyboard_double_arrow_up_rounded
+                : Icons.keyboard_double_arrow_down_rounded,
+            color: Colors.grey,
+            size: 32,
+          ),
+        ],
+      ),
+    );
+  }
+
+  SingleChildScrollView patientPersonalInfoArea(BuildContext context) {
+    return SingleChildScrollView(
+      physics: NeverScrollableScrollPhysics(),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Container(
-            width: MyDimensionAdapter.getWidth(context),
-            height: 1,
-            color: Colors.blue.shade100,
+          // image part of the form
+          GestureDetector(
+            child: (imageInBytes == null)
+                ? CircleAvatar(
+                    radius: 60,
+                    backgroundColor: MyColorPalette.formColor,
+                    child: (MyImageDisplayer(
+                      base64ImageString:
+                          MyImageProcessor.decodeStringToUint8List(
+                            widget.patientPersonalInfo.picture,
+                          ),
+                    )),
+                  )
+                // this MyImageDisplayer is for displaying image from imagePicker,
+                // while the one above is for displaying image that was passed down (from ManageStaff)
+                : MyImageDisplayer(
+                    profileImageSize:
+                        // if naka protrait mode, mag base sa width, otherwise if naka landscape, mag basesa height
+                        (MyDimensionAdapter.getWidth(context) <
+                            MyDimensionAdapter.getHeight(context))
+                        ? MyDimensionAdapter.getWidth(context) * 0.3
+                        : MyDimensionAdapter.getWidth(context) * 0.2,
+                    base64ImageString: imageInBytes,
+                  ),
+            onTap: () async {
+              if (!otherInfoIsReadOnly) {
+                MyImageProcessor.myImagePicker().then((value) async {
+                  setState(() {
+                    // this ensures that if no image was picked, the current image will remain
+                    if (value != "") {
+                      pictureValue = value;
+                      imageInBytes = MyImageProcessor.decodeStringToUint8List(
+                        value,
+                      );
+                    }
+                  });
+                  print("PICTURE VALUE IN FORM: $pictureValue");
+                });
+              }
+            },
           ),
-          SizedBox(height: 20),
-          MyTextFormatter.h1(
-            text: "Frequently Go-To",
-            fontWeight: FontWeight.w600,
-            fontsize: kDefaultFontSize + 9,
+          (!otherInfoIsReadOnly)
+              ? Container(
+                  margin: EdgeInsets.only(top: 5, bottom: 20),
+                  child: Text(
+                    "Tap to Select an Image",
+                    style: TextStyle(fontSize: 12),
+                  ),
+                )
+              : SizedBox(height: 10),
+
+          informationRow(
+            labelText: "Full Name",
+            textController: nameController,
+            isReadOnly: otherInfoIsReadOnly,
+            prefixIcon: Icons.person_outline_rounded,
           ),
-          SizedBox(height: 20),
-          Container(
-            width: MyDimensionAdapter.getWidth(context),
-            height: MyDimensionAdapter.getHeight(context) * 0.45,
-            color: Colors.green,
-            child: Scrollbar(
-              interactive: true,
-              thumbVisibility: true,
-              trackVisibility: true,
-              controller: scrollController,
-              child: ListView.builder(
-                controller: scrollController,
-                dragStartBehavior: DragStartBehavior.down,
-                shrinkWrap: true,
-                physics: ScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-                itemCount: 15,
-                itemBuilder: (context, index) {
-                  return Container(
-                    width: MyDimensionAdapter.getWidth(context),
-                    height: MyDimensionAdapter.getHeight(context) * 0.065,
-                    color: (index % 2 == 0)
-                        ? Colors.amber.shade100
-                        : Colors.purple.shade100,
-                    child: Row(
-                      // spacing: 20,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        SizedBox(width: 20),
-                        Text("Hello"),
-                        Spacer(),
-                        Text("${index + 1} / Day"),
-                        SizedBox(width: 20),
-                      ],
-                    ),
-                  );
-                },
+
+          informationRow(
+            labelText: "Device ID",
+            textController: deviceIDController,
+            isReadOnly: otherInfoIsReadOnly,
+            prefixIcon: Icons.person_outline_rounded,
+          ),
+
+          notableBehaviorTextArea(context),
+          SizedBox(height: 10),
+
+          // information part of the form
+          informationRow(
+            labelText: "Sex",
+            textController: TextEditingController()
+              ..text = widget.patientPersonalInfo.sex,
+            isReadOnly: true,
+            prefixIcon: (otherInfoIsReadOnly)
+                ? (widget.patientPersonalInfo.sex == "male")
+                      ? Icons.man_outlined
+                      : Icons.woman_outlined
+                : Icons.info,
+          ),
+          informationRow(
+            labelText: "Age",
+            textController: TextEditingController()
+              ..text = widget.patientPersonalInfo.age,
+            isReadOnly: true,
+            prefixIcon: (otherInfoIsReadOnly)
+                ? Icons.calendar_month_outlined
+                : Icons.info,
+          ),
+          informationRow(
+            labelText: "Birthdate",
+            textController: TextEditingController()
+              ..text = MyDateFormatter.formatDate(
+                dateTimeInString: (widget.patientPersonalInfo.birthdate),
               ),
-            ),
+            isReadOnly: true,
+            prefixIcon: (otherInfoIsReadOnly)
+                ? Icons.calendar_today_outlined
+                : Icons.info,
           ),
+          informationRow(
+            labelText: "Contact Number",
+            textController: contactNumController,
+            isReadOnly: otherInfoIsReadOnly,
+            prefixIcon: Icons.contact_emergency_outlined,
+          ),
+          informationRow(
+            labelText: "Address",
+            textController: addressController,
+            isReadOnly: otherInfoIsReadOnly,
+            prefixIcon: Icons.maps_home_work_outlined,
+          ),
+          informationRow(
+            labelText: "Email Address",
+            textController: emailAddController,
+            isReadOnly: otherInfoIsReadOnly,
+            prefixIcon: Icons.contact_mail_outlined,
+          ),
+          // informationRow(
+          //   labelText: "Assigned Caregiver",
+          //   textController: assignedCaregiverController,
+          //   isReadOnly: otherInfoIsReadOnly,
+          //   prefixIcon: Icons.assignment_ind_outlined,
+          // ),
+          informationRow(
+            labelText: "Registed On",
+            textController: TextEditingController()
+              ..text = MyDateFormatter.formatDate(
+                dateTimeInString: widget.patientPersonalInfo.createdAt,
+              ),
+            isReadOnly: true,
+            prefixIcon: (otherInfoIsReadOnly)
+                ? Icons.library_books_outlined
+                : Icons.info,
+          ),
+          informationRow(
+            labelText: "Last Updated At",
+            textController: TextEditingController()
+              ..text = MyDateFormatter.formatDate(
+                dateTimeInString: widget.patientPersonalInfo.lastUpdatedAt,
+              ),
+            isReadOnly: true,
+            prefixIcon: (otherInfoIsReadOnly)
+                ? Icons.library_books_outlined
+                : Icons.info,
+          ),
+
+          SizedBox(height: 20),
+          (otherInfoIsReadOnly) ? SizedBox() : buttonArea(context),
         ],
       ),
     );
@@ -609,6 +636,7 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
                       userID: widget.patientPersonalInfo.userID,
                       userType: widget.patientPersonalInfo.userType,
                       name: nameController.text, //
+                      deviceID: deviceIDController.text,
                       age: widget.patientPersonalInfo.age, //
                       sex: widget.patientPersonalInfo.sex,
                       birthdate: widget.patientPersonalInfo.birthdate,
@@ -621,7 +649,6 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
                       registeredBy:
                           "${widget.patientPersonalInfo.registeredBy} --> (Updated by) ${FirebaseAuth.instance.currentUser!.uid}",
                       asignedCaregiver: assignedCaregiverController.text,
-                      deviceID: widget.patientPersonalInfo.deviceID,
                       email: emailAddController.text,
                     ),
                   );
@@ -632,8 +659,8 @@ class _AddViewPatientFormState extends State<ViewPatientForm> {
                   showMyAnimatedSnackBar(
                     // ignore: use_build_context_synchronously
                     context: context,
-                    borderColor: Colors.blue.shade300,
-                    bgColor: Colors.blue.shade100,
+                    borderColor: Colors.white,
+                    bgColor: Colors.white60,
                     dataToDisplay: "Completed!",
                   );
                   // ignore: use_build_context_synchronously
