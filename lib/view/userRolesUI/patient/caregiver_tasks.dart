@@ -6,11 +6,14 @@ import 'package:wanderhuman_app/model/personal_info.dart';
 import 'package:wanderhuman_app/utilities/properties/date_formatter.dart';
 import 'package:wanderhuman_app/utilities/properties/dimension_adapter.dart';
 import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
+import 'package:wanderhuman_app/view-model/home_active_persons_provider.dart';
 import 'package:wanderhuman_app/view-model/home_appbar_provider.dart';
 import 'package:wanderhuman_app/view/components/dropdown_button.dart';
 import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/components/tooltip.dart';
 import 'package:wanderhuman_app/view/userRolesUI/home_life/individual_tasks/individual_task_card.dart';
+import 'package:wanderhuman_app/view/userRolesUI/patient/patient_details_page.dart';
+import 'package:wanderhuman_app/view/userRolesUI/patient/tabs.dart';
 
 class CaregiverTasks extends StatefulWidget {
   final PersonalInfo patientInfo;
@@ -40,8 +43,23 @@ class _CaregiverTasks extends State<CaregiverTasks> {
       Navigator.pop(context);
       MyNavigator.goTo(
         context,
-        CaregiverTasks(patientInfo: widget.patientInfo),
+        // CaregiverTasks(patientInfo: widget.patientInfo),
+        // MyTabBar(
+        //   patient: widget.patientInfo,
+        //   width: MyDimensionAdapter.getWidth(context),
+        //   height: MyDimensionAdapter.getHeight(context),
+        // ),
+        PatientDetailsPage(
+          personalInfo: widget.patientInfo,
+          batteryPercentage:
+              context
+                  .read<MyHomeActivePersonsProvider>()
+                  .devicesBattery[widget.patientInfo.userID] ??
+              0,
+        ),
       );
+
+      // setState(() {});
     }
   }
 
@@ -134,113 +152,117 @@ class _CaregiverTasks extends State<CaregiverTasks> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: SizedBox(
-        width: MyDimensionAdapter.getWidth(context),
-        child: Column(
-          children: [
-            appBar(context),
-            SizedBox(height: 10),
+    return Scaffold(
+      body: SafeArea(
+        child: SizedBox(
+          width: MyDimensionAdapter.getWidth(context),
+          child: Column(
+            children: [
+              appBar(context),
+              SizedBox(height: 10),
 
-            // BODY
-            Expanded(
-              child: Container(
-                width: MyDimensionAdapter.getWidth(context) * 0.8,
-                // height: MyDimensionAdapter.getHeight(context) * 0.715,
-                margin: EdgeInsets.only(bottom: 7),
-                // color: Colors.amber,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    MyTextFormatter.p(
-                      text: "Display Options",
-                      fontsize: kDefaultFontSize - 2,
-                    ),
-                    SizedBox(height: 4),
-                    (isDropdownLoading)
-                        ? CircularProgressIndicator()
-                        : Container(
-                            width: MyDimensionAdapter.getWidth(context) * 0.8,
-                            // height: MyDimensionAdapter.getHeight(context) * 0.07,
-                            // color: Colors.white,
-                            child: MyDropdownMenuButton(
-                              items: allDaysToDisplayOptions,
-                              initialValue: selectedDayToDisplay,
-                              isLeadingIconVisible: false,
-                              onChanged: (value) {
-                                setState(() {
-                                  selectedDayToDisplay = value!;
-                                });
-                              },
-                            ),
-                          ),
-                    // Tasks area
-                    Expanded(
-                      child: Container(
-                        width: MyDimensionAdapter.getWidth(context) * 0.8,
-                        height: MyDimensionAdapter.getHeight(context) * 0.56,
-                        // color: Colors.green,
-                        child: (isDropdownLoading)
-                            ? Center(
-                                child: CircularProgressIndicator.adaptive(),
-                              )
-                            : FutureBuilder(
-                                future: pageDisplayOptions(
-                                  selectedDayToDisplay,
-                                ),
-                                builder: (context, snapshot) {
-                                  if (snapshot.connectionState ==
-                                      ConnectionState.waiting) {
-                                    return Center(
-                                      child: CircularProgressIndicator(),
-                                    );
-                                  } else if (snapshot.data!.isEmpty) {
-                                    return Center(
-                                      child: MyTextFormatter.p(
-                                        text:
-                                            "No Tasks for ${widget.patientInfo.name.trim()} on this day.\n\n",
-                                        maxLines: 2,
-                                      ),
-                                    );
-                                  }
-                                  // this is where data is displayed
-                                  else {
-                                    if (selectedDayToDisplay == "All Dates") {
-                                      return listViewBuilderThatCatersAllDates(
-                                        snapshot,
-                                      );
-                                    }
-                                    // specific dates are catered here
-                                    else {
-                                      return ListView.builder(
-                                        itemCount: snapshot.data?.length ?? 0,
-                                        itemBuilder: (context, index) {
-                                          return IndividualTaskCard(
-                                            // // ✅ FIX: Add a unique Key!
-                                            // // This forces Flutter to rebuild the card from scratch when the date changes.
-                                            // key: ValueKey(
-                                            //   "${widget.patientInfo.userID}_$selectedDayToDisplay",
-                                            // ),
-                                            dateID: selectedDayToDisplay,
-                                            participantID:
-                                                widget.patientInfo.userID,
-                                            plannedTask: snapshot.data![index],
-                                            isAccessedByHomeLifeStaff:
-                                                loggedInUserType == "Home Life",
-                                          );
-                                        },
-                                      );
-                                    }
-                                  }
+              // BODY
+              Expanded(
+                child: Container(
+                  width: MyDimensionAdapter.getWidth(context) * 0.8,
+                  // height: MyDimensionAdapter.getHeight(context) * 0.715,
+                  margin: EdgeInsets.only(bottom: 7),
+                  // color: Colors.amber,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      MyTextFormatter.p(
+                        text: "Display Options",
+                        fontsize: kDefaultFontSize - 2,
+                      ),
+                      SizedBox(height: 4),
+                      (isDropdownLoading)
+                          ? CircularProgressIndicator()
+                          : Container(
+                              width: MyDimensionAdapter.getWidth(context) * 0.8,
+                              // height: MyDimensionAdapter.getHeight(context) * 0.07,
+                              // color: Colors.white,
+                              child: MyDropdownMenuButton(
+                                items: allDaysToDisplayOptions,
+                                initialValue: selectedDayToDisplay,
+                                isLeadingIconVisible: false,
+                                onChanged: (value) {
+                                  setState(() {
+                                    selectedDayToDisplay = value!;
+                                  });
                                 },
                               ),
+                            ),
+                      // Tasks area
+                      Expanded(
+                        child: Container(
+                          width: MyDimensionAdapter.getWidth(context) * 0.8,
+                          height: MyDimensionAdapter.getHeight(context) * 0.56,
+                          // color: Colors.green,
+                          child: (isDropdownLoading)
+                              ? Center(
+                                  child: CircularProgressIndicator.adaptive(),
+                                )
+                              : FutureBuilder(
+                                  future: pageDisplayOptions(
+                                    selectedDayToDisplay,
+                                  ),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      return Center(
+                                        child: CircularProgressIndicator(),
+                                      );
+                                    } else if (snapshot.data!.isEmpty) {
+                                      return Center(
+                                        child: MyTextFormatter.p(
+                                          text:
+                                              "No Tasks for ${widget.patientInfo.name.trim()} on this day.\n\n",
+                                          maxLines: 2,
+                                        ),
+                                      );
+                                    }
+                                    // this is where data is displayed
+                                    else {
+                                      if (selectedDayToDisplay == "All Dates") {
+                                        return listViewBuilderThatCatersAllDates(
+                                          snapshot,
+                                        );
+                                      }
+                                      // specific dates are catered here
+                                      else {
+                                        return ListView.builder(
+                                          itemCount: snapshot.data?.length ?? 0,
+                                          itemBuilder: (context, index) {
+                                            return IndividualTaskCard(
+                                              // // ✅ FIX: Add a unique Key!
+                                              // // This forces Flutter to rebuild the card from scratch when the date changes.
+                                              // key: ValueKey(
+                                              //   "${widget.patientInfo.userID}_$selectedDayToDisplay",
+                                              // ),
+                                              dateID: selectedDayToDisplay,
+                                              participantID:
+                                                  widget.patientInfo.userID,
+                                              plannedTask:
+                                                  snapshot.data![index],
+                                              isAccessedByHomeLifeStaff:
+                                                  loggedInUserType ==
+                                                  "Home Life",
+                                            );
+                                          },
+                                        );
+                                      }
+                                    }
+                                  },
+                                ),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
