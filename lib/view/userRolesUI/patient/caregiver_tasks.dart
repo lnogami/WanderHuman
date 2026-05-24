@@ -13,7 +13,6 @@ import 'package:wanderhuman_app/view/components/page_navigator.dart';
 import 'package:wanderhuman_app/view/components/tooltip.dart';
 import 'package:wanderhuman_app/view/userRolesUI/home_life/individual_tasks/individual_task_card.dart';
 import 'package:wanderhuman_app/view/userRolesUI/patient/patient_details_page.dart';
-import 'package:wanderhuman_app/view/userRolesUI/patient/tabs.dart';
 
 class CaregiverTasks extends StatefulWidget {
   final PersonalInfo patientInfo;
