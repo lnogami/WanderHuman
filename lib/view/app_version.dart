@@ -4,23 +4,10 @@ import 'package:wanderhuman_app/utilities/properties/text_formatter.dart';
 class MyAppVersion extends StatelessWidget {
   const MyAppVersion({super.key});
 
-  final String appVersion = "1.12.0";
+  final String appVersion = "1.12.1";
 
   @override
   Widget build(BuildContext context) {
-    // return Scaffold(
-    //   body: Container(
-    //     width: MyDimensionAdapter.getWidth(context),
-    //     height: MyDimensionAdapter.getHeight(context),
-    //     color: Colors.blue.shade100,
-    //     child: Column(
-    //       children: [
-
-    //       ],
-    //     ),
-    //   ),
-    // );
-
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [

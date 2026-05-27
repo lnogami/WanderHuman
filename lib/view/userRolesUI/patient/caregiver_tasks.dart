@@ -42,12 +42,6 @@ class _CaregiverTasks extends State<CaregiverTasks> {
       Navigator.pop(context);
       MyNavigator.goTo(
         context,
-        // CaregiverTasks(patientInfo: widget.patientInfo),
-        // MyTabBar(
-        //   patient: widget.patientInfo,
-        //   width: MyDimensionAdapter.getWidth(context),
-        //   height: MyDimensionAdapter.getHeight(context),
-        // ),
         PatientDetailsPage(
           personalInfo: widget.patientInfo,
           batteryPercentage:
