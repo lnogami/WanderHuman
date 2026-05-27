@@ -4,7 +4,6 @@ import 'dart:typed_data';
 
 import 'package:image_picker/image_picker.dart';
 
-// TODO: To adapt database later
 /// This picks the image and encode Encodes it.
 /// To pick image use the following method [MyImageProcessor.myImagePicker()]
 /// Accessable String data via [MyImageProcessor.base64Image]

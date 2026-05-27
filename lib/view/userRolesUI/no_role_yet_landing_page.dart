@@ -63,8 +63,7 @@ class NoRoleYetLandingPage extends StatelessWidget {
                   child: MyTextFormatter.p(
                     maxLines: 5,
                     text:
-                        "You do not have an assigned role yet. Please wait for the admin to assign you one.",
-                    // color: Colors.grey.shade700,
+                        "You do not have an assigned role yet. Please wait for the admin to assign you one. You may exit now, and login later.",
                   ),
                 ),
               ],

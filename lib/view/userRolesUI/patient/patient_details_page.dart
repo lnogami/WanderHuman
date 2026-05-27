@@ -128,7 +128,6 @@ class _PatientDetailsPageState extends State<PatientDetailsPage> {
       collapsedHeight: kToolbarHeight,
       expandedHeight: headerBarExpandedHeight,
       flexibleSpace: FlexibleSpaceBar(
-        // background: Image.asset("assets/icons/isagi.jpg"),
         background: Container(
           decoration: BoxDecoration(
             // color: Colors.blue.withAlpha(200),
@@ -155,12 +154,6 @@ class _PatientDetailsPageState extends State<PatientDetailsPage> {
                     child: Container(
                       width: width * 0.45,
                       height: headerBarExpandedHeight,
-                      // color: Colors.green.withAlpha(100),
-                      // child: Image.asset(
-                      //   "assets/icons/isagi.jpg",
-                      //   // "assets/icons/longwidth_placeholder.jpg",
-                      //   fit: BoxFit.fitHeight,
-                      // ),
                       child: MyImageDisplayer(
                         isOval: false,
                         base64ImageString:
